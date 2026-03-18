@@ -1,0 +1,17 @@
+{
+  "name": "stellar-id",
+  "version": "1.0.0",
+  "description": "StellarID — Decentralized Identity Verification on Stellar",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build && cd ../backend && npx tsc"
+  },
+  "keywords": ["stellar", "identity", "zk-proofs", "soroban", "web3"],
+  "license": "MIT"
+}

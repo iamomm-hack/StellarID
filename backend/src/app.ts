@@ -1,0 +1,39 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+
+import authRouter from './routes/auth';
+import credentialsRouter from './routes/credentials';
+import issuersRouter from './routes/issuers';
+import verifyRouter from './routes/verify';
+import platformsRouter from './routes/platforms';
+import githubIssuerRouter from './routes/github-issuer';
+import { errorHandler } from './middleware/errorHandler';
+
+const app = express();
+
+// Security middleware
+app.use(helmet());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+}));
+app.use(express.json({ limit: '10mb' }));
+
+// Health check
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API routes
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/credentials', credentialsRouter);
+app.use('/api/v1/issuers', issuersRouter);
+app.use('/api/v1/verify', verifyRouter);
+app.use('/api/v1/platforms', platformsRouter);
+app.use('/api/v1/github-issuer', githubIssuerRouter);
+
+// Error handler (must be last)
+app.use(errorHandler);
+
+export default app;

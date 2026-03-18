@@ -1,0 +1,26 @@
+name: PR Check
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  quick-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check backend types
+        run: cd backend && npm ci && npx tsc --noEmit
+
+      - name: Check frontend types + lint
+        run: cd frontend && npm ci && npx tsc --noEmit && npm run lint
+
+      - name: Check Rust compilation
+        run: |
+          for dir in contracts/credential_nft contracts/revocation_registry \
+                     contracts/disclosure_contract; do
+            cd $dir && cargo check && cd ../..
+          done
