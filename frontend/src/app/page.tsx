@@ -216,11 +216,11 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-8">
             <div className="rounded-2xl glass p-8 text-center border-red-500/10 border">
               <p className="text-4xl font-bold text-red-400 mb-2">147M</p>
-              <p className="text-white/50 text-sm">records leaked in the Equifax breach alone</p>
+              <p className="text-white/50 text-sm">Records leaked in the Equifax breach alone</p>
             </div>
             <div className="rounded-2xl glass p-8 text-center border-emerald-500/10 border">
               <p className="text-4xl font-bold text-emerald-400 mb-2">0</p>
-              <p className="text-white/50 text-sm">personal data stored by StellarID</p>
+              <p className="text-white/50 text-sm">Personal data stored by StellarID</p>
             </div>
           </div>
         </div>
