@@ -1,36 +1,40 @@
 import axios from 'axios';
 import { hashData } from '../utils/crypto';
 
-const IPFS_API_URL = process.env.IPFS_API_URL || 'https://ipfs.infura.io:5001';
-const IPFS_PROJECT_ID = process.env.IPFS_PROJECT_ID || '';
-const IPFS_PROJECT_SECRET = process.env.IPFS_PROJECT_SECRET || '';
+const PINATA_API_KEY = process.env.IPFS_PROJECT_ID || '';
+const PINATA_SECRET = process.env.IPFS_PROJECT_SECRET || '';
 
 export async function uploadToIPFS(data: string): Promise<string> {
-  if (!IPFS_PROJECT_ID || !IPFS_PROJECT_SECRET) {
+  if (!PINATA_API_KEY || !PINATA_SECRET) {
     // Fallback: generate a deterministic hash as simulated IPFS hash
-    console.warn('[IPFS] No credentials configured — returning simulated hash');
+    console.warn('[IPFS] No Pinata credentials configured — returning simulated hash');
     const hash = hashData(data);
     return `Qm${hash.substring(0, 44)}`;
   }
 
   try {
-    const auth = Buffer.from(`${IPFS_PROJECT_ID}:${IPFS_PROJECT_SECRET}`).toString('base64');
+    const jsonData = JSON.parse(data);
 
-    const formData = new FormData();
-    formData.append('file', new Blob([data], { type: 'application/json' }));
-
-    const response = await axios.post(`${IPFS_API_URL}/api/v0/add`, formData, {
-      headers: {
-        Authorization: `Basic ${auth}`,
+    const response = await axios.post(
+      'https://api.pinata.cloud/pinning/pinJSONToIPFS',
+      {
+        pinataContent: jsonData,
+        pinataMetadata: { name: `stellarid-${Date.now()}` },
       },
-      maxContentLength: 10 * 1024 * 1024, // 10MB limit
-    });
+      {
+        headers: {
+          pinata_api_key: PINATA_API_KEY,
+          pinata_secret_api_key: PINATA_SECRET,
+          'Content-Type': 'application/json',
+        },
+        maxContentLength: 10 * 1024 * 1024,
+      }
+    );
 
-    console.log(`[IPFS] Uploaded: ${response.data.Hash}`);
-    return response.data.Hash;
+    console.log(`[IPFS] Pinned to Pinata: ${response.data.IpfsHash}`);
+    return response.data.IpfsHash;
   } catch (err: any) {
-    console.error(`[IPFS] Upload failed: ${err.message}`);
-    // Return simulated hash as fallback
+    console.error(`[IPFS] Pinata upload failed: ${err.message}`);
     const hash = hashData(data);
     return `Qm${hash.substring(0, 44)}`;
   }
@@ -38,7 +42,7 @@ export async function uploadToIPFS(data: string): Promise<string> {
 
 export async function getFromIPFS(hash: string): Promise<string> {
   try {
-    const response = await axios.get(`https://ipfs.io/ipfs/${hash}`, {
+    const response = await axios.get(`https://gateway.pinata.cloud/ipfs/${hash}`, {
       timeout: 10000,
     });
     return JSON.stringify(response.data);
@@ -47,3 +51,4 @@ export async function getFromIPFS(hash: string): Promise<string> {
     throw new Error(`Failed to fetch from IPFS: ${hash}`);
   }
 }
+

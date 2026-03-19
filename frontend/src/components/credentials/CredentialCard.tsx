@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Shield, ShieldCheck, ShieldX, ShieldAlert,
-  Copy, Check, Fingerprint, Clock, Building2
+  Copy, Check, Fingerprint, Clock, Building2,
+  Cake, Github, Wallet, GraduationCap, Home, BarChart3, KeyRound, type LucideIcon
 } from 'lucide-react';
 
 interface Credential {
@@ -22,13 +23,13 @@ interface CredentialCardProps {
   onGenerateProof: (credential: Credential) => void;
 }
 
-const typeIcons: Record<string, string> = {
-  age_verification: '🎂',
-  github_developer: '💻',
-  income_check: '💰',
-  student: '🎓',
-  us_resident: '🏠',
-  accredited_investor: '📊',
+const typeIcons: Record<string, LucideIcon> = {
+  age_verification: Cake,
+  github_developer: Github,
+  income_check: Wallet,
+  student: GraduationCap,
+  us_resident: Home,
+  accredited_investor: BarChart3,
 };
 
 const typeLabels: Record<string, string> = {
@@ -102,9 +103,12 @@ export default function CredentialCard({ credential, onGenerateProof }: Credenti
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1fce8b]/25
-                            to-[#ff9a5d]/20 flex items-center justify-center text-lg">
-              {typeIcons[credential.credential_type] || '🔐'}
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00e676]/15
+                            to-[#7c3aed]/15 flex items-center justify-center">
+              {(() => {
+                const IconComp = typeIcons[credential.credential_type] || KeyRound;
+                return <IconComp className="w-5 h-5 text-[#00e676]" />;
+              })()}
             </div>
             <div>
               <h3 className="font-semibold text-white">
@@ -161,10 +165,10 @@ export default function CredentialCard({ credential, onGenerateProof }: Credenti
         {credential.valid && (
           <button
             onClick={() => onGenerateProof(credential)}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
-                       to-[#ff7b46] hover:from-[#ff6f3d] hover:to-[#ff9a5d]
+            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed]
+                       to-[#9333ea] hover:from-[#8b5cf6] hover:to-[#a855f7]
                        text-white text-sm font-medium transition-all duration-300
-                       hover:shadow-md hover:shadow-[#ff5a1f]/25 active:scale-[0.98]
+                       hover:shadow-md hover:shadow-purple-500/25 active:scale-[0.98]
                        flex items-center justify-center gap-2"
           >
             <Shield className="w-4 h-4" />
