@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Sora } from 'next/font/google';
 import Link from 'next/link';
+import Image from 'next/image';
 import './globals.css';
 import Providers from '../components/Providers';
 import ConnectWallet from '../components/wallet/ConnectWallet';
@@ -28,10 +29,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between h-[72px]">
                 <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#00e676]
-                                  flex items-center justify-center text-sm font-black text-white shadow-lg shadow-purple-500/20">
-                    S
-                  </div>
+                  <Image
+                    src="/logo.png"
+                    alt="StellarID"
+                    width={36}
+                    height={36}
+                    className="rounded-full shadow-lg shadow-purple-500/20"
+                  />
                   <span className="font-bold text-base tracking-tight text-white">
                     Stellar<span className="text-[#00e676]">ID</span>
                   </span>

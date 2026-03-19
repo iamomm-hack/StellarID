@@ -68,6 +68,10 @@ export default function VerifyPage() {
   };
 
   const handleDownloadPDF = () => {
+    if (proofId === 'demo') {
+      toast('PDF download is available with real proofs. This is a demo preview.', { icon: 'ℹ️' });
+      return;
+    }
     window.open(`${API}/proofs/${proofId}/pdf`, '_blank');
   };
 

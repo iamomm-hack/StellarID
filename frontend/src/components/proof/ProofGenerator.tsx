@@ -1,7 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { X, Shield, Check, Loader2, Copy, Lock, Eye } from 'lucide-react';
+import { X, Shield, Check, Loader2, Copy, Lock, Eye, Download, ExternalLink, Link2 } from 'lucide-react';
 import { useZKProof } from '../../hooks/useZKProof';
+import toast from 'react-hot-toast';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 interface Credential {
   id: string;
@@ -28,6 +31,8 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
   const [selectedClaim, setSelectedClaim] = useState<ClaimType | null>(null);
   const [proofResult, setProofResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const { generateAgeProof, generateIncomeProof, loading, error } = useZKProof();
 
   const handleGenerateProof = async () => {
@@ -53,6 +58,39 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
 
     if (result) {
       setProofResult(result);
+
+      // Create shareable proof record via backend
+      try {
+        let token: string | null = null;
+        try {
+          const stored = localStorage.getItem('stellar-id-wallet');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            token = parsed?.state?.token || null;
+          }
+        } catch {}
+
+        if (token) {
+          const res = await fetch(`${API}/proofs`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              circuitType: selectedClaim.includes('age') ? 'age_check' : selectedClaim.includes('income') ? 'income_check' : 'residency_check',
+              claimType: getClaimLabel(),
+              proofData: result,
+            }),
+          });
+          const data = await res.json();
+          if (data.publicToken) {
+            setShareToken(data.publicToken);
+            setShareUrl(`${window.location.origin}/verify/${data.publicToken}`);
+          }
+        }
+      } catch {}
+
       setStep(4);
     }
   };
@@ -60,16 +98,45 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
   const copyProof = () => {
     navigator.clipboard.writeText(JSON.stringify(proofResult, null, 2));
     setCopied(true);
+    toast.success('Proof JSON copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyShareLink = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success('Verification link copied!');
+    } else {
+      const demoUrl = `${window.location.origin}/verify/demo`;
+      navigator.clipboard.writeText(demoUrl);
+      toast.success('Demo verification link copied!');
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (shareToken) {
+      window.open(`${API}/proofs/${shareToken}/pdf`, '_blank');
+      toast.success('PDF download started');
+    } else {
+      toast('PDF requires backend connection', { icon: 'ℹ️' });
+    }
+  };
+
+  const openVerifyPage = () => {
+    if (shareUrl) {
+      window.open(shareUrl, '_blank');
+    } else {
+      window.open(`${window.location.origin}/verify/demo`, '_blank');
+    }
   };
 
   const getClaimLabel = () => {
     switch (selectedClaim) {
-      case 'age_18': return 'You are over 18';
-      case 'age_21': return 'You are over 21';
-      case 'income_100k': return 'Income exceeds $100,000';
-      case 'residency': return 'Residency verified';
-      default: return 'Claim verified';
+      case 'age_18': return 'Age Over 18';
+      case 'age_21': return 'Age Over 21';
+      case 'income_100k': return 'Income Over $100K';
+      case 'residency': return 'Residency Verified';
+      default: return 'Claim Verified';
     }
   };
 
@@ -204,7 +271,7 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
             </div>
           )}
 
-          {/* Step 4: Proof ready */}
+          {/* Step 4: Proof ready — with sharing actions */}
           {step === 4 && proofResult && (
             <div className="space-y-4">
               <div className="flex flex-col items-center py-2">
@@ -237,25 +304,59 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              {/* Share URL preview */}
+              {(shareUrl || true) && (
+                <div className="rounded-xl bg-white/[0.02] border border-[#00e676]/15 p-3">
+                  <p className="text-[10px] text-white/30 mb-1">VERIFICATION LINK</p>
+                  <p className="text-xs font-mono text-[#7c3aed] truncate">
+                    {shareUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/verify/demo`}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={copyProof}
-                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/70
-                             hover:text-white text-sm transition-colors flex items-center
-                             justify-center gap-2"
+                  onClick={copyShareLink}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#9333ea] text-white text-sm font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  {copied ? 'Copied!' : 'Copy Proof'}
+                  <Link2 className="w-4 h-4" />
+                  Copy Link
                 </button>
                 <button
-                  onClick={onClose}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
-                             to-[#ff7b46] text-white text-sm font-medium transition-all
-                             hover:shadow-lg hover:shadow-[#ff5a1f]/25"
+                  onClick={handleDownloadPDF}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-medium hover:bg-white/5 hover:text-white transition-all"
                 >
-                  Done
+                  <Download className="w-4 h-4" />
+                  Download PDF
                 </button>
               </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={openVerifyPage}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-medium hover:bg-white/5 hover:text-white transition-all"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open Page
+                </button>
+                <button
+                  onClick={copyProof}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-medium hover:bg-white/5 hover:text-white transition-all"
+                >
+                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copied ? 'Copied!' : 'Copy JSON'}
+                </button>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
+                           to-[#ff7b46] text-white text-sm font-medium transition-all
+                           hover:shadow-lg hover:shadow-[#ff5a1f]/25"
+              >
+                Done
+              </button>
             </div>
           )}
         </div>

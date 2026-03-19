@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import {
   Shield, Users, Zap, TrendingUp, Clock, Award,
   BarChart3, CheckCircle2, XCircle, Building2, Loader2,
-  Activity, ArrowRight,
+  Activity, ArrowRight, Lock, Eye, EyeOff,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Stellar0281';
 
 interface Stats {
   totalCredentials: number;
@@ -57,17 +58,52 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function AdminPage() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
   const [activity, setActivity] = useState<ActivityData | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [topIssuers, setTopIssuers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Check if already authenticated this session
   useEffect(() => {
-    const token = localStorage.getItem('stellarid_token');
+    if (sessionStorage.getItem('stellarid_admin') === 'true') {
+      setAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setAuthenticated(true);
+      setAuthError('');
+      sessionStorage.setItem('stellarid_admin', 'true');
+    } else {
+      setAuthError('Invalid password');
+    }
+  };
+
+  // Fetch data once authenticated
+  useEffect(() => {
+    if (!authenticated) return;
+    setLoading(true);
+
+    // Read token from Zustand persisted store
+    let token: string | null = null;
+    try {
+      const stored = localStorage.getItem('stellar-id-wallet');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        token = parsed?.state?.token || null;
+      }
+    } catch {}
+
     if (!token) {
-      setError('Authentication required. Connect wallet first.');
+      setError('Wallet not connected. Connect wallet first.');
       setLoading(false);
       return;
     }
@@ -89,7 +125,7 @@ export default function AdminPage() {
       })
       .catch(() => setError('Failed to load analytics. Make sure backend is running and you have admin access.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [authenticated]);
 
   // Merge chart data for the area chart
   const mergedChart = (() => {
@@ -107,6 +143,54 @@ export default function AdminPage() {
     });
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   })();
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4"
+           style={{ background: 'linear-gradient(165deg, #08001a 0%, #0d0030 30%, #12003a 50%, #0a0020 100%)' }}>
+        <div className="absolute top-[20%] left-[15%] w-[300px] h-[300px] rounded-full bg-[#7c3aed]/10 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[20%] right-[15%] w-[250px] h-[250px] rounded-full bg-[#00e676]/6 blur-[100px] pointer-events-none" />
+        <div className="relative max-w-sm w-full rounded-2xl glass p-8 border border-white/10">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7c3aed]/15 flex items-center justify-center">
+              <Lock className="w-8 h-8 text-[#7c3aed]" />
+            </div>
+            <h1 className="text-xl font-bold text-white">Admin Access</h1>
+            <p className="text-sm text-white/40 mt-1">Enter admin password to continue</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                placeholder="Enter password"
+                className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#7c3aed]/50 transition-colors pr-10"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {authError && (
+              <p className="text-red-400 text-xs text-center">{authError}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#9333ea] text-white font-semibold text-sm hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+            >
+              Authenticate
+            </button>
+          </form>
+          <p className="text-center text-[10px] text-white/20 mt-4">StellarID Admin Panel</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
