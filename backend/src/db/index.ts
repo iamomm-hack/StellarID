@@ -7,13 +7,26 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+function formatDbError(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === 'object' && err !== null) {
+    const value = err as { code?: string; errors?: unknown[] };
+    if (value.code) return `code=${value.code}`;
+    if (Array.isArray(value.errors) && value.errors.length > 0) {
+      const first = value.errors[0];
+      if (first instanceof Error && first.message) return first.message;
+    }
+  }
+  return String(err);
+}
+
 // Test connection on startup
 pool.query('SELECT NOW()')
   .then((res) => {
     console.log(`Database connected at ${res.rows[0].now}`);
   })
   .catch((err) => {
-    console.error('Database connection error:', err.message);
+    console.error('Database connection error:', formatDbError(err));
   });
 
 export async function query(text: string, params?: any[]): Promise<QueryResult> {

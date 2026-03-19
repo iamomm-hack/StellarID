@@ -6,6 +6,19 @@ import { authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
+function formatAuthError(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === 'object' && err !== null) {
+    const value = err as { code?: string; errors?: unknown[] };
+    if (value.code) return `code=${value.code}`;
+    if (Array.isArray(value.errors) && value.errors.length > 0) {
+      const first = value.errors[0];
+      if (first instanceof Error && first.message) return first.message;
+    }
+  }
+  return String(err);
+}
+
 // POST /connect-wallet
 router.post('/connect-wallet', authRateLimit, async (req: Request, res: Response) => {
   try {
@@ -58,8 +71,13 @@ router.post('/connect-wallet', authRateLimit, async (req: Request, res: Response
         githubUsername: user.github_username,
       },
     });
-  } catch (err: any) {
-    console.error('Wallet connection error:', err.message);
+  } catch (err: unknown) {
+    const errorMessage = formatAuthError(err);
+    console.error('Wallet connection error:', errorMessage);
+    if (process.env.NODE_ENV === 'development') {
+      res.status(500).json({ error: `Failed to connect wallet: ${errorMessage}` });
+      return;
+    }
     res.status(500).json({ error: 'Failed to connect wallet' });
   }
 });

@@ -10,9 +10,9 @@ app.listen(PORT, () => {
   console.log(`
   ╔══════════════════════════════════════════╗
   ║     StellarID Backend API v1.0.0         ║
-  ║     Port: ${String(PORT).padEnd(30)}║
-  ║     Network: ${(process.env.STELLAR_NETWORK || 'testnet').padEnd(27)}║
-  ║     Environment: ${(process.env.NODE_ENV || 'development').padEnd(22)}║
+  ║     Port: ${String(PORT).padEnd(30)} ║
+  ║     Network: ${(process.env.STELLAR_NETWORK || 'testnet').padEnd(27)} ║
+  ║     Environment: ${(process.env.NODE_ENV || 'development').padEnd(22)}  ║
   ╚══════════════════════════════════════════╝
   `);
 

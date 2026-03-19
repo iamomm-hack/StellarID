@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import axios from 'axios';
 import { useWalletStore } from '../store/walletStore';
 import api from '../lib/api';
 
@@ -21,12 +22,52 @@ export function useWallet() {
         return;
       }
 
-      const pubKey = await freighter.getPublicKey();
+      let pubKey = '';
+
+      if (typeof freighter.requestAccess === 'function') {
+        const accessResult: any = await freighter.requestAccess();
+        if (typeof accessResult === 'string') {
+          pubKey = accessResult;
+        } else {
+          pubKey = accessResult?.publicKey || accessResult?.public_key || accessResult?.address || '';
+        }
+      }
+
+      if (!pubKey && typeof freighter.isAllowed === 'function' && typeof freighter.setAllowed === 'function') {
+        const allowed = await freighter.isAllowed();
+        if (!allowed) {
+          await freighter.setAllowed();
+        }
+      }
+
+      if (!pubKey) {
+        const publicKeyResult: any = await freighter.getPublicKey();
+        pubKey = typeof publicKeyResult === 'string'
+          ? publicKeyResult
+          : publicKeyResult?.publicKey || publicKeyResult?.public_key || publicKeyResult?.address || '';
+      }
+
+      if (!pubKey) {
+        throw new Error('Unable to read wallet public key. Please allow this site in Freighter and unlock wallet.');
+      }
+
       const message = `StellarID authentication: ${Date.now()}`;
 
       // signBlob expects a base64-encoded blob
       const blob = btoa(message);
-      const signature = await freighter.signBlob(blob);
+      const signatureResult: any = await freighter.signBlob(blob, { accountToSign: pubKey });
+
+      if (signatureResult?.error) {
+        throw new Error(signatureResult.error);
+      }
+
+      const signature = typeof signatureResult === 'string'
+        ? signatureResult
+        : signatureResult?.signature || signatureResult?.signedXDR || signatureResult;
+
+      if (!signature) {
+        throw new Error('Signature was not returned by wallet');
+      }
 
       const { data } = await api.post('/auth/connect-wallet', {
         stellarAddress: pubKey,
@@ -36,7 +77,15 @@ export function useWallet() {
 
       setWallet(pubKey, data.token);
     } catch (err: any) {
-      setError(err.message || 'Connection failed');
+      if (axios.isAxiosError(err)) {
+        if (!err.response) {
+          setError('Network Error: backend API unreachable. Start backend on :4000 and verify NEXT_PUBLIC_API_URL.');
+        } else {
+          setError(err.response.data?.error || `Connection failed (${err.response.status})`);
+        }
+      } else {
+        setError(err.message || 'Connection failed');
+      }
     } finally {
       setLoading(false);
     }

@@ -1,9 +1,20 @@
 'use client';
 
 import {
-  Shield, ArrowRight, Fingerprint, Lock, CheckCircle2,
-  Coins, Users, ShoppingBag, Building2, User, Briefcase,
-  AlertTriangle, ShieldCheck, Zap
+  Shield,
+  ArrowRight,
+  Fingerprint,
+  Lock,
+  CheckCircle2,
+  Coins,
+  Users,
+  ShoppingBag,
+  Building2,
+  User,
+  Briefcase,
+  AlertTriangle,
+  ShieldCheck,
+  Zap,
 } from 'lucide-react';
 
 const useCases = [
@@ -17,31 +28,30 @@ const useCases = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-[#0b0b0f] text-white">
       <section className="relative overflow-hidden">
-        {/* Background effects */}
+        <div
+          className="absolute inset-0 opacity-35"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at center, rgba(255,255,255,0.06) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
         <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px]
-                          bg-indigo-500/10 rounded-full blur-[120px]" />
-          <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px]
-                          bg-purple-500/10 rounded-full blur-[100px]" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px]" />
+          <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px] bg-orange-400/8 rounded-full blur-[100px]" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass
-                            text-xs text-indigo-300 mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs text-orange-300 mb-8">
               <Zap className="w-3 h-3" />
               Powered by Stellar Blockchain & Zero-Knowledge Proofs
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-6">
-              Prove who you are.{' '}
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400
-                               bg-clip-text text-transparent">
-                Reveal nothing.
-              </span>
+              Prove who you are. <span className="text-orange-500">Reveal nothing.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -54,10 +64,9 @@ export default function Home() {
               <a
                 href="/dashboard"
                 className="group flex items-center gap-2 px-8 py-3.5 rounded-xl
-                           bg-gradient-to-r from-indigo-600 to-purple-600
-                           hover:from-indigo-500 hover:to-purple-500
+                           bg-orange-600 hover:bg-orange-500
                            text-white font-semibold transition-all duration-300
-                           hover:shadow-xl hover:shadow-indigo-500/25 hover:scale-[1.02]
+                           hover:shadow-xl hover:shadow-orange-500/30 hover:scale-[1.02]
                            active:scale-95"
               >
                 Get Started
@@ -73,20 +82,19 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Floating cards animation */}
-          <div className="mt-20 grid grid-cols-3 gap-6 max-w-3xl mx-auto opacity-60">
+          <div className="mt-20 grid grid-cols-3 gap-6 max-w-3xl mx-auto opacity-70">
             <div className="rounded-xl glass p-4 animate-float" style={{ animationDelay: '0s' }}>
-              <Shield className="w-6 h-6 text-indigo-400 mb-2" />
+              <Shield className="w-6 h-6 text-orange-400 mb-2" />
               <p className="text-xs text-white/60">ZK Proof Generated</p>
               <p className="text-sm text-white font-medium mt-1">Age ≥ 21 ✓</p>
             </div>
             <div className="rounded-xl glass p-4 animate-float" style={{ animationDelay: '0.5s' }}>
-              <Fingerprint className="w-6 h-6 text-purple-400 mb-2" />
+              <Fingerprint className="w-6 h-6 text-orange-300 mb-2" />
               <p className="text-xs text-white/60">Credential Minted</p>
               <p className="text-sm text-white font-medium mt-1">NFT #4829</p>
             </div>
             <div className="rounded-xl glass p-4 animate-float" style={{ animationDelay: '1s' }}>
-              <Lock className="w-6 h-6 text-emerald-400 mb-2" />
+              <Lock className="w-6 h-6 text-amber-400 mb-2" />
               <p className="text-xs text-white/60">Zero Data Leaked</p>
               <p className="text-sm text-white font-medium mt-1">0 bytes sent</p>
             </div>
@@ -94,13 +102,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Problem/Solution Section */}
       <section className="py-24 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Identity verification is{' '}
-              <span className="text-red-400">broken</span>
+              Identity verification is <span className="text-red-400">broken</span>
             </h2>
             <p className="text-white/50 max-w-xl mx-auto">
               Traditional KYC requires uploading sensitive documents to every service.
@@ -121,9 +127,8 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl flex items-center justify-center">
-              <ArrowRight className="w-10 h-10 text-indigo-400 hidden md:block" />
-              <div className="md:hidden h-px w-full bg-gradient-to-r from-transparent
-                              via-indigo-500/50 to-transparent" />
+              <ArrowRight className="w-10 h-10 text-orange-500 hidden md:block" />
+              <div className="md:hidden h-px w-full bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
             </div>
 
             <div className="rounded-2xl glass p-6 border-emerald-500/20 border">
@@ -140,7 +145,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section id="how-it-works" className="py-24 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -169,12 +173,9 @@ export default function Home() {
                 desc: 'Generate zero-knowledge proofs to prove claims to any platform. They learn YES/NO — nothing else.',
               },
             ].map((item) => (
-              <div key={item.step} className="relative rounded-2xl glass p-6 group
-                                             hover:border-indigo-500/20 transition-all duration-500">
-                <span className="text-6xl font-bold text-white/5 absolute top-4 right-6">
-                  {item.step}
-                </span>
-                <item.icon className="w-10 h-10 text-indigo-400 mb-4" />
+              <div key={item.step} className="relative rounded-2xl glass p-6 group hover:border-orange-500/20 transition-all duration-500">
+                <span className="text-6xl font-bold text-white/5 absolute top-4 right-6">{item.step}</span>
+                <item.icon className="w-10 h-10 text-orange-500 mb-4" />
                 <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
                 <p className="text-sm text-white/50 leading-relaxed">{item.desc}</p>
               </div>
@@ -183,7 +184,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Use Cases */}
       <section id="use-cases" className="py-24 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -197,11 +197,9 @@ export default function Home() {
             {useCases.map((useCase) => (
               <div
                 key={useCase.title}
-                className="rounded-2xl glass p-6 hover:border-indigo-500/20
-                           transition-all duration-300 group cursor-default"
+                className="rounded-2xl glass p-6 hover:border-orange-500/20 transition-all duration-300 group cursor-default"
               >
-                <useCase.icon className="w-8 h-8 text-indigo-400 mb-3
-                                        group-hover:text-purple-400 transition-colors" />
+                <useCase.icon className="w-8 h-8 text-orange-500 mb-3 group-hover:text-orange-400 transition-colors" />
                 <h3 className="font-semibold mb-1.5">{useCase.title}</h3>
                 <p className="text-sm text-white/50">{useCase.desc}</p>
               </div>
@@ -210,7 +208,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
       <section className="py-24 border-t border-white/5">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
@@ -226,33 +223,27 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="py-24 border-t border-white/5">
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Stop uploading your passport to strangers
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Stop uploading your passport to strangers</h2>
           <p className="text-white/50 mb-8 text-lg">
             Verify once. Prove everywhere. Your data never leaves your device.
           </p>
           <a
             href="/dashboard"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl
-                       bg-gradient-to-r from-indigo-600 to-purple-600
-                       hover:from-indigo-500 hover:to-purple-500
+                       bg-orange-600 hover:bg-orange-500
                        text-white font-semibold transition-all duration-300
-                       hover:shadow-xl hover:shadow-indigo-500/25"
+                       hover:shadow-xl hover:shadow-orange-500/30"
           >
             Launch App <ArrowRight className="w-4 h-4" />
           </a>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-white/5 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center
-                        justify-between text-xs text-white/30">
-          <p>© 2024 StellarID. Built on Stellar.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs text-white/30">
+          <p>© 2026 StellarID. Built on Stellar.</p>
           <p>Zero-knowledge proofs. Maximum privacy.</p>
         </div>
       </footer>

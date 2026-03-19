@@ -9,10 +9,33 @@ const router = Router();
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID || '';
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '';
 const GITHUB_CALLBACK_URL = process.env.GITHUB_CALLBACK_URL || 'http://localhost:4000/api/v1/github-issuer/callback';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+function isGithubOAuthConfigured(): boolean {
+  const invalidValues = new Set([
+    '',
+    'your_github_oauth_client_id',
+    'your_github_oauth_client_secret',
+  ]);
+
+  return !invalidValues.has(GITHUB_CLIENT_ID) && !invalidValues.has(GITHUB_CLIENT_SECRET);
+}
 
 // GET /auth — Redirect to GitHub OAuth
 router.get('/auth', (req: Request, res: Response) => {
   const stellarAddress = req.query.stellarAddress as string || '';
+
+  if (!isGithubOAuthConfigured()) {
+    console.error('GitHub OAuth not configured. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in backend/.env');
+    res.redirect(`${FRONTEND_URL}/dashboard?error=github_oauth_not_configured`);
+    return;
+  }
+
+  if (!stellarAddress) {
+    res.redirect(`${FRONTEND_URL}/dashboard?error=missing_wallet_address`);
+    return;
+  }
+
   const state = Buffer.from(JSON.stringify({ stellarAddress })).toString('base64');
 
   const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&scope=read:user%20user:email&state=${state}&redirect_uri=${encodeURIComponent(GITHUB_CALLBACK_URL)}`;
@@ -23,6 +46,11 @@ router.get('/auth', (req: Request, res: Response) => {
 // GET /callback — Handle GitHub OAuth callback
 router.get('/callback', async (req: Request, res: Response) => {
   try {
+    if (!isGithubOAuthConfigured()) {
+      res.redirect(`${FRONTEND_URL}/dashboard?error=github_oauth_not_configured`);
+      return;
+    }
+
     const { code, state } = req.query;
 
     if (!code) {
@@ -77,9 +105,7 @@ router.get('/callback', async (req: Request, res: Response) => {
     );
 
     if (!verifiedEmail) {
-      res.redirect(
-        `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard?error=no_verified_email`
-      );
+      res.redirect(`${FRONTEND_URL}/dashboard?error=no_verified_email`);
       return;
     }
 
@@ -167,14 +193,10 @@ router.get('/callback', async (req: Request, res: Response) => {
     }
 
     // Redirect to frontend dashboard
-    res.redirect(
-      `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard?credential=minted&type=github_developer`
-    );
+    res.redirect(`${FRONTEND_URL}/dashboard?credential=minted&type=github_developer`);
   } catch (err: any) {
     console.error('GitHub callback error:', err.message);
-    res.redirect(
-      `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard?error=github_auth_failed`
-    );
+    res.redirect(`${FRONTEND_URL}/dashboard?error=github_auth_failed`);
   }
 });
 
