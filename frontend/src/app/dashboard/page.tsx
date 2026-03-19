@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useWalletStore } from '../../store/walletStore';
 import { useCredentials } from '../../hooks/useCredentials';
@@ -11,7 +11,7 @@ import {
   Loader2, AlertCircle
 } from 'lucide-react';
 
-export default function Dashboard() {
+function DashboardContent() {
   const { address, isConnected } = useWalletStore();
   const searchParams = useSearchParams();
   const { data: credentials, isLoading, error } = useCredentials();
@@ -101,15 +101,16 @@ export default function Dashboard() {
             <a
               href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass glass-hover
-                         text-white/80 text-sm font-medium transition-all duration-300
-                         hover:border-white/20"
+                         text-white/85 text-sm font-medium transition-all duration-300
+                         hover:border-[#67e2a6]/35"
             >
               <Github className="w-4 h-4" />
               Get GitHub Credential
             </a>
             <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl
-                               bg-[#ff5a1f] hover:bg-[#ff6f3d]
-                               text-white text-sm font-medium hover:shadow-lg
+                               bg-gradient-to-r from-[#ff5a1f] to-[#ff7b46]
+                               hover:from-[#ff6f3d] hover:to-[#ff9a5d]
+                               text-white text-sm font-semibold hover:shadow-lg
                                hover:shadow-[#ff5a1f]/30 transition-all">
               <Plus className="w-4 h-4" />
               Request Credential
@@ -120,7 +121,7 @@ export default function Dashboard() {
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl glass p-4">
+            <div key={stat.label} className="rounded-xl glass p-4 hover:border-[#67e2a6]/25 transition-colors duration-300">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
@@ -166,7 +167,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20 rounded-2xl
-                          glass border border-dashed border-white/10">
+                          glass border border-dashed border-[#9effca]/20">
             <div className="w-16 h-16 rounded-2xl bg-[#ff6a2e]/10 flex items-center
                             justify-center mb-4">
               <Shield className="w-8 h-8 text-[#ff7b46]" />
@@ -198,5 +199,13 @@ export default function Dashboard() {
         />
       )}
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

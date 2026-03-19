@@ -15,19 +15,21 @@ export default function ConnectWallet() {
       <div className="relative">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl glass glass-hover
-                     text-white/90 transition-all duration-300 hover:scale-[1.02]"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#9ce4bf]
+                     bg-[#e8f8ee] text-[#1f3f34] transition-all duration-300
+                     hover:scale-[1.02] hover:bg-[#dff3e8] hover:border-[#73d9a8]
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5fd6a0]/50"
         >
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-[#35c383] animate-pulse" />
           <span className="font-mono text-sm">{truncateAddress(address)}</span>
         </button>
 
         {showDropdown && (
-          <div className="absolute right-0 mt-2 w-56 rounded-xl glass border border-white/10
-                          shadow-2xl p-2 z-50">
-            <div className="px-3 py-2 border-b border-white/10 mb-1">
-              <p className="text-xs text-white/50">Connected</p>
-              <p className="font-mono text-xs text-white/80 break-all">{address}</p>
+          <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[#9ce4bf]
+                          bg-[#f2fff6] shadow-2xl p-2 z-50">
+            <div className="px-3 py-2 border-b border-[#c9f0d9] mb-1">
+              <p className="text-xs text-[#45685b]">Connected</p>
+              <p className="font-mono text-xs text-[#2f5044] break-all">{address}</p>
             </div>
             <button
               onClick={() => {
@@ -52,12 +54,13 @@ export default function ConnectWallet() {
         onClick={connect}
         disabled={loading}
         className="flex items-center gap-2 px-6 py-2.5 rounded-xl
-                   bg-gradient-to-r from-indigo-600 to-purple-600
-                   hover:from-indigo-500 hover:to-purple-500
-                   text-white font-medium transition-all duration-300
-                   hover:shadow-lg hover:shadow-indigo-500/25 hover:scale-[1.02]
+                   bg-gradient-to-r from-[#ff5a1f] to-[#ff7b46]
+                   hover:from-[#ff6f3d] hover:to-[#ff9a5d]
+                   text-white font-semibold transition-all duration-300
+                   hover:shadow-lg hover:shadow-[#ff5a1f]/30 hover:scale-[1.02]
                    disabled:opacity-50 disabled:cursor-not-allowed
-                   active:scale-95"
+                   active:scale-95 focus-visible:outline-none
+                   focus-visible:ring-2 focus-visible:ring-[#ff7b46]/50"
       >
         {loading ? (
           <>

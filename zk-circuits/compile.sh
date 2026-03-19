@@ -8,15 +8,15 @@ for circuit in age_check income_check residency_check membership_check; do
     circom ${circuit}.circom --r1cs --wasm --sym -o build/
 
     echo "Generating zkey for $circuit..."
-    snarkjs groth16 setup build/${circuit}.r1cs pot12_final.ptau \
+    npx snarkjs groth16 setup build/${circuit}.r1cs pot12_final.ptau \
       build/${circuit}_0000.zkey
 
-    snarkjs zkey contribute build/${circuit}_0000.zkey \
+    npx snarkjs zkey contribute build/${circuit}_0000.zkey \
       build/${circuit}_final.zkey \
       --name="StellarID Contribution" \
       -e="stellarid random entropy $(date)"
 
-    snarkjs zkey export verificationkey \
+    npx snarkjs zkey export verificationkey \
       build/${circuit}_final.zkey \
       build/${circuit}_verification_key.json
 

@@ -77,14 +77,14 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center
                     justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-lg rounded-2xl bg-gray-900 border border-white/10
+        className="w-full max-w-lg rounded-2xl hybrid-surface border border-[#9effca]/20
                    shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#9effca]/20">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-indigo-400" />
+            <Shield className="w-5 h-5 text-[#8bf3bf]" />
             <h2 className="text-lg font-semibold text-white">Generate ZK Proof</h2>
           </div>
           <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
@@ -98,7 +98,7 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-all duration-500
-                ${s <= step ? 'bg-indigo-500' : 'bg-white/10'}`}
+                ${s <= step ? 'bg-[#1fce8b]' : 'bg-white/10'}`}
             />
           ))}
         </div>
@@ -115,7 +115,7 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
                   key={option.value}
                   onClick={() => { setSelectedClaim(option.value); setStep(2); }}
                   className="w-full text-left px-4 py-3 rounded-xl glass glass-hover
-                             transition-all duration-300 group hover:border-indigo-500/30"
+                             transition-all duration-300 group hover:border-[#67e2a6]/35"
                 >
                   <p className="text-white font-medium text-sm">{option.label}</p>
                   <p className="text-white/40 text-xs mt-0.5">{option.description}</p>
@@ -165,9 +165,9 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
                 </button>
                 <button
                   onClick={handleGenerateProof}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600
-                             to-purple-600 text-white text-sm font-medium hover:shadow-lg
-                             hover:shadow-indigo-500/25 transition-all"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
+                             to-[#ff7b46] text-white text-sm font-medium hover:shadow-lg
+                             hover:shadow-[#ff5a1f]/25 transition-all"
                 >
                   Generate Proof
                 </button>
@@ -179,9 +179,9 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
           {step === 3 && (
             <div className="flex flex-col items-center py-8 space-y-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center
+                <div className="w-16 h-16 rounded-full bg-[#1fce8b]/20 flex items-center
                                 justify-center animate-pulse-glow">
-                  <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-[#8bf3bf] animate-spin" />
                 </div>
               </div>
               <div className="text-center">
@@ -195,7 +195,7 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
                   {error}
                   <button
                     onClick={() => setStep(2)}
-                    className="block mx-auto mt-2 text-indigo-400 hover:text-indigo-300"
+                    className="block mx-auto mt-2 text-[#ff9a5d] hover:text-[#ffc27a]"
                   >
                     Try again
                   </button>
@@ -249,9 +249,9 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
                 </button>
                 <button
                   onClick={onClose}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600
-                             to-purple-600 text-white text-sm font-medium transition-all
-                             hover:shadow-lg hover:shadow-indigo-500/25"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
+                             to-[#ff7b46] text-white text-sm font-medium transition-all
+                             hover:shadow-lg hover:shadow-[#ff5a1f]/25"
                 >
                   Done
                 </button>

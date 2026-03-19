@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Zero-knowledge circuits for StellarID",
   "scripts": {
-    "compile": "bash compile.sh",
-    "setup-ptau": "bash setup-ptau.sh"
+    "compile": "node compile.js",
+    "setup-ptau": "node setup-ptau.js"
   },
   "dependencies": {
     "snarkjs": "^0.7.4",

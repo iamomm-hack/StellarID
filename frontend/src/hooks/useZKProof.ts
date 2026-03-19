@@ -7,8 +7,7 @@ interface ProofResult {
 }
 
 const CIRCUITS_BASE_PATH = process.env.NEXT_PUBLIC_CIRCUITS_BASE_PATH || '/circuits';
-const ALLOW_MOCK_PROOFS =
-  process.env.NEXT_PUBLIC_ALLOW_MOCK_PROOFS === 'true' || process.env.NODE_ENV !== 'production';
+const ALLOW_MOCK_PROOFS = false; // Mock proof fallback disabled to enforce real ZK proof flow
 
 function createMockProof(publicSignals: string[]): ProofResult {
   return {

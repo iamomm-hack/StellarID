@@ -89,8 +89,8 @@ export default function CredentialCard({ credential, onGenerateProof }: Credenti
 
   return (
     <div className="group relative rounded-2xl glass border border-white/10
-                    hover:border-indigo-500/30 transition-all duration-500
-                    hover:shadow-lg hover:shadow-indigo-500/10 overflow-hidden">
+                    hover:border-[#67e2a6]/35 transition-all duration-500
+                    hover:shadow-lg hover:shadow-[#1fce8b]/15 overflow-hidden">
       {/* Top gradient accent */}
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r
         ${credential.valid ? 'from-emerald-500 to-teal-500' :
@@ -102,8 +102,8 @@ export default function CredentialCard({ credential, onGenerateProof }: Credenti
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20
-                            to-purple-500/20 flex items-center justify-center text-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1fce8b]/25
+                            to-[#ff9a5d]/20 flex items-center justify-center text-lg">
               {typeIcons[credential.credential_type] || '🔐'}
             </div>
             <div>
@@ -114,7 +114,7 @@ export default function CredentialCard({ credential, onGenerateProof }: Credenti
                 <Building2 className="w-3 h-3 text-white/40" />
                 <span className="text-xs text-white/50">{credential.issuer.name}</span>
                 {credential.issuer.verified && (
-                  <ShieldCheck className="w-3 h-3 text-blue-400" />
+                  <ShieldCheck className="w-3 h-3 text-[#8bf3bf]" />
                 )}
               </div>
             </div>
@@ -161,10 +161,10 @@ export default function CredentialCard({ credential, onGenerateProof }: Credenti
         {credential.valid && (
           <button
             onClick={() => onGenerateProof(credential)}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600/80
-                       to-purple-600/80 hover:from-indigo-600 hover:to-purple-600
+            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
+                       to-[#ff7b46] hover:from-[#ff6f3d] hover:to-[#ff9a5d]
                        text-white text-sm font-medium transition-all duration-300
-                       hover:shadow-md hover:shadow-indigo-500/20 active:scale-[0.98]
+                       hover:shadow-md hover:shadow-[#ff5a1f]/25 active:scale-[0.98]
                        flex items-center justify-center gap-2"
           >
             <Shield className="w-4 h-4" />
