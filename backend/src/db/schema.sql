@@ -63,3 +63,26 @@ CREATE INDEX IF NOT EXISTS idx_credentials_user ON credentials(user_id);
 CREATE INDEX IF NOT EXISTS idx_credentials_type ON credentials(credential_type);
 CREATE INDEX IF NOT EXISTS idx_credentials_expires ON credentials(expires_at);
 CREATE INDEX IF NOT EXISTS idx_verification_platform ON verification_requests(platform_id);
+
+-- Proof records for shareable verification & analytics
+CREATE TABLE IF NOT EXISTS proof_records (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  credential_id UUID REFERENCES credentials(id) ON DELETE SET NULL,
+  circuit_type VARCHAR(100) NOT NULL,
+  claim_type VARCHAR(255),
+  status VARCHAR(20) DEFAULT 'verified',
+  proof_time_ms INTEGER,
+  public_token VARCHAR(64) UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP
+);
+
+-- Admin role support
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'user';
+
+CREATE INDEX IF NOT EXISTS idx_proof_records_created ON proof_records(created_at);
+CREATE INDEX IF NOT EXISTS idx_proof_records_status ON proof_records(status);
+CREATE INDEX IF NOT EXISTS idx_proof_records_user ON proof_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_proof_records_token ON proof_records(public_token);
+CREATE INDEX IF NOT EXISTS idx_credentials_issued ON credentials(issued_at);
