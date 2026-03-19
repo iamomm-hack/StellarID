@@ -8,6 +8,8 @@ import issuersRouter from './routes/issuers';
 import verifyRouter from './routes/verify';
 import platformsRouter from './routes/platforms';
 import githubIssuerRouter from './routes/github-issuer';
+import adminRouter from './routes/admin';
+import proofsRouter from './routes/proofs';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -32,6 +34,8 @@ app.use('/api/v1/issuers', issuersRouter);
 app.use('/api/v1/verify', verifyRouter);
 app.use('/api/v1/platforms', platformsRouter);
 app.use('/api/v1/github-issuer', githubIssuerRouter);
+app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/proofs', proofsRouter);
 
 // Error handler (must be last)
 app.use(errorHandler);
