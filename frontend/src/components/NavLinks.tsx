@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Use Cases', href: '/use-cases' },
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Docs', href: '/docs' },
+  { label: 'Admin', href: '/admin' },
 ];
 
 export default function NavLinks() {
