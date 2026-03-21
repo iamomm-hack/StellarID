@@ -519,9 +519,9 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 | Channel | Link |
 |---|---|
-| **GitHub** | [@yourusername](https://github.com/yourusername) |
-| **Twitter/X** | [@yourhandle](https://twitter.com/yourhandle) |
-| **Email** | your.email@domain.com |
+| **GitHub** | [@iamomm-hack](https://github.com/iamomm-hack) |
+| **Twitter/X** | [@omdotcmd](https://twitter.com/omdotcmd) |
+| **Email** | iamkumarom.edu@gmail.com |
 
 ---
 

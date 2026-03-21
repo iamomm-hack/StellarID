@@ -6,6 +6,14 @@ import { startExpiryJob } from './jobs/expiry-cron';
 
 const PORT = process.env.PORT || 4000;
 
+// Prevent unhandled errors from crashing the server
+process.on('unhandledRejection', (reason: any) => {
+  console.error('Unhandled Rejection:', reason?.message || reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err.message);
+});
+
 app.listen(PORT, () => {
   console.log(`
   ╔══════════════════════════════════════════╗
@@ -16,6 +24,10 @@ app.listen(PORT, () => {
   ╚══════════════════════════════════════════╝
   `);
 
-  // Start background jobs
-  startExpiryJob();
+  // Start background jobs (non-critical — don't crash server if this fails)
+  try {
+    startExpiryJob();
+  } catch (err: any) {
+    console.warn('Failed to start expiry job:', err.message);
+  }
 });
