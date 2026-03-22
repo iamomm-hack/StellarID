@@ -61,7 +61,7 @@ Every time you sign up for a service, you hand over your **name, address, date o
 
 | Resource | Link |
 |---|---|
-| 🌐 **Live App** | [Coming Soon — Vercel Deployment](#) |
+| 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
 | 🎥 **Demo Video** | [Coming Soon — YouTube](#) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
 
@@ -150,7 +150,7 @@ Every time you sign up for a service, you hand over your **name, address, date o
 ### 🔐 Privacy & Proofs
 - **ZK proof generation** — Client-side proving with Circom/snarkjs (age, income, residency, membership circuits)
 - **Selective disclosure** — Prove specific claims without revealing underlying data
-- **Downloadable proof** — Export verification as a PDF with QR code
+- **Downloadable PDF Certificates** — Export verification as beautifully rendered PDFs containing embedded Scan-to-Verify QR codes (via `pdfkit` & `qr-image`)
 - **Shareable verification** — Public link for anyone to verify a proof's authenticity
 - **Verification badge** — ✅ VERIFIED or ❌ REVOKED status displayed publicly
 
@@ -226,7 +226,7 @@ A full SaaS-style admin dashboard showing real-time platform health:
 | Feature | How It Works |
 |---|---|
 | **Generate Proof** | Client-side ZK-SNARK computation using snarkjs |
-| **Download PDF** | Branded certificate with QR code linking to verification page |
+| **Download PDF** | Generates a branded cryptographic certificate on-the-fly (`pdfkit`) with dynamic scan-to-verify QR codes (`qr-image`) |
 | **Share Link** | Public `/verify/{token}` page — anyone can verify the proof |
 | **Badge Display** | Green **VERIFIED** ✅ or Red **REVOKED** ❌ with status details |
 
