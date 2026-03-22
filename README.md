@@ -368,28 +368,30 @@ graph TB
 
 ## ⚙️ Environment Setup
 
-### Backend `.env.example`
+### Backend `.env` (Already Configured)
+
+The backend is configured to run on **port 5555**. Key settings:
 
 ```bash
 # Server
-PORT=4000
+PORT=5555
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 
 # Database
-DATABASE_URL=postgresql://user:password@localhost:5432/stellarid
+DATABASE_URL=postgresql://stellarid_user:stellarid_pass@localhost:5432/stellarid_db
 
 # Cache
 REDIS_URL=redis://localhost:6379
 
 # Authentication
-JWT_SECRET=your_jwt_secret_here
+JWT_SECRET=stellarid_local_dev_secret
 JWT_EXPIRES_IN=7d
 
 # Stellar
 STELLAR_NETWORK=testnet
 STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
-STELLAR_SECRET_KEY=your_stellar_secret_key_here
+STELLAR_PASSPHRASE=Test SDF Network ; September 2015
 
 # Smart Contracts
 CREDENTIAL_NFT_CONTRACT_ID=CBIO5S7UB6JVO337KTMHZPTRSXQLNPQPDAMCH57MBI6N2NDC4WWO3RYX
@@ -397,22 +399,23 @@ REVOCATION_CONTRACT_ID=CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3
 DISCLOSURE_CONTRACT_ID=CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2
 
 # IPFS (Pinata)
-PINATA_API_KEY=your_pinata_api_key_here
-PINATA_SECRET_KEY=your_pinata_secret_key_here
+IPFS_API_URL=https://api.pinata.cloud
+IPFS_PROJECT_ID=<your_pinata_project_id>
+IPFS_PROJECT_SECRET=<your_pinata_secret>
 
 # GitHub OAuth
-GITHUB_CLIENT_ID=your_github_client_id_here
-GITHUB_CLIENT_SECRET=your_github_client_secret_here
-GITHUB_CALLBACK_URL=http://localhost:4000/api/v1/github-issuer/callback
+GITHUB_CLIENT_ID=Ov23limO4e1dWIJmQf4c
+GITHUB_CLIENT_SECRET=<configured>
+GITHUB_CALLBACK_URL=http://localhost:5555/api/v1/github-issuer/callback
 ```
 
-### Frontend `.env.example`
+### Frontend `.env` (Already Configured)
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:5555/api/v1
 ```
 
-> ⚠️ **Never commit `.env` files.** Use `.env.example` as a template only.
+> ✅ **Development environment is already configured.** Both `.env` files contain the correct settings.
 
 ---
 
@@ -421,11 +424,11 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
 ### Prerequisites
 
 - **Node.js** ≥ 18
-- **PostgreSQL** ≥ 14
-- **Redis** ≥ 7
-- **Rust** + `wasm32-unknown-unknown` target (for contracts)
-- **Stellar CLI** ([Install Guide](https://soroban.stellar.org/docs/getting-started/setup))
+- **PostgreSQL** ≥ 14 (running on port 5432)
+- **Redis** ≥ 7 (running on port 6379)
 - **Freighter Wallet** ([Chrome Extension](https://www.freighter.app/))
+
+> **Note:** Database and Redis are typically already running in the development environment.
 
 ### Quick Start
 
@@ -436,40 +439,30 @@ cd StellarID
 
 # Backend setup
 cd backend
-cp .env.example .env          # Configure your env variables
 npm install
-npm run migrate               # Create database tables
-npm run dev                   # Starts on http://localhost:4000
+npm run dev                   # Starts on http://localhost:5555
 
 # Frontend setup (new terminal)
 cd frontend
-cp .env.example .env
 npm install
 npm run dev                   # Starts on http://localhost:3000
-
-# Smart Contracts (optional — already deployed)
-cd contracts/credential_nft
-stellar contract build
-stellar contract deploy \
-  --wasm target/wasm32v1-none/release/credential_nft.wasm \
-  --source deployer \
-  --network testnet
 ```
 
-### Docker (Alternative)
+### Using the App
 
-```bash
-docker-compose up -d          # Starts all services
-```
+1. **Open Frontend**: http://localhost:3000
+2. **Connect Wallet**: Click "Connect Wallet" → Approve in Freighter
+3. **Link GitHub**: Click "Get GitHub Credential" → Authorize with GitHub
+4. **Request Credentials**: Click "Request Credential" → Select issuer & type
+5. **Generate Proof**: Click "Generate ZK Proof" on any credential
+6. **Logout**: Click "Logout" in the GitHub greeting banner
 
-### ZK Circuits
+### Architecture
 
-```bash
-cd circuits
-npm run compile               # Compile Circom circuits
-npm run setup                 # Generate proving keys
-npm run test                  # Run proof verification tests
-```
+- **Backend API**: http://localhost:5555/api/v1
+- **Frontend**: http://localhost:3000
+- **Database**: PostgreSQL on localhost:5432
+- **Cache**: Redis on localhost:6379
 
 ---
 

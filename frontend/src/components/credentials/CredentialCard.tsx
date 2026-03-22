@@ -3,8 +3,9 @@ import { useState, type ReactNode } from 'react';
 import {
   Shield, ShieldCheck, ShieldX, ShieldAlert,
   Copy, Check, Fingerprint, Clock, Building2,
-  Cake, Github, Wallet, GraduationCap, Home, BarChart3, KeyRound, type LucideIcon
+  Cake, Github, Wallet, GraduationCap, Home, BarChart3, KeyRound, Trash2, type LucideIcon
 } from 'lucide-react';
+import { useDeleteCredential } from '../../hooks/useCredentials';
 
 interface Credential {
   id: string;
@@ -48,11 +49,18 @@ const typeLabels: Record<string, string> = {
 
 export default function CredentialCard({ credential, onGenerateProof }: CredentialCardProps) {
   const [copied, setCopied] = useState(false);
+  const { mutate: deleteCredential, isPending: isDeleting } = useDeleteCredential();
 
   const copyTokenId = () => {
     navigator.clipboard.writeText(credential.nft_token_id);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDelete = () => {
+    if (confirm(`Are you sure you want to unlink this ${typeLabels[credential.credential_type] || credential.credential_type} credential?`)) {
+      deleteCredential(credential.id);
+    }
   };
 
   const getStatusBadge = () => {
@@ -161,20 +169,33 @@ export default function CredentialCard({ credential, onGenerateProof }: Credenti
           )}
         </div>
 
-        {/* Generate Proof Button */}
-        {credential.valid && (
+        {/* Buttons */}
+        <div className="space-y-2">
+          {credential.valid && (
+            <button
+              onClick={() => onGenerateProof(credential)}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed]
+                         to-[#9333ea] hover:from-[#8b5cf6] hover:to-[#a855f7]
+                         text-white text-sm font-medium transition-all duration-300
+                         hover:shadow-md hover:shadow-purple-500/25 active:scale-[0.98]
+                         flex items-center justify-center gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              Generate ZK Proof
+            </button>
+          )}
           <button
-            onClick={() => onGenerateProof(credential)}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed]
-                       to-[#9333ea] hover:from-[#8b5cf6] hover:to-[#a855f7]
-                       text-white text-sm font-medium transition-all duration-300
-                       hover:shadow-md hover:shadow-purple-500/25 active:scale-[0.98]
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="w-full py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30
+                       disabled:bg-red-500/10 disabled:text-white/40
+                       text-red-400 text-sm font-medium transition-all
                        flex items-center justify-center gap-2"
           >
-            <Shield className="w-4 h-4" />
-            Generate ZK Proof
+            <Trash2 className="w-4 h-4" />
+            {isDeleting ? 'Unlinking...' : 'Unlink Credential'}
           </button>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -41,6 +41,7 @@ export const credentialsApi = {
   request: (data: any) => api.post('/credentials/request', data),
   generateProofRequest: (id: string, data: any) =>
     api.post(`/credentials/${id}/generate-proof`, data),
+  delete: (id: string) => api.delete(`/credentials/${id}`),
 };
 
 export const issuersApi = {

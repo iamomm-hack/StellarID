@@ -20,6 +20,62 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* Suppress wallet extension errors */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Suppress errors from wallet extensions (MetaMask, Solana, etc)
+                const originalError = console.error;
+                const originalWarn = console.warn;
+                
+                console.error = function(...args) {
+                  const errorStr = String(args[0] || '');
+                  // Suppress wallet extension errors
+                  if (
+                    errorStr.includes('ethereum') ||
+                    errorStr.includes('Cannot assign to read only property') ||
+                    errorStr.includes('Cannot redefine property') ||
+                    errorStr.includes('MetaMask') ||
+                    errorStr.includes('solana') ||
+                    errorStr.includes('pageProvider') ||
+                    errorStr.includes('evmAsk')
+                  ) {
+                    return; // Silently ignore
+                  }
+                  return originalError.apply(console, args);
+                };
+                
+                console.warn = function(...args) {
+                  const warnStr = String(args[0] || '');
+                  if (
+                    warnStr.includes('ethereum') ||
+                    warnStr.includes('solana') ||
+                    warnStr.includes('wallet')
+                  ) {
+                    return;
+                  }
+                  return originalWarn.apply(console, args);
+                };
+                
+                // Suppress uncaught promise rejections from extensions
+                window.addEventListener('unhandledrejection', (event) => {
+                  const reason = String(event.reason || '');
+                  if (
+                    reason.includes('MetaMask') ||
+                    reason.includes('Failed to connect') ||
+                    reason.includes('extension not found') ||
+                    reason.includes('ethereum')
+                  ) {
+                    event.preventDefault();
+                  }
+                });
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${sora.className} bg-[#08001a] text-white antialiased`}>
         <Providers>
           <ToastProvider />

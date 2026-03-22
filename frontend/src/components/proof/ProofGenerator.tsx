@@ -154,7 +154,12 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
             <Shield className="w-5 h-5 text-[#8bf3bf]" />
             <h2 className="text-lg font-semibold text-white">Generate ZK Proof</h2>
           </div>
-          <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
+          <button
+            type="button"
+            onClick={onClose}
+            title="Close modal"
+            className="text-white/40 hover:text-white transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>

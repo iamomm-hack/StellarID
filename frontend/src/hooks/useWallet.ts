@@ -14,9 +14,26 @@ export function useWallet() {
     setError(null);
     try {
       // Dynamic import to avoid SSR issues
-      const freighter = await import('@stellar/freighter-api');
+      let freighter;
+      try {
+        freighter = await import('@stellar/freighter-api');
+      } catch (importErr: any) {
+        // Silently handle import errors (MetaMask inpage.js might throw)
+        console.debug('Wallet import notice:', importErr?.message);
+        setError('Please install Freighter wallet extension');
+        return;
+      }
 
-      const connected = await freighter.isConnected();
+      // Wrap wallet detection in try-catch to handle MetaMask interference
+      let connected = false;
+      try {
+        connected = await freighter.isConnected();
+      } catch (detectErr: any) {
+        // Ignore MetaMask detection errors
+        console.debug('Wallet detection notice (ignored):', detectErr?.message);
+        connected = false;
+      }
+
       if (!connected) {
         setError('Please install Freighter wallet extension');
         return;
@@ -25,26 +42,42 @@ export function useWallet() {
       let pubKey = '';
 
       if (typeof freighter.requestAccess === 'function') {
-        const accessResult: any = await freighter.requestAccess();
-        if (typeof accessResult === 'string') {
-          pubKey = accessResult;
-        } else {
-          pubKey = accessResult?.publicKey || accessResult?.public_key || accessResult?.address || '';
+        try {
+          const accessResult: any = await freighter.requestAccess();
+          if (typeof accessResult === 'string') {
+            pubKey = accessResult;
+          } else {
+            pubKey = accessResult?.publicKey || accessResult?.public_key || accessResult?.address || '';
+          }
+        } catch (accessErr: any) {
+          // Handle access request errors gracefully
+          if (!accessErr?.message?.includes('user rejected')) {
+            console.debug('Access request notice:', accessErr?.message);
+          }
         }
       }
 
       if (!pubKey && typeof freighter.isAllowed === 'function' && typeof freighter.setAllowed === 'function') {
-        const allowed = await freighter.isAllowed();
-        if (!allowed) {
-          await freighter.setAllowed();
+        try {
+          const allowed = await freighter.isAllowed();
+          if (!allowed) {
+            await freighter.setAllowed();
+          }
+        } catch (permErr: any) {
+          // Ignore permission-related errors
+          console.debug('Permission notice:', permErr?.message);
         }
       }
 
       if (!pubKey) {
-        const publicKeyResult: any = await freighter.getPublicKey();
-        pubKey = typeof publicKeyResult === 'string'
-          ? publicKeyResult
-          : publicKeyResult?.publicKey || publicKeyResult?.public_key || publicKeyResult?.address || '';
+        try {
+          const publicKeyResult: any = await freighter.getPublicKey();
+          pubKey = typeof publicKeyResult === 'string'
+            ? publicKeyResult
+            : publicKeyResult?.publicKey || publicKeyResult?.public_key || publicKeyResult?.address || '';
+        } catch (keyErr: any) {
+          console.debug('Key retrieval notice:', keyErr?.message);
+        }
       }
 
       if (!pubKey) {
@@ -55,7 +88,12 @@ export function useWallet() {
 
       // signBlob expects a base64-encoded blob
       const blob = btoa(message);
-      const signatureResult: any = await freighter.signBlob(blob, { accountToSign: pubKey });
+      let signatureResult: any;
+      try {
+        signatureResult = await freighter.signBlob(blob, { accountToSign: pubKey });
+      } catch (signErr: any) {
+        throw new Error(`Signature failed: ${signErr?.message || 'Unknown error'}`);
+      }
 
       if (signatureResult?.error) {
         throw new Error(signatureResult.error);

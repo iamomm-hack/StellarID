@@ -111,4 +111,33 @@ router.post('/:id/generate-proof', authMiddleware, async (req: AuthRequest, res:
   }
 });
 
+// DELETE /:id — Delete/unlink a credential
+router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Verify credential belongs to user
+    const result = await query(
+      'SELECT id FROM credentials WHERE id = $1 AND user_id = $2',
+      [id, req.user!.id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Credential not found' });
+      return;
+    }
+
+    // Delete credential
+    await query(
+      'DELETE FROM credentials WHERE id = $1',
+      [id]
+    );
+
+    res.json({ success: true, message: 'Credential deleted' });
+  } catch (err: any) {
+    console.error('Delete credential error:', err.message);
+    res.status(500).json({ error: 'Failed to delete credential' });
+  }
+});
+
 export default router;

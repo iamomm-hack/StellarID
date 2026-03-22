@@ -16,3 +16,11 @@ export function useRequestCredential() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['credentials'] }),
   });
 }
+
+export function useDeleteCredential() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (credentialId: string) => credentialsApi.delete(credentialId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['credentials'] }),
+  });
+}

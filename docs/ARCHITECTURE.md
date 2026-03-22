@@ -200,3 +200,115 @@ Connect a Stellar wallet.
 | 404 | Resource not found |
 | 429 | Rate limit exceeded |
 | 500 | Internal server error |
+
+---
+
+## 7. User Dashboard & Credential Management
+
+### Dashboard Features
+
+#### GitHub Integration
+- **OAuth Flow**: Users can link their GitHub account to receive GitHub Developer credentials
+- **Token Management**: Fresh JWT tokens issued after successful GitHub OAuth
+- **Greeting Banner**: Timezone-aware greeting (Good Morning/Afternoon/Evening) with GitHub username
+- **Logout Functionality**: Users can disconnect their wallet session with one click
+
+#### Credential Management
+- **Request Credentials**: Multi-step modal to select issuer, credential type, and claim data
+- **View Credentials**: Display all user credentials with status (Valid/Expired/Revoked)
+- **Unlink Credentials**: Remove individual credentials from dashboard
+- **Generate ZK Proofs**: Create client-side proofs from any valid credential
+
+#### Credential Lifecycle
+1. **Request**: User selects issuer and credential type in 3-step modal
+2. **Issue**: Backend processes request and stores in database
+3. **Display**: Credential appears on dashboard with metadata
+4. **Unlink**: User can delete credentials anytime (does not affect blockchain)
+5. **Revoke** (via issuer): On-chain revocation marks credential invalid
+
+### Request Credential Modal Flow
+```
+Step 1: Select Issuer
+├─ Load issuers from GET /issuers
+├─ Display issuer name, description, logo
+└─ User selects issuer
+
+Step 2: Select Credential Type
+├─ Filter by issuer.credential_types
+├─ Display type labels (GitHub Developer, Age 18+, etc)
+└─ User selects type
+
+Step 3: Fill Claim Data
+├─ Dynamic form based on credential type
+├─ Auto-fill timestamps for age/residency credentials
+└─ User submits form
+
+Submit → POST /credentials/request → Credential issued → Dashboard updates
+```
+
+### Credential Card Features
+- **Status Badge**: Visual indicator (Valid ✓ / Expired ⚠ / Revoked ✗)
+- **Metadata Display**: Issuer name, issuance date, expiry date, NFT ID (copyable)
+- **Generate Proof**: Button to launch ZK proof generation modal (valid credentials only)
+- **Unlink Credential**: Delete credential with confirmation dialog
+
+---
+
+## 8. API Endpoints (Updated)
+
+### Credential Management
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/v1/credentials` | List user's credentials | 🔐 JWT |
+| `POST` | `/api/v1/credentials/request` | Request a new credential | 🔐 JWT |
+| `DELETE` | `/api/v1/credentials/:id` | Delete/unlink credential | 🔐 JWT |
+| `POST` | `/api/v1/credentials/:id/generate-proof` | Prepare for ZK proof generation | 🔐 JWT |
+
+### Issuer Integration
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/api/v1/issuers` | List all available issuers | — |
+| `GET` | `/api/v1/github-issuer/auth` | Redirect to GitHub OAuth | — |
+| `GET` | `/api/v1/github-issuer/callback` | GitHub OAuth callback | — |
+
+**Request Credential Example**:
+```json
+POST /api/v1/credentials/request
+{
+  "issuerId": "uuid-of-github-issuer",
+  "credentialType": "github_developer",
+  "claimData": {
+    "github_username": "octocat",
+    "public_repos_count": 42,
+    "verified_email": true
+  }
+}
+```
+
+---
+
+## 9. Frontend State Management
+
+### Wallet Store (Zustand)
+```typescript
+interface WalletState {
+  address: string | null;
+  token: string | null;
+  isConnected: boolean;
+  setWallet: (address: string, token: string) => void;
+  setToken: (token: string) => void;
+  disconnect: () => void;
+}
+```
+
+### Key Features
+- Persists wallet state to localStorage
+- `setToken()` updates token without disconnecting wallet
+- Used for GitHub OAuth callback to refresh token
+
+### Hooks
+- `useWallet()` - Connect/disconnect wallet with Freighter
+- `useCredentials()` - Fetch user credentials
+- `useRequestCredential()` - Request new credential
+- `useDeleteCredential()` - Delete credential
+- `useZKProof()` - Generate ZK proofs

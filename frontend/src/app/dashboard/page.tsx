@@ -1,12 +1,14 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useWalletStore } from '../../store/walletStore';
 import { useCredentials } from '../../hooks/useCredentials';
 import CredentialCard from '../../components/credentials/CredentialCard';
 import ProofGenerator from '../../components/proof/ProofGenerator';
 import LiveDemo from '../../components/proof/LiveDemo';
+import RequestCredentialModal from '../../components/credentials/RequestCredentialModal';
+import GitHubGreeting from '../../components/GitHubGreeting';
 import {
   Shield, Plus, Github, Award, Clock, CheckCircle2,
   Loader2, AlertCircle, Zap
@@ -17,12 +19,19 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const { data: credentials, isLoading, error } = useCredentials();
   const [selectedCredential, setSelectedCredential] = useState<any>(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
 
   // Handle token from GitHub OAuth callback
   const tokenFromUrl = searchParams.get('token');
-  if (tokenFromUrl && isConnected) {
-    setToken(tokenFromUrl);
-  }
+  useEffect(() => {
+    if (tokenFromUrl && isConnected) {
+      setToken(tokenFromUrl);
+      // Clear URL params after handling token to prevent loop
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({}, document.title, '/dashboard');
+      }
+    }
+  }, [tokenFromUrl, isConnected, setToken]);
 
   const oauthError = searchParams.get('error');
   const oauthMessage = (() => {
@@ -114,16 +123,25 @@ function DashboardContent() {
               <Github className="w-4 h-4" />
               Get GitHub Credential
             </a>
-            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl
-                               bg-gradient-to-r from-[#7c3aed] to-[#9333ea]
-                               hover:from-[#8b5cf6] hover:to-[#a855f7]
-                               text-white text-sm font-semibold hover:shadow-lg
-                               hover:shadow-purple-500/30 transition-all">
+            <button
+              onClick={() => setShowRequestModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl
+                         bg-gradient-to-r from-[#7c3aed] to-[#9333ea]
+                         hover:from-[#8b5cf6] hover:to-[#a855f7]
+                         text-white text-sm font-semibold hover:shadow-lg
+                         hover:shadow-purple-500/30 transition-all">
               <Plus className="w-4 h-4" />
               Request Credential
             </button>
           </div>
         </div>
+
+        {/* GitHub Greeting - Show if GitHub credential exists */}
+        {credentials && credentials.some((c: any) => c.credential_type === 'github_developer') && (
+          <GitHubGreeting 
+            credential={credentials.find((c: any) => c.credential_type === 'github_developer')} 
+          />
+        )}
 
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -241,6 +259,11 @@ function DashboardContent() {
           credential={selectedCredential}
           onClose={() => setSelectedCredential(null)}
         />
+      )}
+
+      {/* Request Credential Modal */}
+      {showRequestModal && (
+        <RequestCredentialModal onClose={() => setShowRequestModal(false)} />
       )}
     </div>
   );
