@@ -11,7 +11,7 @@ import {
   ResponsiveContainer, BarChart, Bar,
 } from 'recharts';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1';
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Stellar0281';
 
 interface Stats {

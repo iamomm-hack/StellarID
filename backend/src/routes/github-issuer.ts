@@ -3,6 +3,7 @@ import axios from 'axios';
 import { query } from '../db';
 import { mintCredentialNFT } from '../services/stellar';
 import { uploadToIPFS } from '../services/ipfs';
+import { generateToken } from '../utils/jwt';
 
 const router = Router();
 
@@ -192,8 +193,16 @@ router.get('/callback', async (req: Request, res: Response) => {
       );
     }
 
-    // Redirect to frontend dashboard
-    res.redirect(`${FRONTEND_URL}/dashboard?credential=minted&type=github_developer`);
+    // Redirect to frontend dashboard with new token
+    if (userId && stellarAddress) {
+      const newToken = generateToken({
+        userId,
+        stellarAddress,
+      });
+      res.redirect(`${FRONTEND_URL}/dashboard?credential=minted&type=github_developer&token=${newToken}`);
+    } else {
+      res.redirect(`${FRONTEND_URL}/dashboard?credential=minted&type=github_developer`);
+    }
   } catch (err: any) {
     console.error('GitHub callback error:', err.message);
     res.redirect(`${FRONTEND_URL}/dashboard?error=github_auth_failed`);

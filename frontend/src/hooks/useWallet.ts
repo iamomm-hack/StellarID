@@ -79,7 +79,7 @@ export function useWallet() {
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
         if (!err.response) {
-          setError('Network Error: backend API unreachable. Start backend on :4000 and verify NEXT_PUBLIC_API_URL.');
+          setError('Network Error: backend API unreachable. Start backend on :5555 and verify NEXT_PUBLIC_API_URL.');
         } else {
           setError(err.response.data?.error || `Connection failed (${err.response.status})`);
         }

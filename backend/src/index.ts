@@ -4,7 +4,7 @@ dotenv.config();
 import app from './app';
 import { startExpiryJob } from './jobs/expiry-cron';
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5555;
 
 // Prevent unhandled errors from crashing the server
 process.on('unhandledRejection', (reason: any) => {

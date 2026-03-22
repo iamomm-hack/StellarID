@@ -13,10 +13,16 @@ import {
 } from 'lucide-react';
 
 function DashboardContent() {
-  const { address, isConnected } = useWalletStore();
+  const { address, isConnected, setToken } = useWalletStore();
   const searchParams = useSearchParams();
   const { data: credentials, isLoading, error } = useCredentials();
   const [selectedCredential, setSelectedCredential] = useState<any>(null);
+
+  // Handle token from GitHub OAuth callback
+  const tokenFromUrl = searchParams.get('token');
+  if (tokenFromUrl && isConnected) {
+    setToken(tokenFromUrl);
+  }
 
   const oauthError = searchParams.get('error');
   const oauthMessage = (() => {
@@ -100,7 +106,7 @@ function DashboardContent() {
           </div>
           <div className="flex items-center gap-3 mt-4 sm:mt-0">
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
+              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass glass-hover
                          text-white/85 text-sm font-medium transition-all duration-300
                          hover:border-[#00e676]/35"
@@ -149,7 +155,7 @@ function DashboardContent() {
             </h3>
             <div className="space-y-3">
               <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
+                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
                 className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#00e676]/20 transition-all group"
               >
                 <div className="w-10 h-10 rounded-lg bg-[#00e676]/10 flex items-center justify-center">
@@ -184,7 +190,7 @@ function DashboardContent() {
             <AlertCircle className="w-8 h-8 text-red-400 mb-4" />
             <p className="text-white/50">Failed to load credentials</p>
             <p className="text-xs text-white/30 mt-1">
-              Make sure the backend is running on port 4000
+              Make sure the backend is running on port 5555
             </p>
           </div>
         ) : credentials && credentials.length > 0 ? (
@@ -216,7 +222,7 @@ function DashboardContent() {
               account to receive your first verifiable credential NFT.
             </p>
             <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
+              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl
                          bg-gradient-to-r from-[#7c3aed] to-[#9333ea]
                          text-white text-sm font-medium hover:shadow-lg

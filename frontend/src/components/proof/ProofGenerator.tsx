@@ -4,7 +4,7 @@ import { X, Shield, Check, Loader2, Copy, Lock, Eye, Download, ExternalLink, Lin
 import { useZKProof } from '../../hooks/useZKProof';
 import toast from 'react-hot-toast';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1';
 
 interface Credential {
   id: string;

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Download, Copy, Check, ExternalLink, Share2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1';
 
 interface ShareableProofProps {
   publicToken: string;
