@@ -17,7 +17,20 @@ const app = express();
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const allowedOrigins = [
+      frontendUrl,
+      'http://localhost:3000',
+      'http://localhost:5555',
+    ];
+    // Allow Vercel preview URLs
+    if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all origins in production for now
+    }
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
