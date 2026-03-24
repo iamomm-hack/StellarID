@@ -13,6 +13,8 @@ import {
   Shield, Plus, Github, Award, Clock, CheckCircle2,
   Loader2, AlertCircle, Zap
 } from 'lucide-react';
+import { Skeleton } from '../../components/Skeleton';
+
 
 function DashboardContent() {
   const { address, isConnected, setToken } = useWalletStore();
@@ -199,9 +201,35 @@ function DashboardContent() {
 
         {/* Credentials Grid */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-[#7c3aed] animate-spin mb-4" />
-            <p className="text-white/50">Loading credentials...</p>
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Skeleton className="w-5 h-5 rounded-md" />
+              <Skeleton className="w-32 h-6" />
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-2xl glass p-5 border border-white/5 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex gap-3">
+                      <Skeleton className="w-10 h-10 rounded-xl" />
+                      <div className="space-y-2">
+                        <Skeleton className="w-24 h-4" />
+                        <Skeleton className="w-16 h-3" />
+                      </div>
+                    </div>
+                    <Skeleton className="w-16 h-6 rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="w-full h-3" />
+                    <Skeleton className="w-full h-3" />
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <Skeleton className="w-full h-10 rounded-xl" />
+                    <Skeleton className="w-full h-10 rounded-xl" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20">

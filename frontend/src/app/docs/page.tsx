@@ -222,7 +222,7 @@ export default function DocsPage() {
               ))}
 
               <div className="pt-4 mt-4 border-t border-white/5">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer"
+                <a href="https://github.com/iamomm-hack/StellarID" target="_blank" rel="noopener noreferrer"
                    className="flex items-center gap-2 px-3.5 py-2 text-xs text-white/30 hover:text-white/50 transition-colors">
                   <ExternalLink className="w-3.5 h-3.5" /> View on GitHub
                 </a>
