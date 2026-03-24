@@ -281,23 +281,6 @@ The following testnet wallets were used during development and testing:
 
 ---
 
-## 💬 What Users Say
-
-> *"I verified my identity once and used the same proof across three platforms. No re-uploads, no forms. This is how identity should work."*
-> — **Early Tester, DeFi Developer**
-
-> *"The ZK proof generation is insanely fast. Sub-second proofs with full privacy. The PDF export with QR is a nice professional touch."*
-> — **Blockchain Engineer**
-
-> *"Finally, a project that takes self-sovereign identity seriously. The Soroban integration is clean, and the admin dashboard is genuinely useful."*
-> — **Web3 Product Manager**
-
-> *"I showed the shareable verification link to our compliance team. They were impressed that we could verify claims without touching any personal data."*
-> — **FinTech Startup Founder**
-
-> *"The credential NFT model is brilliant. Portable, verifiable, revocable — and the user owns it. This is what Web3 identity should look like."*
-> — **Open Source Contributor**
-
 ---
 
 ## 🏗️ Architecture
