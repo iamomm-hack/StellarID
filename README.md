@@ -62,7 +62,8 @@ Every time you sign up for a service, you hand over your **name, address, date o
 | Resource | Link |
 |---|---|
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
-| 🎥 **Demo Video** | [Coming Soon — YouTube](#) |
+| 🎥 **Demo Video** | [StellarID Demo Video (Google Drive)](https://drive.google.com/drive/folders/1udssa_nm5toCn45ePwDk1I3Kq6xswPhU-JuO5SfDxl3TNFUgt7q3vjIgv-o8ueiFzZ2djbpg?usp=sharing) |
+| 📊 **User Feedback** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
 
 ---
@@ -271,11 +272,12 @@ The following testnet wallets were used during development and testing:
 
 | Role | Stellar Address |
 |---|---|
-| **Admin** | `GBXYZ...DEPLOYER_ADDRESS_HERE` |
-| **Issuer (GitHub)** | `GCABC...ISSUER_ADDRESS_HERE` |
-| **Test User 1** | `GDEFG...USER1_ADDRESS_HERE` |
-| **Test User 2** | `GHIJK...USER2_ADDRESS_HERE` |
-| **Test User 3** | `GLMNO...USER3_ADDRESS_HERE` |
+| **Admin** | `GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4` |
+| **Test User 1 (Satish)** | `GDZWLHG6WBRYIGWE2JXJRI4LTXLWQSTBCSXK3XB6HLB2QOTS4DNXDSKP` |
+| **Test User 2 (Mufti)** | `GA5RKOAUAVEA5POB4HKI2HCIZ3K67SZYLUW5SOACOAKCNDSM4XLC5BPR` |
+| **Test User 3 (Amit)** | `GCUOCLOPD3I7ECINEXFOJVGFQFNJILYW26BERBCCQBQ7WHJMICHR2WPM` |
+| **Test User 4 (Rajdeep)** | `GB2CC6D3E3SXRJUPNJ43WGMFFYEN5CNP6NRY5L2S7NUDLEAZW5IMRVLK` |
+| **Test User 5 (Manjeet)** | `GDLQU6LOKWYX2EUNU7PNOK3IT27MEQD7FDR7EDWTWYVZ66HXSNKGAMO6` |
 
 > All wallets funded via [Stellar Friendbot](https://friendbot.stellar.org)
 
@@ -447,17 +449,47 @@ npm run dev                   # Starts on http://localhost:3000
 
 ---
 
-## 📈 Future Scope
+## 👥 User Validation & Onboarding
 
-| Phase | Feature | Status |
-|---|---|---|
-| **v1.1** | Multi-chain support (Ethereum, Polygon) | 🔜 Planned |
-| **v1.2** | Mobile app (React Native + WalletConnect) | 🔜 Planned |
-| **v1.3** | Institutional issuers (universities, banks) | 🔜 Planned |
-| **v1.4** | DID:Web integration | 🔜 Planned |
-| **v2.0** | Recursive ZK proofs (proof of multiple credentials) | 🔮 Research |
-| **v2.1** | On-chain governance for issuer approval | 🔮 Research |
-| **v2.2** | Verifiable credential standard (W3C VC) | 🔮 Research |
+As part of our MVP phase, we conducted live testing with **5 real testnet users** to validate our ZK-identity flow.
+
+### User Feedback Summary
+
+📊 **[Live Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing)**
+
+| Date | Name | Wallet Address | Email | UX Rating | Favorite Feature | Bugs/Errors | Future Improvement |
+|---|---|---|---|---|---|---|---|
+| Mar 22, 2026 | Satish jalan | `GDZWLHG6WBRYIGWE2JXJRI4LTXLWQSTBCSXK3XB6HLB2QOTS4DNXDSKP` | satishjalan9163@gmail.com | 5/5 | ZK Proof PDF | None | On-chain ZK-proof verification via Soroban smart contracts |
+| Mar 22, 2026 | Mufti Armaan | `GA5RKOAUAVEA5POB4HKI2HCIZ3K67SZYLUW5SOACOAKCNDSM4XLC5BPR` | flamecyborg5@gmail.com | 5/5 | PDF with QR Code | None | A small guide or tooltip for Freighter wallet connection |
+| Mar 23, 2026 | Amit Shah | `GCUOCLOPD3I7ECINEXFOJVGFQFNJILYW26BERBCCQBQ7WHJMICHR2WPM` | as3131257@gmail.com | 5/5 | Speed of proof generation | None | None |
+| Mar 23, 2026 | Rajdeep Dutta | `GB2CC6D3E3SXRJUPNJ43WGMFFYEN5CNP6NRY5L2S7NUDLEAZW5IMRVLK` | rajdeepdutta393@gmail.com | 5/5 | PDF report with QR code — practical and satisfying | Dashboard loading lag — thought page stopped working | Smoother dashboard loading with animation |
+| Mar 24, 2026 | Manjeet s. | `GDLQU6LOKWYX2EUNU7PNOK3IT27MEQD7FDR7EDWTWYVZ66HXSNKGAMO6` | manjeetsharma0796@gmail.com | 4/5 | ZK Concept | None | More credentials to store |
+
+### ✅ Completed Iteration (Post-Feedback)
+
+**Issue Identified:** User **Rajdeep Dutta** noted that the *"Dashboard takes a bit of time while loading credentials. At first I thought the page had stopped working."*
+
+**Improvement Applied:** We immediately implemented a modern **Skeleton Loading System** across the Dashboard. Instead of a blank screen or a single spinner, users now see structured placeholders that indicate data is being fetched, significantly improving the perceived performance.
+
+🔗 **Improvement Commit:** [feat: add skeleton loaders to improve dashboard UX](https://github.com/iamomm-hack/StellarID/commit/main)
+
+---
+
+## 📈 Future Roadmap & Evolution
+
+Based on the collected user feedback and our long-term vision, we have outlined the following evolution for StellarID:
+
+### Phase 1: Performance & UX Polish
+- **Web Worker Proving**: Move ZK-SNARK computation to a dedicated web worker to ensure the main UI thread remains 100% responsive.
+- **Granular Progress Tracking**: Implement a step-by-step progress indicator for the 3-stage verification (Querying → Proving → Uploading).
+
+### Phase 2: Ecosystem Expansion
+- **Social Connectors**: Expand identity issuers beyond GitHub to include **LinkedIn, Twitter (X), and Discord**.
+- **Custom Claims**: Allow platforms to request custom ZK-circuits (e.g., "Prove balance > 1000 XLM" without showing the amount).
+
+### Phase 3: Mobile & Enterprise
+- **StellarID Mobile**: A dedicated mobile app with biometric security (FaceID/Fingerprint) for instant on-the-go ZK verification.
+- **Enterprise SDK**: A plug-and-play SDK for corporate platforms to integrate StellarID verification with two lines of code.
 
 ---
 
