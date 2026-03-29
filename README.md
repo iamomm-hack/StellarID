@@ -133,21 +133,35 @@ GET  https://stellarid-api.onrender.com/api/v1/multisig/pending
 
 ---
 
+### ⚡ Black Belt — Live Demo
+
+| Resource | Link |
+|---|---|
+| 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
+| 📊 **User Feedback (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
+| 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
+| 🐦 **Community Post** | [Twitter/X @omtdotcmd](https://x.com/omtdotcmd) |
+| 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
+| 🖥️ **Backend API** | [https://stellarid-api.onrender.com](https://stellarid-api.onrender.com/health) |
+
+---
+
 ### 📊 Black Belt Checklist
 
-| Requirement | Status | Details |
-|-------------|--------|---------||
-| 30+ active users | ✅ | [View 30+ User Wallet Sheet](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
-| Metrics dashboard | ✅ | [Admin Dashboard](https://stellarid-id.vercel.app/admin) — real-time analytics |
-| Security checklist | ✅ | [View SECURITY.md](./SECURITY.md) — JWT, Helmet.js, Rate Limiting, SQL injection prevention |
-| Monitoring active | ✅ | [See Monitoring Section below](#-monitoring-dashboard) |
-| Data indexing | ✅ | [See Data Indexing Section below](#-data-indexing) |
-| Full documentation | ✅ | This README + [API Docs](https://stellarid-id.vercel.app/docs) |
-| Community contribution | ✅ | [Twitter/X Post](https://x.com/omtdotcmd) |
-| **Advanced Feature 1** | ✅ | Fee Sponsorship (Gasless Transactions) |
-| **Advanced Feature 2** | ✅ | Multi-Signature Credential Approval |
-| **Advanced Feature 3** | ✅ | LinkedIn OAuth Integration (Professional Identity) |
-| 30+ meaningful commits | ✅ | [View Commit History](https://github.com/iamomm-hack/StellarID/commits/main) |
+<table>
+<tr><th>Requirement</th><th>Status</th><th>Details</th></tr>
+<tr><td>30+ active users</td><td>✅</td><td><a href="https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing">View 30+ User Wallet Sheet</a></td></tr>
+<tr><td>Metrics dashboard</td><td>✅</td><td><a href="https://stellarid-id.vercel.app/admin">Admin Dashboard</a> — real-time analytics</td></tr>
+<tr><td>Security checklist</td><td>✅</td><td><a href="./SECURITY.md">View SECURITY.md</a> — JWT, Helmet.js, Rate Limiting, SQL injection prevention</td></tr>
+<tr><td>Monitoring active</td><td>✅</td><td><a href="#-monitoring-dashboard">See Monitoring Section below</a></td></tr>
+<tr><td>Data indexing</td><td>✅</td><td><a href="#-data-indexing">See Data Indexing Section below</a></td></tr>
+<tr><td>Full documentation</td><td>✅</td><td>This README + <a href="https://stellarid-id.vercel.app/docs">API Docs</a></td></tr>
+<tr><td>Community contribution</td><td>✅</td><td><a href="https://x.com/omtdotcmd">Twitter/X Post</a></td></tr>
+<tr><td><strong>Advanced Feature 1</strong></td><td>✅</td><td>💸 Fee Sponsorship (Gasless Transactions)</td></tr>
+<tr><td><strong>Advanced Feature 2</strong></td><td>✅</td><td>🔐 Multi-Signature Credential Approval</td></tr>
+<tr><td><strong>Advanced Feature 3</strong></td><td>✅</td><td>🔗 LinkedIn OAuth Integration (Professional Identity)</td></tr>
+<tr><td>30+ meaningful commits</td><td>✅</td><td><a href="https://github.com/iamomm-hack/StellarID/commits/main">View Commit History</a></td></tr>
+</table>
 
 ---
 
@@ -215,6 +229,15 @@ Credential claim data is stored on IPFS via Pinata — content-addressed and tam
 
 ## 🔵 Blue Belt Features (Previous Level)
 
+### ⚡ Blue Belt — Live Demo
+
+| Resource | Link |
+|---|---|
+| 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
+| 📊 **User Feedback (5+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing) |
+| 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
+| 🖥️ **Backend API** | [https://stellarid-api.onrender.com](https://stellarid-api.onrender.com/health) |
+
 ---
 
 ## 🔥 The Problem
@@ -245,17 +268,6 @@ Every time you sign up for a service, you hand over your **name, address, date o
 **One verification. Infinite proofs. Zero data exposure.**
 
 ---
-
-## ⚡ Live Demo
-
-| Resource | Link |
-|---|---|
-| 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
-| 📊 **User Feedback (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
-| 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
-| 🐦 **Community Post** | [Twitter/X @omtdotcmd](https://x.com/omtdotcmd) |
-| 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
-| 🖥️ **Backend API** | [https://stellarid-api.onrender.com](https://stellarid-api.onrender.com/health) |
 
 ---
 
