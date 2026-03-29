@@ -60,7 +60,6 @@ export async function sponsorTransaction(
  */
 export async function buildSponsoredTransaction(
   sourcePublicKey: string,
-  operations: StellarSdk.Operation[],
   sponsorSecretKey?: string
 ): Promise<{ transaction: StellarSdk.Transaction; sponsored: boolean }> {
   const sponsorSecret = sponsorSecretKey || FEE_SPONSOR_SECRET;
@@ -84,9 +83,6 @@ export async function buildSponsoredTransaction(
       sponsoredId: sourcePublicKey,
     })
   );
-
-  // Add all requested operations
-  operations.forEach(op => txBuilder.addOperation(op));
 
   // End sponsoring
   txBuilder.addOperation(
@@ -276,14 +272,14 @@ export async function setupMultiSigAccount(
     const masterKeypair = StellarSdk.Keypair.fromSecret(masterSecretKey);
     const account = await server.loadAccount(masterKeypair.publicKey());
     
-    const txBuilder = new StellarSdk.TransactionBuilder(account, {
+    let txBuilder = new StellarSdk.TransactionBuilder(account, {
       fee: '100000',
       networkPassphrase: STELLAR_NETWORK_PASSPHRASE,
     });
 
-    // Add each additional signer
-    additionalSigners.forEach(signerPubKey => {
-      txBuilder.addOperation(
+    // Add each additional signer one by one
+    for (const signerPubKey of additionalSigners) {
+      txBuilder = txBuilder.addOperation(
         StellarSdk.Operation.setOptions({
           signer: {
             ed25519PublicKey: signerPubKey,
@@ -291,10 +287,10 @@ export async function setupMultiSigAccount(
           },
         })
       );
-    });
+    }
 
     // Set thresholds
-    txBuilder.addOperation(
+    txBuilder = txBuilder.addOperation(
       StellarSdk.Operation.setOptions({
         masterWeight: 1,
         lowThreshold: threshold.low,
@@ -303,7 +299,7 @@ export async function setupMultiSigAccount(
       })
     );
 
-    txBuilder.setTimeout(300);
+    txBuilder = txBuilder.setTimeout(300);
     const transaction = txBuilder.build();
     transaction.sign(masterKeypair);
 
