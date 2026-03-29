@@ -62,7 +62,6 @@ Every time you sign up for a service, you hand over your **name, address, date o
 | Resource | Link |
 |---|---|
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
-| 🎥 **Demo Video** | [StellarID Demo Video (Google Drive)](https://drive.google.com/drive/folders/1udssa_nm5toCn45ePwDk1I3Kq6xswPhU-JuO5SfDxl3TNFUgt7q3vjIgv-o8ueiFzZ2djbpg?usp=sharing) |
 | 📊 **User Feedback** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
 
