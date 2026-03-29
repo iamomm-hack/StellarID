@@ -10,6 +10,8 @@ import platformsRouter from './routes/platforms';
 import githubIssuerRouter from './routes/github-issuer';
 import adminRouter from './routes/admin';
 import proofsRouter from './routes/proofs';
+import feeSponsorRouter from './routes/fee-sponsor';
+import multisigRouter from './routes/multisig';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -49,6 +51,8 @@ app.use('/api/v1/platforms', platformsRouter);
 app.use('/api/v1/github-issuer', githubIssuerRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/proofs', proofsRouter);
+app.use('/api/v1/fee-sponsor', feeSponsorRouter);
+app.use('/api/v1/multisig', multisigRouter);
 
 // Error handler (must be last)
 app.use(errorHandler);

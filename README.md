@@ -167,6 +167,62 @@ Every time you sign up for a service, you hand over your **name, address, date o
 - **Modern docs** — Interactive API documentation with code examples
 - **Docker-ready** — One-command deployment with Docker Compose
 
+### 🚀 Advanced Features (Black Belt)
+
+#### 💸 Fee Sponsorship (Gasless Transactions)
+Users never pay gas fees! StellarID sponsors all transaction costs using Stellar's fee bump mechanism.
+
+| Feature | Description |
+|---------|-------------|
+| **Zero-cost UX** | Users mint credentials without holding XLM |
+| **Fee Bump Transactions** | Sponsor account covers network fees |
+| **Transparent Tracking** | All sponsored transactions logged |
+
+```bash
+# Check sponsor status
+GET /api/v1/fee-sponsor/status
+
+# Response
+{
+  "sponsor": {
+    "address": "G...",
+    "balance": "1000 XLM",
+    "canSponsor": true,
+    "transactionsRemaining": 100000
+  }
+}
+```
+
+#### 🔐 Multi-Signature Credential Approval
+High-value credentials require multiple party approval before issuance.
+
+| Feature | Description |
+|---------|-------------|
+| **N-of-M Signatures** | Configurable threshold (2-of-3, 3-of-5, etc.) |
+| **Distributed Trust** | No single point of failure |
+| **Audit Trail** | All signatures recorded on Stellar |
+
+**Use Cases:**
+- Corporate identity: HR + Manager approval
+- Academic credentials: University + Department
+- Professional licenses: Board + Examiner
+
+```bash
+# Create multi-sig request
+POST /api/v1/multisig/request
+{
+  "credentialType": "corporate_identity",
+  "requiredSigners": ["G...HR", "G...MANAGER"],
+  "threshold": 2
+}
+
+# Sign request
+POST /api/v1/multisig/sign/:requestId
+{
+  "signature": "..."
+}
+```
+
 ---
 
 ## 📡 API Reference
@@ -188,6 +244,14 @@ Full REST API for programmatic access:
 | `GET` | `/api/v1/admin/activity` | Last 24h activity | 🔐 Admin |
 | `GET` | `/api/v1/admin/chart-data` | 30-day trend data | 🔐 Admin |
 | `GET` | `/api/v1/admin/top-issuers` | Top issuers by volume | 🔐 Admin |
+| `GET` | `/api/v1/fee-sponsor/status` | Fee sponsor account status | — |
+| `GET` | `/api/v1/fee-sponsor/info` | Fee sponsorship feature info | — |
+| `POST` | `/api/v1/fee-sponsor/request` | Request fee sponsorship | 🔐 JWT |
+| `POST` | `/api/v1/multisig/request` | Create multi-sig credential request | 🔐 JWT |
+| `POST` | `/api/v1/multisig/sign/:id` | Add signature to request | 🔐 JWT |
+| `GET` | `/api/v1/multisig/request/:id` | Get multi-sig request status | 🔐 JWT |
+| `GET` | `/api/v1/multisig/pending` | List pending requests | 🔐 JWT |
+| `GET` | `/api/v1/multisig/info` | Multi-sig feature info | — |
 
 > Full interactive docs available at `/docs` route.
 

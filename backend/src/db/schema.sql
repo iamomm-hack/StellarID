@@ -86,3 +86,46 @@ CREATE INDEX IF NOT EXISTS idx_proof_records_status ON proof_records(status);
 CREATE INDEX IF NOT EXISTS idx_proof_records_user ON proof_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_proof_records_token ON proof_records(public_token);
 CREATE INDEX IF NOT EXISTS idx_credentials_issued ON credentials(issued_at);
+
+-- Multi-signature credential approval requests
+CREATE TABLE IF NOT EXISTS multisig_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  request_id VARCHAR(100) UNIQUE NOT NULL,
+  owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  credential_type VARCHAR(100) NOT NULL,
+  required_signers JSONB NOT NULL,
+  threshold INTEGER NOT NULL,
+  transaction_xdr TEXT,
+  status VARCHAR(20) DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT NOW(),
+  approved_at TIMESTAMP,
+  expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '7 days'
+);
+
+-- Multi-signature signatures
+CREATE TABLE IF NOT EXISTS multisig_signatures (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  request_id VARCHAR(100) NOT NULL REFERENCES multisig_requests(request_id) ON DELETE CASCADE,
+  signer_address VARCHAR(60) NOT NULL,
+  signature TEXT NOT NULL,
+  signed_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(request_id, signer_address)
+);
+
+CREATE INDEX IF NOT EXISTS idx_multisig_requests_status ON multisig_requests(status);
+CREATE INDEX IF NOT EXISTS idx_multisig_requests_owner ON multisig_requests(owner_id);
+CREATE INDEX IF NOT EXISTS idx_multisig_signatures_request ON multisig_signatures(request_id);
+
+-- Fee sponsorship tracking
+CREATE TABLE IF NOT EXISTS fee_sponsorship_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id),
+  transaction_type VARCHAR(50) NOT NULL,
+  tx_hash VARCHAR(70),
+  fee_amount VARCHAR(50),
+  sponsor_address VARCHAR(60),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_fee_sponsorship_user ON fee_sponsorship_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_fee_sponsorship_created ON fee_sponsorship_logs(created_at);
