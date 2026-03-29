@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import {
   Shield, ShieldCheck, ShieldX, ShieldAlert,
   Copy, Check, Fingerprint, Clock, Building2,
-  Cake, Github, Wallet, GraduationCap, Home, BarChart3, KeyRound, Trash2, type LucideIcon
+  Cake, Github, Linkedin, Wallet, GraduationCap, Home, BarChart3, KeyRound, Trash2, type LucideIcon
 } from 'lucide-react';
 import { useDeleteCredential } from '../../hooks/useCredentials';
 
@@ -27,6 +27,7 @@ interface CredentialCardProps {
 const typeIcons: Record<string, LucideIcon> = {
   age_verification: Cake,
   github_developer: Github,
+  linkedin_professional: Linkedin,
   income_check: Wallet,
   student: GraduationCap,
   us_resident: Home,
@@ -36,6 +37,7 @@ const typeIcons: Record<string, LucideIcon> = {
 const typeLabels: Record<string, string> = {
   age_verification: 'Age Verification',
   github_developer: 'GitHub Developer',
+  linkedin_professional: 'LinkedIn Professional',
   income_check: 'Income Verification',
   income_100k: 'Income ($100k+)',
   income_200k: 'Income ($200k+)',

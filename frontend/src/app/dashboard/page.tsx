@@ -9,8 +9,9 @@ import ProofGenerator from '../../components/proof/ProofGenerator';
 import LiveDemo from '../../components/proof/LiveDemo';
 import RequestCredentialModal from '../../components/credentials/RequestCredentialModal';
 import GitHubGreeting from '../../components/GitHubGreeting';
+import LinkedInGreeting from '../../components/LinkedInGreeting';
 import {
-  Shield, Plus, Github, Award, Clock, CheckCircle2,
+  Shield, Plus, Github, Linkedin, Award, Clock, CheckCircle2,
   Loader2, AlertCircle, Zap
 } from 'lucide-react';
 import { Skeleton } from '../../components/Skeleton';
@@ -39,12 +40,20 @@ function DashboardContent() {
     switch (oauthError) {
       case 'github_oauth_not_configured':
         return 'GitHub OAuth is not configured on backend. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in backend/.env and restart backend.';
+      case 'linkedin_oauth_not_configured':
+        return 'LinkedIn OAuth is not configured. Set LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET in backend/.env and restart backend.';
       case 'missing_wallet_address':
         return 'Wallet address is missing. Reconnect wallet and try again.';
       case 'no_verified_email':
         return 'GitHub account does not have a verified primary email.';
+      case 'linkedin_no_email':
+        return 'LinkedIn account does not have an email address.';
       case 'github_auth_failed':
         return 'GitHub authentication failed. Please try again.';
+      case 'linkedin_auth_failed':
+        return 'LinkedIn authentication failed. Please try again.';
+      case 'linkedin_auth_denied':
+        return 'LinkedIn access was denied. Please try again.';
       default:
         return null;
     }
@@ -114,7 +123,7 @@ function DashboardContent() {
               {address?.slice(0, 10)}...{address?.slice(-6)}
             </p>
           </div>
-          <div className="flex items-center gap-3 mt-4 sm:mt-0">
+          <div className="flex items-center gap-3 mt-4 sm:mt-0 flex-wrap">
             <a
               href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass glass-hover
@@ -122,7 +131,16 @@ function DashboardContent() {
                          hover:border-[#00e676]/35"
             >
               <Github className="w-4 h-4" />
-              Get GitHub Credential
+              GitHub Credential
+            </a>
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass glass-hover
+                         text-white/85 text-sm font-medium transition-all duration-300
+                         hover:border-[#0077b5]/35"
+            >
+              <Linkedin className="w-4 h-4 text-[#0077b5]" />
+              LinkedIn Credential
             </a>
             <button
               onClick={() => setShowRequestModal(true)}
@@ -141,6 +159,13 @@ function DashboardContent() {
         {credentials && credentials.some((c: any) => c.credential_type === 'github_developer') && (
           <GitHubGreeting 
             credential={credentials.find((c: any) => c.credential_type === 'github_developer')} 
+          />
+        )}
+
+        {/* LinkedIn Greeting - Show if LinkedIn credential exists */}
+        {credentials && credentials.some((c: any) => c.credential_type === 'linkedin_professional') && (
+          <LinkedInGreeting 
+            credential={credentials.find((c: any) => c.credential_type === 'linkedin_professional')} 
           />
         )}
 
@@ -182,7 +207,19 @@ function DashboardContent() {
                 </div>
                 <div>
                   <p className="text-sm font-medium group-hover:text-[#00e676] transition-colors">Link GitHub Account</p>
-                  <p className="text-xs text-white/35">Get your first verifiable credential</p>
+                  <p className="text-xs text-white/35">Get your developer verifiable credential</p>
+                </div>
+              </a>
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}
+                className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#0077b5]/20 transition-all group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[#0077b5]/10 flex items-center justify-center">
+                  <Linkedin className="w-5 h-5 text-[#0077b5]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium group-hover:text-[#0077b5] transition-colors">Link LinkedIn Account</p>
+                  <p className="text-xs text-white/35">Get your professional identity credential</p>
                 </div>
               </a>
               <a href="/docs" className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#7c3aed]/20 transition-all group">

@@ -136,17 +136,80 @@ GET  https://stellarid-api.onrender.com/api/v1/multisig/pending
 ### 📊 Black Belt Checklist
 
 | Requirement | Status | Details |
-|-------------|--------|---------|
-| 30+ active users | ✅ | [User Feedback Sheet](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing) |
-| Metrics dashboard | ✅ | Admin dashboard with real-time analytics |
-| Security checklist | ✅ | JWT auth, rate limiting, input validation |
-| Monitoring active | ✅ | Render deployment logs |
-| Data indexing | ✅ | PostgreSQL with optimized indexes |
-| Full documentation | ✅ | This README + API docs |
-| Community contribution | ✅ | [Twitter Post](#) |
+|-------------|--------|---------||
+| 30+ active users | ✅ | [View 30+ User Wallet Sheet](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
+| Metrics dashboard | ✅ | [Admin Dashboard](https://stellarid-id.vercel.app/admin) — real-time analytics |
+| Security checklist | ✅ | [View SECURITY.md](./SECURITY.md) — JWT, Helmet.js, Rate Limiting, SQL injection prevention |
+| Monitoring active | ✅ | [See Monitoring Section below](#-monitoring-dashboard) |
+| Data indexing | ✅ | [See Data Indexing Section below](#-data-indexing) |
+| Full documentation | ✅ | This README + [API Docs](https://stellarid-id.vercel.app/docs) |
+| Community contribution | ✅ | [Twitter/X Post](https://x.com/omtdotcmd) |
 | **Advanced Feature 1** | ✅ | Fee Sponsorship (Gasless Transactions) |
 | **Advanced Feature 2** | ✅ | Multi-Signature Credential Approval |
-| 30+ meaningful commits | ✅ | See commit history |
+| **Advanced Feature 3** | ✅ | LinkedIn OAuth Integration (Professional Identity) |
+| 30+ meaningful commits | ✅ | [View Commit History](https://github.com/iamomm-hack/StellarID/commits/main) |
+
+---
+
+### 📡 Community Contribution
+
+> Posted about StellarID on Twitter/X to spread awareness about decentralized identity on Stellar.
+
+🔗 **Twitter/X Profile:** [https://x.com/omtdotcmd](https://x.com/omtdotcmd)
+
+---
+
+### 🖥️ Monitoring Dashboard
+
+StellarID uses **Render's built-in logging and monitoring** for production observability:
+
+| Metric | Tool | Details |
+|--------|------|---------|
+| **Server Logs** | Render Dashboard | Real-time request/error logs |
+| **Uptime Monitoring** | Render Health Check | `/health` endpoint pinged every 30s |
+| **API Metrics** | Admin Dashboard | DAU, credentials issued, proofs generated |
+| **Error Tracking** | Console + Render Logs | All exceptions caught and logged |
+
+> 📸 **Screenshot:** *(Paste your Render logs screenshot here)*
+
+**Health Check Endpoint (Live):**
+```
+GET https://stellarid-api.onrender.com/health
+```
+
+---
+
+### 📊 Data Indexing
+
+StellarID indexes identity data across **3 layers**:
+
+#### 1. PostgreSQL (Primary Database)
+All credentials, users, proofs, and issuers stored with optimized indexes:
+```sql
+CREATE INDEX idx_credentials_user_id ON credentials(user_id);
+CREATE INDEX idx_credentials_type ON credentials(credential_type);
+CREATE INDEX idx_proofs_token ON proofs(share_token);
+CREATE INDEX idx_users_stellar_address ON users(stellar_address);
+```
+
+#### 2. Stellar Horizon API (Blockchain Indexing)
+All on-chain credential transactions are queryable via Stellar Horizon:
+
+```
+# Admin wallet transactions
+GET https://horizon-testnet.stellar.org/accounts/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4
+
+# Live Transaction History
+GET https://horizon-testnet.stellar.org/accounts/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4/transactions
+
+# Operations (credential mints)
+GET https://horizon-testnet.stellar.org/accounts/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4/operations
+```
+
+🔗 **[View on Stellar Expert Explorer](https://stellar.expert/explorer/testnet/account/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4)**
+
+#### 3. IPFS (Decentralized Metadata)
+Credential claim data is stored on IPFS via Pinata — content-addressed and tamper-proof.
 
 ---
 
@@ -188,8 +251,11 @@ Every time you sign up for a service, you hand over your **name, address, date o
 | Resource | Link |
 |---|---|
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
-| 📊 **User Feedback** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing) |
+| 📊 **User Feedback (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
+| 🐦 **Community Post** | [Twitter/X @omtdotcmd](https://x.com/omtdotcmd) |
+| 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
+| 🖥️ **Backend API** | [https://stellarid-api.onrender.com](https://stellarid-api.onrender.com/health) |
 
 ---
 
