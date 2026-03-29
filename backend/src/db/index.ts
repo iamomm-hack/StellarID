@@ -7,15 +7,28 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Keep connections alive to avoid cold start delays
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000,
+  max: 10,
+  // SSL config for Render
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
 });
 
 // Keep-alive: ping DB every 4 minutes to prevent Render cold starts
 const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes
-setInterval(() => {
-  pool.query('SELECT 1')
-    .catch((err) => console.warn('Keep-alive ping failed:', err.message));
-}, KEEP_ALIVE_INTERVAL);
+let keepAliveStarted = false;
+
+function startKeepAlive() {
+  if (keepAliveStarted) return;
+  keepAliveStarted = true;
+  
+  setInterval(async () => {
+    try {
+      await pool.query('SELECT 1');
+    } catch (err: any) {
+      // Silent fail - don't spam logs
+    }
+  }, KEEP_ALIVE_INTERVAL);
+}
 
 function formatDbError(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
@@ -34,6 +47,7 @@ function formatDbError(err: unknown): string {
 pool.query('SELECT NOW()')
   .then((res) => {
     console.log(`Database connected at ${res.rows[0].now}`);
+    startKeepAlive(); // Start keep-alive only after successful connection
   })
   .catch((err) => {
     console.error('Database connection error:', formatDbError(err));
