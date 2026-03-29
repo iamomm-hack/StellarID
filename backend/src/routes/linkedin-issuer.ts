@@ -175,7 +175,7 @@ router.get('/callback', async (req: Request, res: Response) => {
     // Update user's email if we have a user row
     if (userId) {
       await query(
-        'UPDATE users SET email = $1, updated_at = NOW() WHERE id = $2',
+        'UPDATE users SET email = $1 WHERE id = $2',
         [linkedinUser.email, userId]
       );
     }
@@ -250,7 +250,7 @@ router.get('/callback', async (req: Request, res: Response) => {
         // Update existing credential
         await query(
           `UPDATE credentials SET claim_data = $1, nft_token_id = $2, stellar_tx_hash = $3,
-                                   ipfs_hash = $4, updated_at = NOW()
+                                   ipfs_hash = $4
            WHERE user_id = $5 AND credential_type = 'linkedin_professional'`,
           [
             JSON.stringify(claimData),
