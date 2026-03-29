@@ -5,7 +5,17 @@ dotenv.config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  // Keep connections alive to avoid cold start delays
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
+
+// Keep-alive: ping DB every 4 minutes to prevent Render cold starts
+const KEEP_ALIVE_INTERVAL = 4 * 60 * 1000; // 4 minutes
+setInterval(() => {
+  pool.query('SELECT 1')
+    .catch((err) => console.warn('Keep-alive ping failed:', err.message));
+}, KEEP_ALIVE_INTERVAL);
 
 function formatDbError(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
