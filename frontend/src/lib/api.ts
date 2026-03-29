@@ -19,7 +19,19 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (typeof window !== 'undefined') {
-      const token = useWalletStore.getState().token;
+      const { token, disconnect } = useWalletStore.getState();
+      
+      // Auto-logout on 401 (invalid/expired token)
+      if (error.response?.status === 401 && token) {
+        console.warn('[Auth] Token invalid/expired - logging out automatically');
+        disconnect();
+        // Redirect to home if not already there
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
+        }
+        return Promise.reject(error);
+      }
+      
       console.error('[API Error]', {
         status: error.response?.status,
         statusText: error.response?.statusText,
