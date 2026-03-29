@@ -530,7 +530,7 @@ export default function DocsPage() {
                   <h3 className="font-semibold text-lg">💸 Fee Sponsorship (Gasless Transactions)</h3>
                 </div>
                 <p className="text-sm text-white/45 mb-4">
-                  Users never pay XLM gas fees. StellarID's sponsor account covers all transaction costs using Stellar's <strong className="text-white/70">Fee Bump</strong> mechanism.
+                  Users never pay XLM gas fees. StellarID&apos;s sponsor account covers all transaction costs using Stellar&apos;s <strong className="text-white/70">Fee Bump</strong> mechanism.
                 </p>
                 <div className="grid sm:grid-cols-3 gap-3 mb-5">
                   {[
