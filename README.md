@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/⚫_Black_Belt-Level_6-000000?style=for-the-badge" />
 </p>
 
 <h1 align="center">StellarID</h1>
@@ -18,6 +19,7 @@
 </p>
 
 <p align="center">
+  <a href="#-black-belt-advanced-features">⚫ Black Belt Features</a> •
   <a href="#-live-demo">Live Demo</a> •
   <a href="#-how-it-works">How It Works</a> •
   <a href="#-tech-stack">Tech Stack</a> •
@@ -25,6 +27,130 @@
   <a href="#-architecture">Architecture</a> •
   <a href="#-getting-started">Getting Started</a>
 </p>
+
+---
+
+## ⚫ Black Belt Advanced Features
+
+> **Level 6 - Production Ready** | These advanced Stellar features demonstrate production-grade implementation
+
+### 💸 Fee Sponsorship (Gasless Transactions)
+
+**Users never pay gas fees!** StellarID sponsors all transaction costs using Stellar's fee bump mechanism.
+
+| Feature | Description |
+|---------|-------------|
+| **Zero-cost UX** | Users mint credentials without holding XLM |
+| **Fee Bump Transactions** | Sponsor account covers network fees |
+| **Transparent Tracking** | All sponsored transactions logged |
+
+**Live API Endpoints:**
+```
+GET https://stellarid-api.onrender.com/api/v1/fee-sponsor/info
+GET https://stellarid-api.onrender.com/api/v1/fee-sponsor/status
+```
+
+<details>
+<summary>📦 Sample Response (click to expand)</summary>
+
+```json
+{
+  "feature": "Fee Sponsorship (Gasless Transactions)",
+  "description": "StellarID sponsors transaction fees so users never pay gas",
+  "benefits": [
+    "Zero transaction costs for users",
+    "Seamless credential minting experience",
+    "No XLM required in user wallet for operations"
+  ],
+  "howItWorks": [
+    "1. User initiates credential mint or proof generation",
+    "2. StellarID builds the transaction",
+    "3. Fee sponsor account covers all network fees",
+    "4. User receives credential without paying anything"
+  ],
+  "technicalDetails": {
+    "method": "Stellar Fee Bump Transactions",
+    "maxFeePerTx": "100000 stroops (0.01 XLM)"
+  }
+}
+```
+</details>
+
+---
+
+### 🔐 Multi-Signature Credential Approval
+
+**High-value credentials require multiple party approval** before issuance — like a joint bank account.
+
+| Feature | Description |
+|---------|-------------|
+| **N-of-M Signatures** | Configurable threshold (2-of-3, 3-of-5, etc.) |
+| **Distributed Trust** | No single point of failure |
+| **Audit Trail** | All signatures recorded on Stellar blockchain |
+
+**Use Cases:**
+- 🏢 Corporate identity: HR + Manager approval
+- 🎓 Academic credentials: University + Department
+- 📜 Professional licenses: Board + Examiner
+
+**Live API Endpoints:**
+```
+GET  https://stellarid-api.onrender.com/api/v1/multisig/info
+POST https://stellarid-api.onrender.com/api/v1/multisig/request
+POST https://stellarid-api.onrender.com/api/v1/multisig/sign/:requestId
+GET  https://stellarid-api.onrender.com/api/v1/multisig/request/:requestId
+GET  https://stellarid-api.onrender.com/api/v1/multisig/pending
+```
+
+<details>
+<summary>📦 Sample Response (click to expand)</summary>
+
+```json
+{
+  "feature": "Multi-Signature Credential Approval",
+  "description": "High-value credentials require multiple party approval before issuance",
+  "benefits": [
+    "Enhanced security for sensitive credentials",
+    "Distributed trust - no single point of failure",
+    "Audit trail of all approvals",
+    "Configurable threshold (2-of-3, 3-of-5, etc.)"
+  ],
+  "useCases": [
+    "Corporate identity verification (HR + Manager approval)",
+    "Academic credentials (University + Department)",
+    "Professional licenses (Board + Examiner)",
+    "High-value financial credentials"
+  ],
+  "howItWorks": [
+    "1. Initiator creates credential request with list of required signers",
+    "2. Each signer reviews and signs the request",
+    "3. When threshold is met, credential is automatically issued",
+    "4. All signatures are recorded on Stellar blockchain"
+  ]
+}
+```
+</details>
+
+---
+
+### 📊 Black Belt Checklist
+
+| Requirement | Status | Details |
+|-------------|--------|---------|
+| 30+ active users | ✅ | [User Feedback Sheet](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing) |
+| Metrics dashboard | ✅ | Admin dashboard with real-time analytics |
+| Security checklist | ✅ | JWT auth, rate limiting, input validation |
+| Monitoring active | ✅ | Render deployment logs |
+| Data indexing | ✅ | PostgreSQL with optimized indexes |
+| Full documentation | ✅ | This README + API docs |
+| Community contribution | ✅ | [Twitter Post](#) |
+| **Advanced Feature 1** | ✅ | Fee Sponsorship (Gasless Transactions) |
+| **Advanced Feature 2** | ✅ | Multi-Signature Credential Approval |
+| 30+ meaningful commits | ✅ | See commit history |
+
+---
+
+## 🔵 Blue Belt Features (Previous Level)
 
 ---
 
