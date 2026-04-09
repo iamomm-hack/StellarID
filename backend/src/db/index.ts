@@ -7,7 +7,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Keep connections alive to avoid cold start delays
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 30000, // Increased to 30s for Neon cold starts
   max: 10,
   // SSL config for Render
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
