@@ -140,7 +140,7 @@ GET  https://stellarid-api.onrender.com/api/v1/multisig/pending
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
 | 📊 **User Feedback (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
-| 🐦 **Community Post** | [Twitter/X @omtdotcmd](https://x.com/omtdotcmd) |
+<!-- | 🐦 **Community Post** | [Twitter/X @omtdotcmd](https://x.com/omtdotcmd) | -->
 | 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
 | 🖥️ **Backend API** | [https://stellarid-api.onrender.com](https://stellarid-api.onrender.com/health) |
 
@@ -184,7 +184,8 @@ StellarID uses **Render's built-in logging and monitoring** for production obser
 | **API Metrics** | Admin Dashboard | DAU, credentials issued, proofs generated |
 | **Error Tracking** | Console + Render Logs | All exceptions caught and logged |
 
-> 📸 **Screenshot:** *(Paste your Render logs screenshot here)*
+> 📸 **Screenshot:**
+> <img src="docs/screenshots/monitoring.png" alt="Render Monitoring Dashboard" width="800" />
 
 **Health Check Endpoint (Live):**
 ```
