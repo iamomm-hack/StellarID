@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Shield, ShieldCheck, ShieldX, Clock, Zap,
-  ExternalLink, Download, CheckCircle2, XCircle,
-  Loader2, AlertCircle, Copy, Check,
+  Download, AlertCircle, Copy, Check,
+  Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -32,7 +32,6 @@ export default function VerifyPage() {
   useEffect(() => {
     if (!proofId) return;
 
-    // Demo mode — show sample data without hitting API
     if (proofId === 'demo') {
       setProof({
         id: 'demo-uuid-4f8a-9b2c-1234567890ab',
@@ -78,136 +77,142 @@ export default function VerifyPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center"
-           style={{ background: 'linear-gradient(165deg, #08001a 0%, #0d0030 30%, #12003a 50%, #0a0020 100%)' }}>
-        <Loader2 className="w-8 h-8 text-[#7c3aed] animate-spin" />
+           style={{ background: 'var(--color-bg)' }}>
+        <div className="w-12 h-12 border-2 border-[#333] border-t-[var(--color-accent)]"
+             style={{ animation: 'spin-slow 0.8s linear infinite' }} />
       </div>
     );
   }
 
   if (error || !proof) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4"
-           style={{ background: 'linear-gradient(165deg, #08001a 0%, #0d0030 30%, #12003a 50%, #0a0020 100%)' }}>
-        <div className="max-w-md text-center rounded-2xl glass p-8 border border-white/10">
-          <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-white mb-2">Proof Not Found</h1>
-          <p className="text-white/50 text-sm mb-4">{error || 'This verification link may be expired or invalid.'}</p>
-          <a href="/" className="text-sm text-[#00e676] hover:underline">Back to StellarID</a>
+      <div className="min-h-screen flex items-center justify-center px-6"
+           style={{ background: 'var(--color-bg)' }}>
+        <div className="brutal-card max-w-md w-full">
+          <div className="card-header-brutal">
+            <span>Error</span>
+            <span>[NOT_FOUND]</span>
+          </div>
+          <div className="card-body-brutal text-center py-12">
+            <AlertCircle className="w-10 h-10 mx-auto mb-4" style={{ color: 'var(--color-accent)' }} />
+            <h1 className="text-xl font-bold mb-2 uppercase"
+                style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+              Proof Not Found
+            </h1>
+            <p className="text-[var(--color-text-muted)] text-sm mb-4">
+              {error || 'This verification link may be expired or invalid.'}
+            </p>
+            <a href="/" className="text-sm hover:underline" style={{ color: 'var(--color-accent)' }}>
+              Back to StellarID →
+            </a>
+          </div>
         </div>
       </div>
     );
   }
 
   const isVerified = proof.status === 'verified';
-  const isExpired = proof.status === 'expired';
   const isRevoked = proof.status === 'revoked';
 
+  const getHeaderStyle = () => {
+    if (isVerified) return { background: 'var(--color-highlight)', color: 'var(--color-bg)' };
+    if (isRevoked) return { background: 'var(--color-accent)', color: '#fff' };
+    return { background: '#888', color: 'var(--color-bg)' };
+  };
+
   return (
-    <div className="min-h-screen text-white"
-         style={{ background: 'linear-gradient(165deg, #08001a 0%, #0d0030 30%, #12003a 50%, #0a0020 100%)' }}>
-
-      {/* Background orbs */}
-      <div className="absolute top-[10%] left-[10%] w-[300px] h-[300px] rounded-full bg-[#7c3aed]/12 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[20%] right-[10%] w-[250px] h-[250px] rounded-full bg-[#00e676]/8 blur-[100px] pointer-events-none" />
-
-      <div className="relative z-10 max-w-lg mx-auto px-4 py-16">
-        {/* StellarID branding */}
+    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <div className="relative z-10 max-w-lg mx-auto px-6 py-16">
+        {/* Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs text-white/60 mb-4">
-            <Shield className="w-3.5 h-3.5 text-[#00e676]" />
-            StellarID Verification
-          </div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em]"
+                style={{ color: 'var(--color-accent)' }}>
+            // StellarID Verification
+          </span>
         </div>
 
         {/* Main Card */}
-        <div className={`rounded-2xl glass p-8 border ${
-          isVerified ? 'border-[#00e676]/25' : isRevoked ? 'border-red-500/25' : 'border-amber-500/25'
-        } relative overflow-hidden`}>
+        <div className="brutal-card">
+          <div className="card-header-brutal" style={getHeaderStyle()}>
+            <span>Proof Verification</span>
+            <span>[{isVerified ? 'VERIFIED' : isRevoked ? 'REVOKED' : 'EXPIRED'}]</span>
+          </div>
 
-          {/* Subtle glow */}
-          <div className={`absolute inset-0 pointer-events-none ${
-            isVerified ? 'bg-[#00e676]/3' : isRevoked ? 'bg-red-500/3' : 'bg-amber-500/3'
-          }`} />
-
-          <div className="relative z-10">
-            {/* Status Badge */}
+          <div className="card-body-brutal">
+            {/* Status */}
             <div className="text-center mb-6">
-              <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 ${
-                isVerified ? 'bg-[#00e676]/15' : isRevoked ? 'bg-red-500/15' : 'bg-amber-500/15'
-              }`}>
+              <div className="w-16 h-16 mx-auto flex items-center justify-center mb-4 border"
+                   style={{
+                     borderColor: isVerified ? 'var(--color-highlight)' : isRevoked ? 'var(--color-accent)' : '#888',
+                     background: isVerified ? 'rgba(212, 255, 0, 0.1)' : isRevoked ? 'rgba(255, 60, 0, 0.1)' : 'rgba(136, 136, 136, 0.1)'
+                   }}>
                 {isVerified ? (
-                  <ShieldCheck className="w-10 h-10 text-[#00e676]" />
+                  <ShieldCheck className="w-8 h-8" style={{ color: 'var(--color-highlight)' }} />
                 ) : isRevoked ? (
-                  <ShieldX className="w-10 h-10 text-red-400" />
+                  <ShieldX className="w-8 h-8" style={{ color: 'var(--color-accent)' }} />
                 ) : (
-                  <AlertCircle className="w-10 h-10 text-amber-400" />
+                  <AlertCircle className="w-8 h-8 text-[#888]" />
                 )}
               </div>
 
-              <h1 className={`text-2xl font-bold mb-1 ${
-                isVerified ? 'text-[#00e676]' : isRevoked ? 'text-red-400' : 'text-amber-400'
-              }`}>
+              <h1 className="text-2xl font-bold mb-1 uppercase tracking-wider"
+                  style={{
+                    fontFamily: 'Unbounded, sans-serif',
+                    color: isVerified ? 'var(--color-highlight)' : isRevoked ? 'var(--color-accent)' : '#888'
+                  }}>
                 {isVerified ? 'VERIFIED' : isRevoked ? 'REVOKED' : 'EXPIRED'}
               </h1>
-              <p className="text-white/40 text-sm">
+              <p className="text-[var(--color-text-muted)] text-sm">
                 {isVerified ? 'This proof has been cryptographically verified' :
                  isRevoked ? 'This proof has been revoked by the issuer' :
                  'This verification link has expired'}
               </p>
             </div>
 
-            {/* Details */}
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03]">
-                <span className="text-xs text-white/40 flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5" /> Claim
-                </span>
-                <span className="text-sm font-medium">{proof.claimType || proof.circuitType}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03]">
-                <span className="text-xs text-white/40 flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" /> Circuit
-                </span>
-                <span className="text-sm font-mono text-white/70">{proof.circuitType}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03]">
-                <span className="text-xs text-white/40 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> Verified At
-                </span>
-                <span className="text-sm text-white/70">
-                  {new Date(proof.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}
-                </span>
-              </div>
-              {proof.proofTimeMs && (
-                <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03]">
-                  <span className="text-xs text-white/40 flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5" /> Proof Time
-                  </span>
-                  <span className="text-sm text-white/70">{(proof.proofTimeMs / 1000).toFixed(2)}s</span>
-                </div>
-              )}
-            </div>
+            {/* Details - Edge Table */}
+            <table className="edge-table w-full mb-6" style={{ fontSize: '0.85rem' }}>
+              <tbody>
+                <tr>
+                  <td><Zap className="w-3.5 h-3.5 inline mr-1" />Claim</td>
+                  <td className="text-right text-white font-bold">{proof.claimType || proof.circuitType}</td>
+                </tr>
+                <tr>
+                  <td><Shield className="w-3.5 h-3.5 inline mr-1" />Circuit</td>
+                  <td className="text-right text-white font-mono text-xs">{proof.circuitType}</td>
+                </tr>
+                <tr>
+                  <td><Clock className="w-3.5 h-3.5 inline mr-1" />Verified At</td>
+                  <td className="text-right text-white">
+                    {new Date(proof.createdAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                  </td>
+                </tr>
+                {proof.proofTimeMs && (
+                  <tr>
+                    <td><Zap className="w-3.5 h-3.5 inline mr-1" />Proof Time</td>
+                    <td className="text-right text-white">{(proof.proofTimeMs / 1000).toFixed(2)}s</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
 
             {/* Privacy notice */}
-            <div className="rounded-xl bg-white/[0.02] border border-white/5 p-3 mb-6">
-              <p className="text-[11px] text-white/30 text-center leading-relaxed">
+            <div className="border-l-4 p-3 mb-6"
+                 style={{ borderColor: 'var(--color-highlight)', background: 'var(--color-bg)' }}>
+              <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
                 This verification used zero-knowledge proofs. No personal data was transmitted or stored.
                 Only the YES/NO verification result is displayed.
               </p>
             </div>
 
             {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handleDownloadPDF}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 text-white/60 text-sm font-medium hover:bg-white/5 hover:text-white transition-all"
-              >
-                <Download className="w-4 h-4" /> Download PDF
+            <div className="grid grid-cols-2 gap-0">
+              <button onClick={handleDownloadPDF}
+                      className="btn-brutal btn-brutal-outline flex items-center justify-center gap-2 text-sm py-2.5">
+                <Download className="w-4 h-4" />
+                Download PDF
               </button>
-              <button
-                onClick={handleCopyLink}
-                className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#9333ea] text-white text-sm font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all"
-              >
+              <button onClick={handleCopyLink}
+                      className="btn-brutal btn-brutal-accent flex items-center justify-center gap-2 text-sm py-2.5">
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Copied!' : 'Copy Link'}
               </button>
@@ -216,7 +221,7 @@ export default function VerifyPage() {
         </div>
 
         {/* Proof ID */}
-        <p className="text-center text-[10px] text-white/15 mt-6 font-mono">
+        <p className="text-center text-[10px] mt-6 font-mono" style={{ color: '#333' }}>
           Proof ID: {proof.id}
         </p>
       </div>
