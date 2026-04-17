@@ -1,5 +1,5 @@
 'use client';
-import { Linkedin, LogOut } from 'lucide-react';
+import { Linkedin } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 
 interface LinkedInGreetingProps {
@@ -12,25 +12,23 @@ export default function LinkedInGreeting({ credential }: LinkedInGreetingProps) 
   const picture = credential?.claim_data?.linkedin_picture || '';
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 mb-6 rounded-xl
-                    bg-gradient-to-r from-[#0077b5]/15 to-[#7c3aed]/10
-                    border border-[#0077b5]/25 hover:border-[#0077b5]/45 transition-all">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between mb-6 border border-[#333] bg-[var(--color-surface)]"
+         style={{ borderLeft: '4px solid #0077b5' }}>
+      <div className="flex items-center gap-3 px-4 py-3">
         {picture ? (
           <img
             src={picture}
             alt={name}
-            className="w-8 h-8 rounded-full border border-[#0077b5]/40"
+            className="w-8 h-8 border border-[#333]"
           />
         ) : (
           <Linkedin className="w-5 h-5 text-[#0077b5]" />
         )}
         <div>
-          <p className="text-sm font-medium text-white">
-            LinkedIn verified:{' '}
-            <span className="font-semibold text-[#0077b5]">{name}</span>
+          <p className="text-sm font-bold text-white uppercase tracking-wider">
+            LinkedIn verified: <span className="text-[#0077b5]">{name}</span>
           </p>
-          <p className="text-xs text-white/50 mt-0.5">
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
             LinkedIn account linked • Professional identity confirmed
           </p>
         </div>

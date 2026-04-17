@@ -24,32 +24,28 @@ export default function GitHubGreeting({ credential }: GitHubGreetingProps) {
       )
     ) {
       disconnect();
-      // Refresh page to reset everything
       window.location.href = '/dashboard';
     }
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 mb-6 rounded-xl
-                    bg-gradient-to-r from-[#00e676]/10 to-[#7c3aed]/10
-                    border border-[#00e676]/20 hover:border-[#00e676]/40 transition-all">
-      <div className="flex items-center gap-3">
-        <Github className="w-5 h-5 text-[#00e676]" />
+    <div className="flex items-center justify-between mb-6 border border-[#333] bg-[var(--color-surface)]"
+         style={{ borderLeft: '4px solid var(--color-highlight)' }}>
+      <div className="flex items-center gap-3 px-4 py-3">
+        <Github className="w-5 h-5" style={{ color: 'var(--color-highlight)' }} />
         <div>
-          <p className="text-sm font-medium text-white">
-            {getGreeting()}, <span className="font-semibold text-[#00e676]">{username}</span>
+          <p className="text-sm font-bold text-white uppercase tracking-wider">
+            {getGreeting()}, <span style={{ color: 'var(--color-highlight)' }}>{username}</span>
           </p>
-          <p className="text-xs text-white/50 mt-0.5">
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
             GitHub account linked • Click logout to disconnect
           </p>
         </div>
       </div>
       <button
         onClick={handleLogout}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg
-                   bg-red-500/20 hover:bg-red-500/30
-                   text-red-400 text-xs font-medium
-                   transition-all"
+        className="flex items-center gap-2 px-3 py-1.5 mr-4 text-xs font-bold uppercase tracking-wider transition-all"
+        style={{ color: 'var(--color-accent)', border: '1px solid var(--color-accent)', background: 'rgba(255, 60, 0, 0.1)' }}
       >
         <LogOut className="w-3.5 h-3.5" />
         Logout

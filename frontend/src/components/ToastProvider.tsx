@@ -9,19 +9,22 @@ export default function ToastProvider() {
       toastOptions={{
         duration: 3500,
         style: {
-          background: 'rgba(15, 5, 40, 0.95)',
-          color: '#fff',
-          border: '1px solid rgba(124, 58, 237, 0.25)',
-          backdropFilter: 'blur(12px)',
-          borderRadius: '12px',
+          background: '#121212',
+          color: '#e0e0e0',
+          border: '1px solid #333',
+          borderLeft: '4px solid #ff3c00',
+          borderRadius: '0',
           fontSize: '14px',
           padding: '12px 16px',
+          fontFamily: '"Space Mono", monospace',
+          textTransform: 'uppercase' as const,
+          letterSpacing: '0.05em',
         },
         success: {
-          iconTheme: { primary: '#00e676', secondary: '#0a0020' },
+          iconTheme: { primary: '#d4ff00', secondary: '#050505' },
         },
         error: {
-          iconTheme: { primary: '#ef4444', secondary: '#0a0020' },
+          iconTheme: { primary: '#ff3c00', secondary: '#050505' },
         },
       }}
     />
