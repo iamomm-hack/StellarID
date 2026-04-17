@@ -11,7 +11,7 @@ import RequestCredentialModal from '../../components/credentials/RequestCredenti
 import GitHubGreeting from '../../components/GitHubGreeting';
 import LinkedInGreeting from '../../components/LinkedInGreeting';
 import {
-  Shield, Plus, Github, Linkedin, Award, Clock, CheckCircle2,
+  Shield, Plus, Github, Linkedin, Award, CheckCircle2,
   Loader2, AlertCircle, Zap
 } from 'lucide-react';
 import { Skeleton } from '../../components/Skeleton';
@@ -28,7 +28,6 @@ function DashboardContent() {
   useEffect(() => {
     if (tokenFromUrl && isConnected) {
       setToken(tokenFromUrl);
-      // Clear URL params after handling token to prevent loop
       if (typeof window !== 'undefined') {
         window.history.replaceState({}, document.title, '/dashboard');
       }
@@ -61,19 +60,25 @@ function DashboardContent() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-lg w-full text-center rounded-2xl glass p-8 border border-white/10">
-          <Shield className="w-10 h-10 text-[#00e676] mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Connect wallet to open dashboard</h1>
-          <p className="text-white/60 mb-6">
-            Dashboard works after wallet connection. Use the Connect Wallet button in top-right.
-          </p>
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#9333ea] text-white font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/30"
-          >
-            Back to Home
-          </a>
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="brutal-card max-w-lg w-full">
+          <div className="card-header-brutal">
+            <span>Access Denied</span>
+            <span>[NO_WALLET]</span>
+          </div>
+          <div className="card-body-brutal text-center py-12">
+            <Shield className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--color-accent)' }} />
+            <h1 className="text-xl font-bold mb-2 uppercase"
+                style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+              Connect wallet to proceed
+            </h1>
+            <p className="text-[var(--color-text-muted)] text-sm mb-6">
+              Dashboard requires wallet connection. Use the Connect button in the navigation.
+            </p>
+            <a href="/">
+              <button className="btn-brutal btn-brutal-outline">Back to Index</button>
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -84,151 +89,146 @@ function DashboardContent() {
 
   const stats = [
     {
-      icon: Award,
       label: 'Total Credentials',
       value: totalCredentials,
-      color: 'text-[#7c3aed]',
-      bgColor: 'bg-[#7c3aed]/10',
+      status: 'ACTIVE',
     },
     {
-      icon: CheckCircle2,
       label: 'Valid',
       value: validCredentials.length,
-      color: 'text-[#00e676]',
-      bgColor: 'bg-[#00e676]/10',
+      status: 'ONLINE',
     },
     {
-      icon: Zap,
       label: 'Proofs Generated',
       value: 0,
-      color: 'text-[#4ade80]',
-      bgColor: 'bg-[#4ade80]/10',
+      status: 'STANDBY',
     },
   ];
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[1400px] mx-auto px-6 py-8">
         {oauthMessage && (
-          <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div className="mb-6 border-l-4 border-[var(--color-accent)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-accent)]">
             {oauthMessage}
           </div>
         )}
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-            <p className="text-sm text-white/40 font-mono">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 reveal-wrap">
+          <div className="reveal-content delay-1">
+            <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+              Dashboard
+            </h1>
+            <p className="text-sm mt-2 font-mono" style={{ color: 'var(--color-text-muted)' }}>
               {address?.slice(0, 10)}...{address?.slice(-6)}
             </p>
           </div>
           <div className="flex items-center gap-3 mt-4 sm:mt-0 flex-wrap">
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass glass-hover
-                         text-white/85 text-sm font-medium transition-all duration-300
-                         hover:border-[#00e676]/35"
-            >
-              <Github className="w-4 h-4" />
-              GitHub Credential
+            <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}>
+              <button className="btn-brutal btn-brutal-outline flex items-center gap-2 text-sm py-2.5 px-4">
+                <Github className="w-4 h-4" />
+                GitHub
+              </button>
             </a>
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl glass glass-hover
-                         text-white/85 text-sm font-medium transition-all duration-300
-                         hover:border-[#0077b5]/35"
-            >
-              <Linkedin className="w-4 h-4 text-[#0077b5]" />
-              LinkedIn Credential
+            <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}>
+              <button className="btn-brutal btn-brutal-outline flex items-center gap-2 text-sm py-2.5 px-4">
+                <Linkedin className="w-4 h-4" />
+                LinkedIn
+              </button>
             </a>
             <button
               onClick={() => setShowRequestModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl
-                         bg-gradient-to-r from-[#7c3aed] to-[#9333ea]
-                         hover:from-[#8b5cf6] hover:to-[#a855f7]
-                         text-white text-sm font-semibold hover:shadow-lg
-                         hover:shadow-purple-500/30 transition-all">
+              className="btn-brutal btn-brutal-accent flex items-center gap-2 text-sm py-2.5 px-4"
+            >
               <Plus className="w-4 h-4" />
-              Request Credential
+              Request
             </button>
           </div>
         </div>
 
-        {/* GitHub Greeting - Show if GitHub credential exists */}
+        {/* GitHub Greeting */}
         {credentials && credentials.some((c: any) => c.credential_type === 'github_developer') && (
           <GitHubGreeting 
             credential={credentials.find((c: any) => c.credential_type === 'github_developer')} 
           />
         )}
 
-        {/* LinkedIn Greeting - Show if LinkedIn credential exists */}
+        {/* LinkedIn Greeting */}
         {credentials && credentials.some((c: any) => c.credential_type === 'linkedin_professional') && (
           <LinkedInGreeting 
             credential={credentials.find((c: any) => c.credential_type === 'linkedin_professional')} 
           />
         )}
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl glass p-4 hover:border-[#00e676]/25 transition-colors duration-300">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs text-white/40">{stat.label}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Stats Row - Data Table Style */}
+        <div className="mb-8 overflow-x-auto">
+          <table className="edge-table w-full">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Status</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.map((stat) => (
+                <tr key={stat.label}>
+                  <td className="text-[var(--color-text-main)]">{stat.label}</td>
+                  <td style={{ color: stat.status === 'ONLINE' ? 'var(--color-highlight)' : stat.status === 'ACTIVE' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
+                    {stat.status}
+                  </td>
+                  <td className="font-bold text-white" style={{ fontFamily: 'Unbounded, sans-serif' }}>
+                    {stat.value}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Live Demo + Credentials - Two Column Layout */}
-        <div className="grid lg:grid-cols-[1fr_1fr] gap-6 mb-8">
-          {/* Live Demo */}
+        {/* Live Demo + Quick Actions */}
+        <div className="grid lg:grid-cols-2 gap-0 mb-8">
           <LiveDemo />
 
           {/* Quick Actions */}
-          <div className="rounded-2xl glass p-6 border border-white/10">
-            <h3 className="font-semibold text-base mb-4 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-[#7c3aed]" />
-              Quick Actions
-            </h3>
-            <div className="space-y-3">
+          <div className="brutal-card">
+            <div className="card-header-brutal">
+              <span>Quick Actions</span>
+              <span>[READY]</span>
+            </div>
+            <div className="card-body-brutal space-y-0">
               <a
                 href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
-                className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#00e676]/20 transition-all group"
+                className="flex items-center gap-3 p-4 border-b border-[#222] hover:bg-white/[0.02] transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-[#00e676]/10 flex items-center justify-center">
-                  <Github className="w-5 h-5 text-[#00e676]" />
-                </div>
+                <Github className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
                 <div>
-                  <p className="text-sm font-medium group-hover:text-[#00e676] transition-colors">Link GitHub Account</p>
-                  <p className="text-xs text-white/35">Get your developer verifiable credential</p>
+                  <p className="text-sm font-semibold text-[var(--color-text-main)] group-hover:text-[var(--color-highlight)] transition-colors uppercase tracking-wide">
+                    Link GitHub Account
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Get your developer verifiable credential</p>
                 </div>
               </a>
               <a
                 href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}
-                className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#0077b5]/20 transition-all group"
+                className="flex items-center gap-3 p-4 border-b border-[#222] hover:bg-white/[0.02] transition-colors group"
               >
-                <div className="w-10 h-10 rounded-lg bg-[#0077b5]/10 flex items-center justify-center">
-                  <Linkedin className="w-5 h-5 text-[#0077b5]" />
-                </div>
+                <Linkedin className="w-5 h-5 text-[#0077b5]" />
                 <div>
-                  <p className="text-sm font-medium group-hover:text-[#0077b5] transition-colors">Link LinkedIn Account</p>
-                  <p className="text-xs text-white/35">Get your professional identity credential</p>
+                  <p className="text-sm font-semibold text-[var(--color-text-main)] group-hover:text-[var(--color-highlight)] transition-colors uppercase tracking-wide">
+                    Link LinkedIn Account
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Get your professional identity credential</p>
                 </div>
               </a>
-              <a href="/docs" className="flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-[#7c3aed]/20 transition-all group">
-                <div className="w-10 h-10 rounded-lg bg-[#7c3aed]/10 flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-[#7c3aed]" />
-                </div>
+              <a href="/docs" className="flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors group">
+                <Shield className="w-5 h-5" style={{ color: 'var(--color-highlight)' }} />
                 <div>
-                  <p className="text-sm font-medium group-hover:text-[#7c3aed] transition-colors">View API Docs</p>
-                  <p className="text-xs text-white/35">Integrate StellarID into your platform</p>
+                  <p className="text-sm font-semibold text-[var(--color-text-main)] group-hover:text-[var(--color-highlight)] transition-colors uppercase tracking-wide">
+                    View API Docs
+                  </p>
+                  <p className="text-xs text-[var(--color-text-muted)]">Integrate StellarID into your platform</p>
                 </div>
               </a>
             </div>
@@ -238,45 +238,50 @@ function DashboardContent() {
         {/* Credentials Grid */}
         {isLoading ? (
           <div>
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-[#00e676]" />
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2 uppercase tracking-wider"
+                style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+              <Shield className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
               Your Credentials
             </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-xl glass p-4 border border-white/10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Skeleton className="w-12 h-12 rounded-lg" />
-                    <div className="flex-1">
-                      <Skeleton className="h-4 w-24 mb-2" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
+                <div key={i} className="brutal-card">
+                  <div className="card-header-brutal">
+                    <span>Loading...</span>
+                    <span>[...]</span>
                   </div>
-                  <Skeleton className="h-3 w-full mb-2" />
-                  <Skeleton className="h-3 w-3/4 mb-4" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-20 rounded-lg" />
-                    <Skeleton className="h-8 w-20 rounded-lg" />
+                  <div className="card-body-brutal">
+                    <Skeleton className="h-4 w-24 mb-3" />
+                    <Skeleton className="h-3 w-full mb-2" />
+                    <Skeleton className="h-3 w-3/4 mb-4" />
+                    <Skeleton className="h-8 w-full" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <AlertCircle className="w-8 h-8 text-red-400 mb-4" />
-            <p className="text-white/50">Failed to load credentials</p>
-            <p className="text-xs text-white/30 mt-1">
-              Make sure the backend is running on port 5555
-            </p>
+          <div className="brutal-card">
+            <div className="card-header-brutal">
+              <span>Error</span>
+              <span>[FAIL]</span>
+            </div>
+            <div className="card-body-brutal flex flex-col items-center py-12">
+              <AlertCircle className="w-8 h-8 mb-4" style={{ color: 'var(--color-accent)' }} />
+              <p className="text-[var(--color-text-muted)]">Failed to load credentials</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                Make sure the backend is running on port 5555
+              </p>
+            </div>
           </div>
         ) : credentials && credentials.length > 0 ? (
           <div>
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-[#00e676]" />
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2 uppercase tracking-wider"
+                style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+              <Shield className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
               Your Credentials
             </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0">
               {credentials.map((cred: any) => (
                 <CredentialCard
                   key={cred.id}
@@ -287,27 +292,28 @@ function DashboardContent() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 rounded-2xl
-                          glass border border-dashed border-[#00e676]/20">
-            <div className="w-16 h-16 rounded-2xl bg-[#7c3aed]/10 flex items-center
-                            justify-center mb-4">
-              <Shield className="w-8 h-8 text-[#7c3aed]" />
+          <div className="brutal-card">
+            <div className="card-header-brutal">
+              <span>Credentials</span>
+              <span>[EMPTY]</span>
             </div>
-            <h3 className="text-lg font-semibold mb-2">No credentials yet</h3>
-            <p className="text-sm text-white/40 text-center max-w-md mb-6">
-              Get started by connecting with an issuer. Try linking your GitHub
-              account to receive your first verifiable credential NFT.
-            </p>
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl
-                         bg-gradient-to-r from-[#7c3aed] to-[#9333ea]
-                         text-white text-sm font-medium hover:shadow-lg
-                         hover:shadow-purple-500/30 transition-all"
-            >
-              <Github className="w-4 h-4" />
-              Get GitHub Credential
-            </a>
+            <div className="card-body-brutal flex flex-col items-center py-16">
+              <Shield className="w-12 h-12 mb-4" style={{ color: 'var(--color-text-muted)' }} />
+              <h3 className="text-lg font-bold mb-2 uppercase"
+                  style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+                No credentials yet
+              </h3>
+              <p className="text-sm text-[var(--color-text-muted)] text-center max-w-md mb-6">
+                Get started by connecting with an issuer. Try linking your GitHub
+                account to receive your first verifiable credential NFT.
+              </p>
+              <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}>
+                <button className="btn-brutal btn-brutal-accent flex items-center gap-2">
+                  <Github className="w-4 h-4" />
+                  Get GitHub Credential
+                </button>
+              </a>
+            </div>
           </div>
         )}
       </div>
