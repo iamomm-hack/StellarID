@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, ChevronRight, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { issuersApi } from '../../lib/api';
@@ -58,7 +58,6 @@ export default function RequestCredentialModal({ onClose }: RequestCredentialMod
       return;
     }
 
-    // Auto-fill timestamp fields if not provided
     const finalClaimData = { ...claimData };
     if (selectedType.includes('age_') && selectedType !== 'age_verification') {
       finalClaimData.verified_at = finalClaimData.verified_at || new Date().toISOString();
@@ -82,43 +81,32 @@ export default function RequestCredentialModal({ onClose }: RequestCredentialMod
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-2xl rounded-2xl glass border border-white/10 shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="edge-modal-overlay" onClick={onClose}>
+      <div className="edge-modal max-w-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div className="edge-modal-header">
           <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-[#00e676]" />
-            <h2 className="text-lg font-semibold text-white">Request Credential</h2>
+            <Plus className="w-4 h-4" />
+            <span>Request Credential</span>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            title="Close modal"
-            className="text-white/40 hover:text-white transition-colors"
-          >
+          <button type="button" onClick={onClose} title="Close modal"
+                  className="hover:opacity-60 transition-opacity">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Progress indicator */}
-        <div className="px-6 py-3 bg-black/20 flex items-center gap-2 text-xs text-white/60">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-[#00e676] text-black' : 'bg-white/10'}`}>
-            1
-          </div>
-          <div className={`h-0.5 flex-1 ${step >= 2 ? 'bg-[#00e676]' : 'bg-white/10'}`} />
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-[#00e676] text-black' : 'bg-white/10'}`}>
-            2
-          </div>
-          <div className={`h-0.5 flex-1 ${step >= 3 ? 'bg-[#00e676]' : 'bg-white/10'}`} />
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-[#00e676] text-black' : 'bg-white/10'}`}>
-            3
-          </div>
+        <div className="px-6 py-3 bg-[var(--color-bg)] flex items-center gap-2 border-b border-[#222]">
+          {[1, 2, 3].map((s) => (
+            <React.Fragment key={s}>
+              <div className={`w-6 h-6 flex items-center justify-center text-xs font-bold ${
+                step >= s ? 'bg-[var(--color-accent)] text-[var(--color-bg)]' : 'bg-[#222] text-[var(--color-text-muted)]'
+              }`}>
+                {s}
+              </div>
+              {s < 3 && <div className={`h-[2px] flex-1 ${step > s ? 'bg-[var(--color-accent)]' : 'bg-[#222]'}`} />}
+            </React.Fragment>
+          ))}
         </div>
 
         {/* Content */}
@@ -126,129 +114,122 @@ export default function RequestCredentialModal({ onClose }: RequestCredentialMod
           {/* Step 1: Select Issuer */}
           {step === 1 && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-3">
-                  Select an Issuer
-                </label>
-                {isLoadingIssuers ? (
-                  <div className="flex items-center justify-center py-8 text-white/40">
-                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                    Loading issuers...
-                  </div>
-                ) : issuers && issuers.length > 0 ? (
-                  <div className="space-y-2">
-                    {issuers.map((issuer: any) => (
-                      <button
-                        key={issuer.id}
-                        onClick={() => {
-                          setSelectedIssuer(issuer);
-                          setSelectedType(null);
-                          setClaimData({});
-                        }}
-                        className={`w-full p-4 rounded-xl border transition-all text-left ${
-                          selectedIssuer?.id === issuer.id
-                            ? 'bg-[#00e676]/10 border-[#00e676]/50 text-white'
-                            : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{issuer.name}</p>
-                            <p className="text-xs text-white/50 mt-1">{issuer.description}</p>
-                          </div>
-                          {selectedIssuer?.id === issuer.id && (
-                            <ChevronRight className="w-5 h-5 text-[#00e676]" />
-                          )}
+              <label className="block text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-3">
+                Select an Issuer
+              </label>
+              {isLoadingIssuers ? (
+                <div className="flex items-center justify-center py-8 text-[var(--color-text-muted)]">
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  Loading issuers...
+                </div>
+              ) : issuers && issuers.length > 0 ? (
+                <div className="space-y-0">
+                  {issuers.map((issuer: any) => (
+                    <button
+                      key={issuer.id}
+                      onClick={() => {
+                        setSelectedIssuer(issuer);
+                        setSelectedType(null);
+                        setClaimData({});
+                      }}
+                      className={`w-full p-4 border border-[#333] transition-all text-left ${
+                        selectedIssuer?.id === issuer.id
+                          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
+                          : 'hover:border-[#555]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-white uppercase tracking-wider text-sm">{issuer.name}</p>
+                          <p className="text-xs text-[var(--color-text-muted)] mt-1">{issuer.description}</p>
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-white/50">No issuers available</p>
-                )}
-              </div>
+                        {selectedIssuer?.id === issuer.id && (
+                          <ChevronRight className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[var(--color-text-muted)]">No issuers available</p>
+              )}
             </div>
           )}
 
           {/* Step 2: Select Credential Type */}
           {step === 2 && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-3">
-                  Select Credential Type
-                </label>
-                {availableTypes.length > 0 ? (
-                  <div className="space-y-2">
-                    {availableTypes.map((type: string) => (
-                      <button
-                        key={type}
-                        onClick={() => {
-                          setSelectedType(type);
-                          setClaimData({});
-                        }}
-                        className={`w-full p-4 rounded-xl border transition-all text-left ${
-                          selectedType === type
-                            ? 'bg-[#00e676]/10 border-[#00e676]/50 text-white'
-                            : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <p className="font-medium">{CREDENTIAL_TYPE_LABELS[type] || type}</p>
-                          {selectedType === type && (
-                            <ChevronRight className="w-5 h-5 text-[#00e676]" />
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-white/50">No credential types available</p>
-                )}
-              </div>
+              <label className="block text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-3">
+                Select Credential Type
+              </label>
+              {availableTypes.length > 0 ? (
+                <div className="space-y-0">
+                  {availableTypes.map((type: string) => (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        setSelectedType(type);
+                        setClaimData({});
+                      }}
+                      className={`w-full p-4 border border-[#333] transition-all text-left ${
+                        selectedType === type
+                          ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
+                          : 'hover:border-[#555]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-white uppercase tracking-wider text-sm">
+                          {CREDENTIAL_TYPE_LABELS[type] || type}
+                        </p>
+                        {selectedType === type && (
+                          <ChevronRight className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[var(--color-text-muted)]">No credential types available</p>
+              )}
             </div>
           )}
 
           {/* Step 3: Fill Claim Data */}
           {step === 3 && selectedType && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-white/80 mb-3">
-                  Additional Information
-                </label>
-                <div className="space-y-3">
-                  {Object.entries(CLAIM_DATA_PLACEHOLDERS[selectedType] || {}).map(
-                    ([key, placeholder]) => (
-                      <div key={key}>
-                        <label className="block text-xs text-white/60 mb-1 capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </label>
-                        <input
-                          type={key.includes('count') || key.includes('income') || key.includes('year') ? 'number' : 'text'}
-                          placeholder={placeholder}
-                          value={claimData[key] || ''}
-                          onChange={(e) =>
-                            setClaimData({ ...claimData, [key]: e.target.value })
-                          }
-                          className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10
-                                   text-white placeholder:text-white/30 focus:outline-none
-                                   focus:border-[#00e676]/50 focus:bg-white/10 transition-all"
-                        />
-                      </div>
-                    )
-                  )}
-                </div>
+              <label className="block text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest mb-3">
+                Additional Information
+              </label>
+              <div className="space-y-4">
+                {Object.entries(CLAIM_DATA_PLACEHOLDERS[selectedType] || {}).map(
+                  ([key, placeholder]) => (
+                    <div key={key}>
+                      <label className="block text-[10px] text-[var(--color-text-muted)] mb-1 uppercase tracking-widest font-bold">
+                        {key.replace(/_/g, ' ')}
+                      </label>
+                      <input
+                        type={key.includes('count') || key.includes('income') || key.includes('year') ? 'number' : 'text'}
+                        placeholder={placeholder}
+                        value={claimData[key] || ''}
+                        onChange={(e) =>
+                          setClaimData({ ...claimData, [key]: e.target.value })
+                        }
+                        className="edge-input"
+                      />
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-black/20 border-t border-white/10 flex gap-3">
+        <div className="px-6 py-4 bg-[var(--color-bg)] border-t border-[#222] flex gap-0">
           {step > 1 && (
             <button
               onClick={() => setStep(step - 1)}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15
-                       text-white font-medium transition-all"
+              className="flex-1 btn-brutal btn-brutal-outline text-sm"
             >
               Back
             </button>
@@ -259,10 +240,7 @@ export default function RequestCredentialModal({ onClose }: RequestCredentialMod
               disabled={
                 (step === 1 && !selectedIssuer) || (step === 2 && !selectedType)
               }
-              className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#00e676]
-                       to-[#00c853] hover:from-[#00e676] hover:to-[#00e676]
-                       text-black font-medium transition-all disabled:opacity-50
-                       disabled:cursor-not-allowed"
+              className="flex-1 btn-brutal btn-brutal-accent text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -270,10 +248,7 @@ export default function RequestCredentialModal({ onClose }: RequestCredentialMod
             <button
               onClick={handleSubmit}
               disabled={isRequesting}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#00e676]
-                       to-[#00c853] hover:from-[#00e676] hover:to-[#00e676]
-                       text-black font-medium transition-all disabled:opacity-50
-                       disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 btn-brutal btn-brutal-accent text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isRequesting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isRequesting ? 'Requesting...' : 'Request Credential'}
