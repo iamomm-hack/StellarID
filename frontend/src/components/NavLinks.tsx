@@ -23,16 +23,12 @@ export default function NavLinks() {
   return (
     <>
       {/* Desktop Nav */}
-      <div className="hidden lg:flex items-center gap-1">
+      <div className="hidden lg:flex items-center gap-6">
         {navItems.map((item) => (
           <Link
             key={item.label}
             href={item.href}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              isActive(item.href)
-                ? 'bg-white/10 text-white'
-                : 'text-white/60 hover:text-white hover:bg-white/5'
-            }`}
+            className={`nav-link-edge ${isActive(item.href) ? 'active' : ''}`}
           >
             {item.label}
           </Link>
@@ -42,30 +38,31 @@ export default function NavLinks() {
       {/* Mobile Hamburger */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-colors"
+        className="lg:hidden w-9 h-9 flex items-center justify-center border border-[#333] text-[var(--color-text-muted)] hover:text-white hover:border-[var(--color-accent)] transition-colors"
         aria-label="Menu"
       >
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       {mobileOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/70 z-40 lg:hidden"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="fixed top-[72px] left-0 right-0 z-50 lg:hidden bg-[#0a0020]/95 backdrop-blur-xl border-b border-white/10 p-4">
+          <div className="fixed top-[72px] left-0 right-0 z-50 lg:hidden border-b border-[#222] p-4"
+               style={{ background: 'rgba(5,5,5,0.97)' }}>
             <div className="flex flex-col gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                  className={`px-4 py-3 text-sm font-semibold uppercase tracking-wider transition-colors ${
                     isActive(item.href)
-                      ? 'bg-white/10 text-white'
-                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                      ? 'text-white border-l-4 border-[var(--color-accent)] pl-3'
+                      : 'text-[var(--color-text-muted)] hover:text-white hover:pl-5'
                   }`}
                 >
                   {item.label}
