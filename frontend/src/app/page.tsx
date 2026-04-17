@@ -8,10 +8,12 @@ import {
   AlertTriangle,
   ShieldCheck,
   Zap,
-  Key,
   Activity,
-  Crown,
-  X,
+  Eye,
+  Lock,
+  Fingerprint,
+  Code2,
+  Globe,
 } from 'lucide-react';
 
 function AnimatedCounter({ target, suffix = '', prefix = '' }: { target: number; suffix?: string; prefix?: string }) {
@@ -47,11 +49,50 @@ function AnimatedCounter({ target, suffix = '', prefix = '' }: { target: number;
   }, [started, target]);
 
   return (
-    <div ref={ref} className="text-3xl sm:text-4xl font-bold">
+    <div ref={ref} className="text-3xl sm:text-5xl font-bold" style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
       {prefix}{count.toLocaleString()}{suffix}
     </div>
   );
 }
+
+const features = [
+  {
+    icon: Fingerprint,
+    title: 'NFT Credentials',
+    desc: 'Non-transferable NFTs on Stellar. Your identity, on-chain. No raw data stored.',
+    tag: 'IDENTITY',
+  },
+  {
+    icon: Shield,
+    title: 'ZK Proofs',
+    desc: 'Groth16 zero-knowledge proofs generated locally. Your data never leaves your device.',
+    tag: 'PRIVACY',
+  },
+  {
+    icon: Eye,
+    title: 'Selective Disclosure',
+    desc: 'Prove you\'re 18+ without revealing your birthday. Prove income without exact amounts.',
+    tag: 'CONTROL',
+  },
+  {
+    icon: Lock,
+    title: 'Privacy by Design',
+    desc: 'Zero personal data on-chain. Only cryptographic commitments via Poseidon hashing.',
+    tag: 'SECURITY',
+  },
+  {
+    icon: Code2,
+    title: 'Developer API',
+    desc: 'Full REST API. OAuth integrations. Integrate verification into any platform in minutes.',
+    tag: 'DEVTOOLS',
+  },
+  {
+    icon: Globe,
+    title: 'Fee Sponsorship',
+    desc: 'Gasless transactions. Users never pay XLM. StellarID sponsors all minting costs.',
+    tag: 'UX',
+  },
+];
 
 const pricingTiers = [
   {
@@ -60,7 +101,7 @@ const pricingTiers = [
     period: '',
     desc: 'For individuals & testing',
     features: ['100 verifications/mo', '2 credential types', 'Community support', 'Testnet only'],
-    cta: 'Get Started',
+    cta: 'Initialize',
     highlight: false,
   },
   {
@@ -69,7 +110,7 @@ const pricingTiers = [
     period: '/mo',
     desc: 'For growing platforms',
     features: ['10,000 verifications/mo', 'All credential types', 'Priority support', 'Analytics dashboard', 'Custom branding', 'Mainnet access'],
-    cta: 'Start Free Trial',
+    cta: 'Deploy',
     highlight: true,
   },
   {
@@ -78,95 +119,91 @@ const pricingTiers = [
     period: '',
     desc: 'For large-scale deployments',
     features: ['Unlimited verifications', 'Dedicated support', 'SLA guarantee', 'On-premise option', 'White-label solution', 'Custom integrations'],
-    cta: 'Contact Sales',
+    cta: 'Contact',
     highlight: false,
   },
 ];
 
 export default function Home() {
+  // Parallax effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY;
+      const hero = document.querySelector('.hero-title') as HTMLElement;
+      if (hero) {
+        hero.style.transform = `translateY(${scrolled * 0.15}px)`;
+        hero.style.opacity = String(Math.max(0, 1 - scrolled / 800));
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen text-white relative overflow-x-hidden"
-         style={{ background: 'linear-gradient(165deg, #08001a 0%, #0d0030 30%, #12003a 50%, #0a0020 100%)' }}>
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
 
       {/* ===== HERO SECTION ===== */}
-      <section className="relative min-h-[90vh] flex flex-col items-center justify-center pb-8">
-        {/* Subtle Bokeh */}
-        <div className="absolute top-[-60px] left-[15%] w-[300px] h-[300px] rounded-full bg-[#7c3aed]/25 blur-[120px] animate-bokeh pointer-events-none" />
-        <div className="absolute bottom-[10%] right-[10%] w-[250px] h-[250px] rounded-full bg-[#9333ea]/20 blur-[100px] animate-bokeh-2 pointer-events-none" />
-        <div className="absolute top-[40%] left-[-3%] w-[200px] h-[200px] rounded-full bg-[#6d28d9]/20 blur-[90px] animate-bokeh pointer-events-none" style={{ animationDelay: '2s' }} />
+      <section className="relative py-20 sm:py-28 lg:py-36">
+        {/* Accent glow effect */}
+        <div className="absolute top-[20%] left-[5%] w-[400px] h-[400px] rounded-full pointer-events-none"
+             style={{ background: 'radial-gradient(circle, rgba(255,60,0,0.08) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[10%] right-[10%] w-[300px] h-[300px] rounded-full pointer-events-none"
+             style={{ background: 'radial-gradient(circle, rgba(212,255,0,0.05) 0%, transparent 70%)' }} />
 
-        {/* Grid overlay */}
-        <div className="absolute inset-0 hero-grid opacity-20" />
-
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
-          {/* Top badge */}
-          <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full border border-[#7c3aed]/40 bg-[#7c3aed]/10 text-sm text-white/80 mb-10 backdrop-blur-sm">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#00e676] flex items-center justify-center">
-              <Zap className="w-3 h-3 text-white" />
-            </div>
-            <span className="font-medium">StellarID Protocol</span>
-            <span className="text-[#00e676] font-semibold ml-1">Certified</span>
-          </div>
-
-          {/* Main Heading */}
-          <h1 className="text-5xl sm:text-6xl lg:text-[4.5rem] font-extrabold tracking-tight leading-[1.05] mb-6 text-white">
-            Decentralized<br />
-            <span className="bg-gradient-to-r from-[#00e676] via-[#4ade80] to-[#22c55e] bg-clip-text text-transparent">Identity</span>{' '}
-            Verification
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-lg sm:text-xl text-white/55 max-w-2xl mx-auto mb-10 font-medium">
-            Designed for Privacy-First Applications
-          </p>
-
-          {/* Feature badges */}
-          <div className="flex items-center justify-center gap-3 mb-10 flex-wrap">
-            <div className="feature-badge inline-flex items-center gap-2.5 text-sm text-white/70">
-              <CheckCircle2 className="w-4 h-4 text-[#00e676] flex-shrink-0" />
-              <span>ZK Proofs</span>
-              <span className="text-white/20">·</span>
-              <span>Stellar Blockchain</span>
-              <span className="text-white/20">·</span>
-              <span>NFT Credentials</span>
-            </div>
-          </div>
-
-          {/* CTA Button */}
-          <div className="flex flex-col items-center gap-4 mb-8">
-            <a
-              href="/dashboard"
-              className="btn-green-glow inline-flex items-center gap-2 group"
-            >
-              Open Dashboard
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </div>
-
-          {/* Tagline */}
-          <p className="text-[#00e676] text-base italic font-medium">
-            New era of privacy starting now
-          </p>
-        </div>
-
-        {/* 3D Platform Stack Decoration */}
-        <div className="relative z-10 w-full max-w-lg mx-auto mt-4 mb-0 px-8">
-          <div className="platform-stack relative mx-auto" style={{ height: '220px' }}>
-            <div className="absolute inset-0 bg-[#00e676]/10 blur-[60px] rounded-full" />
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[280px] h-[55px] platform-layer opacity-60"
-                 style={{ transform: 'translateX(-50%) rotateX(55deg) rotateZ(-25deg)' }} />
-            <div className="absolute bottom-[30px] left-1/2 -translate-x-1/2 w-[260px] h-[55px] platform-layer opacity-80 animate-float"
-                 style={{ animationDelay: '0.5s', transform: 'translateX(-50%) rotateX(50deg) rotateZ(-25deg)' }}>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <Key className="w-6 h-6 text-[#00e676]/50" />
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+          <div className="reveal-wrap">
+            <div className="reveal-content delay-2">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-2 h-2" style={{ background: 'var(--color-highlight)', animation: 'pulse-accent 2s ease-in-out infinite' }} />
+                <span className="text-xs font-bold uppercase tracking-[0.25em]"
+                      style={{ color: 'var(--color-accent)' }}>
+                  // System Ready — Protocol V2.0
+                </span>
               </div>
-            </div>
-            <div className="absolute bottom-[60px] left-1/2 -translate-x-1/2 w-[240px] h-[55px] platform-layer animate-float animate-glow-pulse"
-                 style={{ transform: 'translateX(-50%) rotateX(45deg) rotateZ(-25deg)' }}>
-              <div className="absolute top-[-28px] left-1/2 -translate-x-1/2">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#0a5530] to-[#0d6b3e] border border-[#00e676]/30 flex items-center justify-center shadow-lg shadow-[#00e676]/20">
-                  <Shield className="w-7 h-7 text-[#00e676]" />
-                </div>
+
+              <h1 className="hero-title mb-6"
+                  style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(2.8rem, 11vw, 8rem)', lineHeight: 0.85, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+                Decentralized<br />
+                <span className="outline-text">Identity</span>
+              </h1>
+
+              <div className="max-w-2xl">
+                <p className="text-lg sm:text-xl mb-2" style={{ color: 'var(--color-text-main)' }}>
+                  This protocol rejects convention.
+                </p>
+                <p className="mb-8" style={{ color: 'var(--color-text-muted)', lineHeight: 1.7 }}>
+                  <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>Zero-knowledge proofs</span> protect your
+                  identity. Raw data stays with you. Prove who you are — reveal nothing else.
+                  Built on <span style={{ color: 'var(--color-highlight)' }}>Stellar blockchain</span> for speed, security, and sovereignty.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-4 mb-8">
+                <a href="/dashboard">
+                  <button className="btn-brutal btn-brutal-primary inline-flex items-center gap-2">
+                    Initialize <ArrowRight className="w-4 h-4" />
+                  </button>
+                </a>
+                <a href="/docs">
+                  <button className="btn-brutal btn-brutal-outline inline-flex items-center gap-2">
+                    Read Docs
+                  </button>
+                </a>
+              </div>
+
+              <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5" style={{ background: 'var(--color-highlight)' }} />
+                  Open Source
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5" style={{ background: 'var(--color-highlight)' }} />
+                  Gasless TX
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5" style={{ background: 'var(--color-highlight)' }} />
+                  Client-side ZK
+                </span>
               </div>
             </div>
           </div>
@@ -174,27 +211,27 @@ export default function Home() {
       </section>
 
       {/* ===== LIVE STATS COUNTER ===== */}
-      <section className="py-16 relative border-t border-white/5">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-3 gap-6 text-center">
-            <div className="space-y-1.5">
+      <section className="py-16 relative border-t border-b border-[#222]">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            <div className="space-y-2">
               <AnimatedCounter target={12847} suffix="+" />
-              <p className="text-xs sm:text-sm text-white/40 flex items-center justify-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-[#00e676]" />
+              <p className="counter-tag flex items-center justify-center gap-1.5">
+                <Activity className="w-3.5 h-3.5" />
                 Verifications
               </p>
             </div>
-            <div className="space-y-1.5 border-x border-white/5">
+            <div className="space-y-2 sm:border-x border-[#222]">
               <AnimatedCounter target={500} suffix="+" />
-              <p className="text-xs sm:text-sm text-white/40 flex items-center justify-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-[#7c3aed]" />
+              <p className="counter-tag flex items-center justify-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" />
                 Platforms
               </p>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <AnimatedCounter target={0} />
-              <p className="text-xs sm:text-sm text-white/40 flex items-center justify-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <p className="counter-tag flex items-center justify-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5" />
                 Data Stored
               </p>
             </div>
@@ -202,100 +239,177 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== PROBLEM SECTION ===== */}
-      <section className="py-20 relative">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3">
-              Identity verification is <span className="text-red-400">broken</span>
+      {/* ===== HOW IT WORKS - 3 STEP ===== */}
+      <section className="py-24 relative">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
+                  style={{ color: 'var(--color-accent)' }}>
+              // How It Works
+            </span>
+            <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+              Three Steps to <span style={{ color: 'var(--color-accent)' }}>Privacy</span>
             </h2>
-            <p className="text-white/40 max-w-lg mx-auto text-sm">
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-0">
+            {[
+              { step: '01', title: 'Get Verified', desc: 'Connect wallet. Link GitHub or LinkedIn. Issuer verifies your identity and mints an NFT credential.', icon: CheckCircle2 },
+              { step: '02', title: 'Generate Proof', desc: 'Select a claim. ZK proof is generated locally on your device. Your raw data never leaves.', icon: Zap },
+              { step: '03', title: 'Share & Verify', desc: 'Share a verification link. Platform gets YES/NO — zero personal data transmitted.', icon: ShieldCheck },
+            ].map((item, idx) => (
+              <div key={item.step} className="brutal-card">
+                <div className="card-header-brutal"
+                     style={idx === 2 ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' } : {}}>
+                  <span>Step {item.step}</span>
+                  <span>[{item.title.toUpperCase()}]</span>
+                </div>
+                <div className="card-body-brutal">
+                  <div className="w-12 h-12 flex items-center justify-center border border-[#333] mb-4"
+                       style={{ background: 'var(--color-bg)' }}>
+                    <item.icon className="w-6 h-6" style={{ color: idx === 2 ? 'var(--color-highlight)' : 'var(--color-accent)' }} />
+                  </div>
+                  <h3 className="font-bold text-base mb-2 uppercase tracking-wider"
+                      style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff', fontSize: '0.9rem' }}>
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FEATURES GRID ===== */}
+      <section className="py-24 relative border-t border-[#222]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
+                  style={{ color: 'var(--color-accent)' }}>
+              // Core Modules
+            </span>
+            <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+              Built <span className="outline-text">Different</span>
+            </h2>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0">
+            {features.map((feat, idx) => (
+              <div key={feat.title} className="brutal-card">
+                <div className="card-header-brutal"
+                     style={idx % 3 === 1 ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' } : {}}>
+                  <span>Module: {String(idx + 1).padStart(2, '0')}</span>
+                  <span>[{feat.tag}]</span>
+                </div>
+                <div className="card-body-brutal">
+                  <div className="w-10 h-10 flex items-center justify-center border border-[#333] mb-3"
+                       style={{ background: 'var(--color-bg)' }}>
+                    <feat.icon className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+                  </div>
+                  <h3 className="font-bold text-sm mb-2 uppercase tracking-wider text-white">{feat.title}</h3>
+                  <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">{feat.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== PROBLEM SECTION ===== */}
+      <section className="py-24 relative border-t border-[#222]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
+                  style={{ color: 'var(--color-accent)' }}>
+              // The Problem
+            </span>
+            <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+              Identity is <span style={{ color: 'var(--color-accent)' }}>Broken</span>
+            </h2>
+            <p className="text-[var(--color-text-muted)] max-w-lg mx-auto text-sm mt-4">
               Traditional KYC requires uploading sensitive documents to every service. StellarID fixes this.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-[1fr_auto_1fr] items-center gap-6 md:gap-10">
-            <div className="rounded-2xl glass p-7 border-red-500/20 border">
-              <AlertTriangle className="w-7 h-7 text-red-400 mb-3" />
-              <h3 className="font-semibold text-base mb-2 text-red-300">Before StellarID</h3>
-              <ul className="space-y-2 text-sm text-white/50">
-                <li className="flex items-center gap-2"><X className="w-4 h-4 text-red-400" /> Upload passport 10+ times</li>
-                <li className="flex items-center gap-2"><X className="w-4 h-4 text-red-400" /> Data breaches everywhere</li>
-                <li className="flex items-center gap-2"><X className="w-4 h-4 text-red-400" /> Zero control over your data</li>
-                <li className="flex items-center gap-2"><X className="w-4 h-4 text-red-400" /> Days for verification</li>
-              </ul>
+          <div className="grid md:grid-cols-2 gap-0">
+            <div className="brutal-card">
+              <div className="card-header-brutal">
+                <span>Before StellarID</span>
+                <span>[BROKEN]</span>
+              </div>
+              <div className="card-body-brutal">
+                <AlertTriangle className="w-7 h-7 mb-3" style={{ color: 'var(--color-accent)' }} />
+                <ul className="styled-list">
+                  <li>Upload passport 10+ times to different services</li>
+                  <li>Data breaches expose millions of identities yearly</li>
+                  <li>Zero control over who has your data</li>
+                  <li>Days of waiting for manual verification</li>
+                </ul>
+              </div>
             </div>
-
-            <div className="flex items-center justify-center">
-              <ArrowRight className="w-8 h-8 text-[#7c3aed]/60 hidden md:block" />
-              <div className="md:hidden h-px w-full bg-gradient-to-r from-transparent via-[#7c3aed]/40 to-transparent" />
-            </div>
-
-            <div className="rounded-2xl glass p-7 border-emerald-500/20 border">
-              <ShieldCheck className="w-7 h-7 text-emerald-400 mb-3" />
-              <h3 className="font-semibold text-base mb-2 text-emerald-300">After StellarID</h3>
-              <ul className="space-y-2 text-sm text-white/50">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> Verify once, prove everywhere</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> Zero-knowledge proofs</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> Full control of your data</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> Instant verification</li>
-              </ul>
+            <div className="brutal-card">
+              <div className="card-header-brutal" style={{ background: 'var(--color-highlight)', color: 'var(--color-bg)' }}>
+                <span>After StellarID</span>
+                <span>[ACTIVE]</span>
+              </div>
+              <div className="card-body-brutal">
+                <ShieldCheck className="w-7 h-7 mb-3" style={{ color: 'var(--color-highlight)' }} />
+                <ul className="styled-list">
+                  <li>Verify once, prove everywhere with ZK proofs</li>
+                  <li>Zero data stored on-chain — only commitments</li>
+                  <li>Full control — you choose what to reveal</li>
+                  <li>Instant verification in under 1 second</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ===== PRICING ===== */}
-      <section className="py-24 relative border-t border-white/5">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#7c3aed]/3 to-transparent pointer-events-none" />
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3">Simple, Transparent Pricing</h2>
-            <p className="text-white/40 max-w-lg mx-auto text-sm">Start free. Scale when you need to.</p>
+      <section className="py-24 relative border-t border-[#222]">
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
+                  style={{ color: 'var(--color-accent)' }}>
+              // Pricing Grid
+            </span>
+            <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+              Pricing
+            </h2>
+            <p className="text-[var(--color-text-muted)] mt-4 text-sm">Start free. Scale when you need to.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-3 gap-0">
             {pricingTiers.map((tier) => (
-              <div
-                key={tier.name}
-                className={`rounded-2xl p-6 border transition-all duration-300 relative ${
-                  tier.highlight
-                    ? 'glass border-[#00e676]/30 shadow-lg shadow-[#00e676]/5 scale-[1.03]'
-                    : 'glass border-white/10 hover:border-white/20'
-                }`}
-              >
-                {tier.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#00e676] text-[#0a0a1a] text-xs font-bold">
-                      <Crown className="w-3 h-3" /> Most Popular
+              <div key={tier.name} className="brutal-card">
+                <div className="card-header-brutal"
+                     style={tier.highlight ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' } : {}}>
+                  <span>{tier.name}</span>
+                  {tier.highlight && <span>[POPULAR]</span>}
+                </div>
+                <div className="card-body-brutal">
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold" style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+                      {tier.price}
                     </span>
+                    <span className="text-[var(--color-text-muted)] text-sm">{tier.period}</span>
                   </div>
-                )}
-                <div className="mb-5">
-                  <h3 className="font-semibold text-lg">{tier.name}</h3>
-                  <p className="text-xs text-white/40 mt-0.5">{tier.desc}</p>
+                  <p className="text-xs text-[var(--color-text-muted)] mb-4">{tier.desc}</p>
+                  <ul className="space-y-2 mb-6">
+                    {tier.features.map((f) => (
+                      <li key={f} className="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
+                        <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0"
+                                      style={{ color: tier.highlight ? 'var(--color-highlight)' : 'var(--color-accent)' }} />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className={`w-full btn-brutal ${tier.highlight ? 'btn-brutal-accent' : 'btn-brutal-outline'}`}>
+                    {tier.cta}
+                  </button>
                 </div>
-                <div className="mb-5">
-                  <span className="text-3xl font-bold">{tier.price}</span>
-                  <span className="text-white/40 text-sm">{tier.period}</span>
-                </div>
-                <ul className="space-y-2.5 mb-6">
-                  {tier.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-white/55">
-                      <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${tier.highlight ? 'text-[#00e676]' : 'text-[#7c3aed]'}`} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                    tier.highlight
-                      ? 'bg-gradient-to-r from-[#00c853] to-[#00e676] text-[#0a0a1a] hover:shadow-lg hover:shadow-[#00e676]/30'
-                      : 'border border-white/15 text-white/70 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  {tier.cta}
-                </button>
               </div>
             ))}
           </div>
@@ -303,32 +417,31 @@ export default function Home() {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="py-24 relative border-t border-white/5">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#7c3aed]/5 to-transparent pointer-events-none" />
-        <div className="max-w-3xl mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">Stop uploading your passport to strangers</h2>
-          <p className="text-white/40 mb-8 text-lg">
+      <section className="py-28 relative border-t border-[#222]">
+        <div className="absolute inset-0 pointer-events-none"
+             style={{ background: 'radial-gradient(ellipse at center, rgba(255,60,0,0.04) 0%, transparent 60%)' }} />
+        <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
+          <h2 className="mb-6" style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 6vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+            Stop uploading<br />your passport<br />to <span style={{ color: 'var(--color-accent)' }}>strangers</span>
+          </h2>
+          <p className="text-[var(--color-text-muted)] mb-10 text-lg max-w-xl mx-auto">
             Verify once. Prove everywhere. Your data never leaves your device.
+            Join the new standard for privacy-preserving identity.
           </p>
-          <a
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl
-                       bg-gradient-to-r from-[#7c3aed] to-[#9333ea]
-                       text-white font-semibold transition-all duration-300
-                       hover:shadow-xl hover:shadow-purple-500/30 hover:scale-[1.02]"
-          >
-            Launch App <ArrowRight className="w-4 h-4" />
-          </a>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <a href="/dashboard">
+              <button className="btn-brutal btn-brutal-primary inline-flex items-center gap-2 text-lg px-8 py-4">
+                Launch App <ArrowRight className="w-5 h-5" />
+              </button>
+            </a>
+            <a href="/docs">
+              <button className="btn-brutal btn-brutal-outline inline-flex items-center gap-2">
+                Read Docs
+              </button>
+            </a>
+          </div>
         </div>
       </section>
-
-      {/* ===== FOOTER ===== */}
-      <footer className="border-t border-white/5 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs text-white/25">
-          <p>© 2026 StellarID. Built on Stellar.</p>
-          <p>Zero-knowledge proofs. Maximum privacy.</p>
-        </div>
-      </footer>
     </div>
   );
 }
