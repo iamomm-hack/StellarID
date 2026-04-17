@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Zap, Clock, CheckCircle2, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Shield, Zap, Clock, CheckCircle2, ArrowLeft } from 'lucide-react';
 
 const circuits = [
   { id: 'age_check', label: 'Age Verification', desc: 'Prove you are 18+ without revealing birthdate' },
@@ -26,7 +26,6 @@ export default function LiveDemo() {
       setElapsed(Date.now() - startTime);
     }, 10);
 
-    // Simulate proof generation (0.8 - 1.4s)
     const duration = 800 + Math.random() * 600;
     setTimeout(() => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -48,41 +47,49 @@ export default function LiveDemo() {
   }, []);
 
   return (
-    <div className="rounded-2xl glass p-6 border border-[#00e676]/15 relative overflow-hidden">
-      {/* Subtle glow */}
+    <div className="brutal-card relative overflow-hidden">
+      {/* Success flash overlay */}
       {state === 'success' && (
-        <div className="absolute inset-0 bg-[#00e676]/5 pointer-events-none animate-pulse" />
+        <div className="absolute inset-0 pointer-events-none"
+             style={{ background: 'rgba(212, 255, 0, 0.03)', animation: 'glitchFlicker 2s infinite' }} />
       )}
 
-      <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-4">
-          <Zap className="w-5 h-5 text-[#00e676]" />
-          <h3 className="font-semibold text-base">Live ZK Proof Demo</h3>
-          <span className="ml-auto text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full">Interactive</span>
-        </div>
+      <div className="card-header-brutal"
+           style={state === 'success'
+             ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' }
+             : {}}>
+        <span className="flex items-center gap-2">
+          <Zap className="w-4 h-4" />
+          Live ZK Proof Demo
+        </span>
+        <span>[{state === 'idle' ? 'READY' : state === 'generating' ? 'COMPUTING' : 'VERIFIED'}]</span>
+      </div>
 
+      <div className="card-body-brutal relative z-10">
         {state === 'idle' && (
           <>
-            <p className="text-sm text-white/45 mb-5">
+            <p className="text-sm text-[var(--color-text-muted)] mb-5">
               Generate a real zero-knowledge proof. No wallet needed.
             </p>
 
             {/* Circuit selector */}
             <div className="mb-5">
-              <label className="text-xs text-white/40 mb-2 block">Select Proof Type</label>
-              <div className="grid grid-cols-2 gap-2">
+              <label className="text-[10px] text-[var(--color-text-muted)] mb-2 block uppercase tracking-widest font-bold">
+                Select Proof Type
+              </label>
+              <div className="grid grid-cols-2 gap-0">
                 {circuits.map((c) => (
                   <button
                     key={c.id}
                     onClick={() => setSelectedCircuit(c)}
-                    className={`text-left p-3 rounded-xl border text-sm transition-all duration-200 ${
+                    className={`text-left p-3 border border-[#333] text-sm transition-all duration-200 ${
                       selectedCircuit.id === c.id
-                        ? 'border-[#00e676]/40 bg-[#00e676]/10 text-white'
-                        : 'border-white/10 bg-white/[0.02] text-white/50 hover:border-white/20'
+                        ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5 text-white'
+                        : 'text-[var(--color-text-muted)] hover:border-[#555]'
                     }`}
                   >
-                    <span className="font-medium block">{c.label}</span>
-                    <span className="text-xs text-white/30 mt-0.5 block">{c.desc}</span>
+                    <span className="font-bold block uppercase text-xs tracking-wider">{c.label}</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5 block">{c.desc}</span>
                   </button>
                 ))}
               </div>
@@ -90,8 +97,7 @@ export default function LiveDemo() {
 
             <button
               onClick={handleGenerate}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#00c853] to-[#00e676] text-[#0a0a1a] font-bold text-sm
-                         hover:shadow-lg hover:shadow-[#00e676]/30 transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full btn-brutal btn-brutal-primary flex items-center justify-center gap-2"
             >
               <Shield className="w-4 h-4" />
               Generate ZK Proof
@@ -100,48 +106,63 @@ export default function LiveDemo() {
         )}
 
         {state === 'generating' && (
-          <div className="py-6 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-[#00e676]/30 border-t-[#00e676] animate-spin" />
-            <p className="text-sm text-white/70 mb-1">Generating proof for <span className="text-[#00e676] font-medium">{selectedCircuit.label}</span></p>
-            <div className="flex items-center justify-center gap-1.5 text-white/40">
+          <div className="py-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 border-2 border-[#333] border-t-[var(--color-accent)]"
+                 style={{ animation: 'spin-slow 0.8s linear infinite' }} />
+            <p className="text-sm text-[var(--color-text-main)] mb-1">
+              Generating proof for <span style={{ color: 'var(--color-accent)' }} className="font-bold">{selectedCircuit.label}</span>
+            </p>
+            <div className="flex items-center justify-center gap-1.5 text-[var(--color-text-muted)]">
               <Clock className="w-3.5 h-3.5" />
-              <span className="font-mono text-lg text-white/80">{(elapsed / 1000).toFixed(2)}s</span>
+              <span className="font-mono text-lg text-white">{(elapsed / 1000).toFixed(2)}s</span>
             </div>
-            <div className="mt-4 mx-auto max-w-[200px] h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#00e676] to-[#4ade80] rounded-full animate-pulse" style={{ width: `${Math.min(95, (elapsed / 14))}%` }} />
+            <div className="mt-4 mx-auto max-w-[200px] h-1 bg-[#222] overflow-hidden">
+              <div className="h-full" 
+                   style={{ 
+                     width: `${Math.min(95, (elapsed / 14))}%`,
+                     background: 'var(--color-accent)',
+                     transition: 'width 0.1s linear'
+                   }} />
             </div>
           </div>
         )}
 
         {state === 'success' && (
           <div className="py-4 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#00e676]/15 flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-[#00e676]" />
+            <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center border border-[var(--color-highlight)]"
+                 style={{ background: 'rgba(212, 255, 0, 0.1)' }}>
+              <CheckCircle2 className="w-8 h-8" style={{ color: 'var(--color-highlight)' }} />
             </div>
-            <p className="text-lg font-bold text-[#00e676] mb-1">Proof Verified</p>
-            <p className="text-sm text-white/50 mb-1">
-              <span className="font-mono text-white/80">{(finalTime / 1000).toFixed(2)}s</span> — {selectedCircuit.label}
+            <p className="text-lg font-bold mb-1 uppercase tracking-wider"
+               style={{ fontFamily: 'Unbounded, sans-serif', color: 'var(--color-highlight)' }}>
+              Proof Verified
             </p>
-            <p className="text-xs text-white/30 mb-5">Zero data shared. Only YES/NO result transmitted.</p>
+            <p className="text-sm text-[var(--color-text-muted)] mb-1">
+              <span className="font-mono text-white">{(finalTime / 1000).toFixed(2)}s</span> — {selectedCircuit.label}
+            </p>
+            <p className="text-xs text-[var(--color-text-muted)] mb-5">Zero data shared. Only YES/NO result transmitted.</p>
 
-            <div className="grid grid-cols-3 gap-2 mb-5 text-center">
-              <div className="rounded-lg bg-white/[0.03] p-2.5">
-                <p className="text-xs text-white/30">Data Exposed</p>
-                <p className="text-sm font-bold text-[#00e676]">None</p>
-              </div>
-              <div className="rounded-lg bg-white/[0.03] p-2.5">
-                <p className="text-xs text-white/30">Proof Size</p>
-                <p className="text-sm font-bold text-white/80">256 B</p>
-              </div>
-              <div className="rounded-lg bg-white/[0.03] p-2.5">
-                <p className="text-xs text-white/30">Verification</p>
-                <p className="text-sm font-bold text-[#00e676]">Valid</p>
-              </div>
-            </div>
+            {/* Results table */}
+            <table className="edge-table w-full mb-5" style={{ fontSize: '0.8rem' }}>
+              <tbody>
+                <tr>
+                  <td>Data Exposed</td>
+                  <td style={{ color: 'var(--color-highlight)' }} className="text-right font-bold">NONE</td>
+                </tr>
+                <tr>
+                  <td>Proof Size</td>
+                  <td className="text-right text-white font-bold">256 B</td>
+                </tr>
+                <tr>
+                  <td>Verification</td>
+                  <td style={{ color: 'var(--color-highlight)' }} className="text-right font-bold">VALID</td>
+                </tr>
+              </tbody>
+            </table>
 
             <button
               onClick={handleReset}
-              className="text-sm text-white/40 hover:text-white/70 transition-colors"
+              className="text-sm text-[var(--color-text-muted)] hover:text-white transition-colors uppercase tracking-wider"
             >
               <ArrowLeft className="w-3.5 h-3.5 inline mr-1" /> Try another proof
             </button>

@@ -59,7 +59,6 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
     if (result) {
       setProofResult(result);
 
-      // Create shareable proof record via backend
       try {
         let token: string | null = null;
         try {
@@ -141,56 +140,43 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center
-                    justify-center z-50 p-4" onClick={onClose}>
-      <div
-        className="w-full max-w-lg rounded-2xl hybrid-surface border border-[#9effca]/20
-                   shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="edge-modal-overlay" onClick={onClose}>
+      <div className="edge-modal max-w-lg" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#9effca]/20">
+        <div className="edge-modal-header">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-[#8bf3bf]" />
-            <h2 className="text-lg font-semibold text-white">Generate ZK Proof</h2>
+            <Shield className="w-4 h-4" />
+            <span>Generate ZK Proof</span>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            title="Close modal"
-            className="text-white/40 hover:text-white transition-colors"
-          >
+          <button type="button" onClick={onClose} title="Close modal"
+                  className="hover:opacity-60 transition-opacity">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Step indicator */}
-        <div className="flex items-center gap-1 px-6 pt-4">
+        <div className="flex items-center gap-1 px-6 py-3 border-b border-[#222]">
           {[1, 2, 3, 4].map((s) => (
-            <div
-              key={s}
-              className={`h-1 flex-1 rounded-full transition-all duration-500
-                ${s <= step ? 'bg-[#1fce8b]' : 'bg-white/10'}`}
-            />
+            <div key={s} className={`step-bar ${s <= step ? 'active' : ''}`} />
           ))}
         </div>
 
         <div className="p-6">
           {/* Step 1: Select claim */}
           {step === 1 && (
-            <div className="space-y-3">
-              <h3 className="text-sm text-white/60 mb-4">
-                What would you like to prove?
+            <div className="space-y-2">
+              <h3 className="text-[10px] text-[var(--color-text-muted)] mb-4 uppercase tracking-widest font-bold">
+                Select Claim Type
               </h3>
               {claimOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => { setSelectedClaim(option.value); setStep(2); }}
-                  className="w-full text-left px-4 py-3 rounded-xl glass glass-hover
-                             transition-all duration-300 group hover:border-[#67e2a6]/35"
+                  className="w-full text-left px-4 py-3 border border-[#333] bg-[var(--color-surface)]
+                             hover:border-[var(--color-accent)] transition-all group"
                 >
-                  <p className="text-white font-medium text-sm">{option.label}</p>
-                  <p className="text-white/40 text-xs mt-0.5">{option.description}</p>
+                  <p className="text-white font-semibold text-sm uppercase tracking-wider">{option.label}</p>
+                  <p className="text-[var(--color-text-muted)] text-xs mt-0.5">{option.description}</p>
                 </button>
               ))}
             </div>
@@ -199,29 +185,33 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
           {/* Step 2: Confirm inputs */}
           {step === 2 && (
             <div className="space-y-4">
-              <h3 className="text-sm text-white/60">Confirm public inputs</h3>
+              <h3 className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold">
+                Confirm Public Inputs
+              </h3>
 
-              <div className="rounded-xl glass p-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/50">Today&apos;s date</span>
-                  <span className="text-white">{new Date().toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/50">Claim</span>
-                  <span className="text-white">{getClaimLabel()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/50">Credential NFT</span>
-                  <span className="text-white font-mono text-xs">
-                    {credential.nft_token_id?.substring(0, 12)}...
-                  </span>
-                </div>
-              </div>
+              <table className="edge-table w-full" style={{ fontSize: '0.85rem' }}>
+                <tbody>
+                  <tr>
+                    <td>Today&apos;s date</td>
+                    <td className="text-right text-white">{new Date().toLocaleDateString()}</td>
+                  </tr>
+                  <tr>
+                    <td>Claim</td>
+                    <td className="text-right text-white">{getClaimLabel()}</td>
+                  </tr>
+                  <tr>
+                    <td>Credential NFT</td>
+                    <td className="text-right text-white font-mono text-xs">
+                      {credential.nft_token_id?.substring(0, 12)}...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
 
-              <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-emerald-500/10
-                              border border-emerald-500/20">
-                <Lock className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                <p className="text-xs text-emerald-300/80">
+              <div className="flex items-start gap-2 px-3 py-2 border-l-4"
+                   style={{ borderColor: 'var(--color-highlight)', background: 'rgba(212, 255, 0, 0.05)' }}>
+                <Lock className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--color-highlight)' }} />
+                <p className="text-xs" style={{ color: 'var(--color-highlight)' }}>
                   Your private data stays on this device. Only the proof
                   (true/false) is shared — never your birthdate, income, or personal info.
                 </p>
@@ -230,16 +220,13 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
               <div className="flex gap-3">
                 <button
                   onClick={() => setStep(1)}
-                  className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/60
-                             hover:text-white text-sm transition-colors"
+                  className="flex-1 btn-brutal btn-brutal-outline py-2.5 text-sm"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleGenerateProof}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
-                             to-[#ff7b46] text-white text-sm font-medium hover:shadow-lg
-                             hover:shadow-[#ff5a1f]/25 transition-all"
+                  className="flex-1 btn-brutal btn-brutal-accent py-2.5 text-sm"
                 >
                   Generate Proof
                 </button>
@@ -250,116 +237,106 @@ export default function ProofGenerator({ credential, onClose }: ProofGeneratorPr
           {/* Step 3: Generating */}
           {step === 3 && (
             <div className="flex flex-col items-center py-8 space-y-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full bg-[#1fce8b]/20 flex items-center
-                                justify-center animate-pulse-glow">
-                  <Loader2 className="w-8 h-8 text-[#8bf3bf] animate-spin" />
-                </div>
+              <div className="w-16 h-16 border-2 border-[#333] border-t-[var(--color-accent)] flex items-center justify-center"
+                   style={{ animation: 'spin-slow 0.8s linear infinite' }}>
               </div>
               <div className="text-center">
-                <p className="text-white font-medium">Computing zero-knowledge proof...</p>
-                <p className="text-white/40 text-sm mt-1">
+                <p className="text-white font-bold uppercase tracking-wider">Computing zero-knowledge proof...</p>
+                <p className="text-[var(--color-text-muted)] text-sm mt-1">
                   Your private data never leaves this device
                 </p>
               </div>
               {error && (
-                <div className="text-red-400 text-sm text-center px-4">
+                <div className="text-sm text-center px-4" style={{ color: 'var(--color-accent)' }}>
                   {error}
                   <button
                     onClick={() => setStep(2)}
-                    className="block mx-auto mt-2 text-[#ff9a5d] hover:text-[#ffc27a]"
+                    className="block mx-auto mt-2 hover:text-[var(--color-highlight)]"
                   >
-                    Try again
+                    Try again →
                   </button>
                 </div>
               )}
             </div>
           )}
 
-          {/* Step 4: Proof ready — with sharing actions */}
+          {/* Step 4: Proof ready */}
           {step === 4 && proofResult && (
             <div className="space-y-4">
               <div className="flex flex-col items-center py-2">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center
-                                justify-center mb-3">
-                  <Check className="w-7 h-7 text-emerald-400" />
+                <div className="w-14 h-14 flex items-center justify-center mb-3 border"
+                     style={{ borderColor: 'var(--color-highlight)', background: 'rgba(212, 255, 0, 0.1)' }}>
+                  <Check className="w-7 h-7" style={{ color: 'var(--color-highlight)' }} />
                 </div>
-                <p className="text-white font-semibold">Proof Generated!</p>
-                <p className="text-emerald-400 text-sm mt-1">
+                <p className="text-white font-bold uppercase tracking-wider"
+                   style={{ fontFamily: 'Unbounded, sans-serif' }}>
+                  Proof Generated!
+                </p>
+                <p className="text-sm mt-1" style={{ color: 'var(--color-highlight)' }}>
                   Claim verified: {getClaimLabel()}
                 </p>
               </div>
 
-              <div className="rounded-xl glass p-3 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/50 flex items-center gap-1">
-                    <Eye className="w-3 h-3" /> Proof ID
-                  </span>
-                  <span className="text-white/70 font-mono">
-                    {proofResult.publicSignals?.[0]?.substring(0, 20)}...
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/50">Protocol</span>
-                  <span className="text-white/70">Groth16</span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/50">Curve</span>
-                  <span className="text-white/70">BN128</span>
-                </div>
-              </div>
+              <table className="edge-table w-full" style={{ fontSize: '0.8rem' }}>
+                <tbody>
+                  <tr>
+                    <td><Eye className="w-3 h-3 inline mr-1" />Proof ID</td>
+                    <td className="text-right text-white font-mono text-xs">
+                      {proofResult.publicSignals?.[0]?.substring(0, 20)}...
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Protocol</td>
+                    <td className="text-right text-white">Groth16</td>
+                  </tr>
+                  <tr>
+                    <td>Curve</td>
+                    <td className="text-right text-white">BN128</td>
+                  </tr>
+                </tbody>
+              </table>
 
-              {/* Share URL preview */}
+              {/* Share URL */}
               {(shareUrl || true) && (
-                <div className="rounded-xl bg-white/[0.02] border border-[#00e676]/15 p-3">
-                  <p className="text-[10px] text-white/30 mb-1">VERIFICATION LINK</p>
-                  <p className="text-xs font-mono text-[#7c3aed] truncate">
+                <div className="border-l-4 p-3" style={{ borderColor: 'var(--color-accent)', background: 'var(--color-bg)' }}>
+                  <p className="text-[10px] text-[var(--color-text-muted)] mb-1 uppercase tracking-widest font-bold">
+                    Verification Link
+                  </p>
+                  <p className="text-xs font-mono truncate" style={{ color: 'var(--color-accent)' }}>
                     {shareUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/verify/demo`}
                   </p>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={copyShareLink}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#9333ea] text-white text-sm font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all"
-                >
-                  <Link2 className="w-4 h-4" />
+              <div className="grid grid-cols-2 gap-0">
+                <button onClick={copyShareLink}
+                        className="btn-brutal btn-brutal-accent flex items-center justify-center gap-2 py-2.5 text-xs">
+                  <Link2 className="w-3.5 h-3.5" />
                   Copy Link
                 </button>
-                <button
-                  onClick={handleDownloadPDF}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-medium hover:bg-white/5 hover:text-white transition-all"
-                >
-                  <Download className="w-4 h-4" />
+                <button onClick={handleDownloadPDF}
+                        className="btn-brutal btn-brutal-outline flex items-center justify-center gap-2 py-2.5 text-xs">
+                  <Download className="w-3.5 h-3.5" />
                   Download PDF
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={openVerifyPage}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-medium hover:bg-white/5 hover:text-white transition-all"
-                >
-                  <ExternalLink className="w-4 h-4" />
+              <div className="grid grid-cols-2 gap-0">
+                <button onClick={openVerifyPage}
+                        className="btn-brutal btn-brutal-outline flex items-center justify-center gap-2 py-2.5 text-xs">
+                  <ExternalLink className="w-3.5 h-3.5" />
                   Open Page
                 </button>
-                <button
-                  onClick={copyProof}
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/15 text-white/70 text-sm font-medium hover:bg-white/5 hover:text-white transition-all"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                <button onClick={copyProof}
+                        className="btn-brutal btn-brutal-outline flex items-center justify-center gap-2 py-2.5 text-xs">
+                  {copied ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-highlight)' }} /> : <Copy className="w-3.5 h-3.5" />}
                   {copied ? 'Copied!' : 'Copy JSON'}
                 </button>
               </div>
 
-              <button
-                onClick={onClose}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff5a1f]
-                           to-[#ff7b46] text-white text-sm font-medium transition-all
-                           hover:shadow-lg hover:shadow-[#ff5a1f]/25"
-              >
+              <button onClick={onClose}
+                      className="w-full btn-brutal btn-brutal-primary py-2.5 text-sm">
                 Done
               </button>
             </div>
