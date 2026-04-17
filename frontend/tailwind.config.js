@@ -8,28 +8,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        stellar: {
-          50: '#f3f0ff',
-          100: '#e5deff',
-          200: '#cdbdff',
-          300: '#ae8fff',
-          400: '#8b5cf6',
-          500: '#7c3aed',
-          600: '#6d28d9',
-          700: '#5b21b6',
-          800: '#4c1d95',
-          900: '#3b0f7a',
-          950: '#1e0a4e',
+        edge: {
+          bg: '#050505',
+          surface: '#121212',
+          accent: '#ff3c00',
+          highlight: '#d4ff00',
+          muted: '#888',
         },
       },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+      fontFamily: {
+        display: ['Unbounded', 'sans-serif'],
+        mono: ['Space Mono', 'monospace'],
       },
       animation: {
-        'bokeh': 'bokeh-drift 8s ease-in-out infinite',
-        'bokeh-2': 'bokeh-drift-2 10s ease-in-out infinite',
-        'platform-float': 'platform-float 4s ease-in-out infinite',
-        'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
+        'spin-slow': 'spin-slow 0.8s linear infinite',
+        'pulse-accent': 'pulse-accent 2s ease-in-out infinite',
+      },
+      keyframes: {
+        'spin-slow': {
+          from: { transform: 'rotate(0deg)' },
+          to: { transform: 'rotate(360deg)' },
+        },
+        'pulse-accent': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(255, 60, 0, 0.4)' },
+          '50%': { boxShadow: '0 0 12px 4px rgba(255, 60, 0, 0.15)' },
+        },
       },
     },
   },
