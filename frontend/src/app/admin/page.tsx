@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar,
+  ResponsiveContainer,
 } from 'recharts';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1';
@@ -29,22 +29,6 @@ interface ActivityData {
 interface ChartData {
   proofs: { date: string; count: number }[];
   credentials: { date: string; count: number }[];
-}
-
-function StatCard({ icon: Icon, label, value, color, bgColor }: any) {
-  return (
-    <div className="rounded-2xl glass p-5 border border-white/8 hover:border-white/15 transition-all duration-300">
-      <div className="flex items-center gap-3">
-        <div className={`w-11 h-11 rounded-xl ${bgColor} flex items-center justify-center`}>
-          <Icon className={`w-5.5 h-5.5 ${color}`} />
-        </div>
-        <div>
-          <p className="text-2xl font-bold">{value}</p>
-          <p className="text-xs text-white/40">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function timeAgo(dateStr: string): string {
@@ -69,7 +53,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Check if already authenticated this session
   useEffect(() => {
     if (sessionStorage.getItem('stellarid_admin') === 'true') {
       setAuthenticated(true);
@@ -87,12 +70,10 @@ export default function AdminPage() {
     }
   };
 
-  // Fetch data once authenticated
   useEffect(() => {
     if (!authenticated) return;
     setLoading(true);
 
-    // Read token from Zustand persisted store
     let token: string | null = null;
     try {
       const stored = localStorage.getItem('stellar-id-wallet');
@@ -127,7 +108,6 @@ export default function AdminPage() {
       .finally(() => setLoading(false));
   }, [authenticated]);
 
-  // Merge chart data for the area chart
   const mergedChart = (() => {
     if (!chartData) return [];
     const map: Record<string, { date: string; proofs: number; credentials: number }> = {};
@@ -144,70 +124,88 @@ export default function AdminPage() {
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   })();
 
+  // --- LOGIN SCREEN ---
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4"
-           style={{ background: 'linear-gradient(165deg, #08001a 0%, #0d0030 30%, #12003a 50%, #0a0020 100%)' }}>
-        <div className="absolute top-[20%] left-[15%] w-[300px] h-[300px] rounded-full bg-[#7c3aed]/10 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[20%] right-[15%] w-[250px] h-[250px] rounded-full bg-[#00e676]/6 blur-[100px] pointer-events-none" />
-        <div className="relative max-w-sm w-full rounded-2xl glass p-8 border border-white/10">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#7c3aed]/15 flex items-center justify-center">
-              <Lock className="w-8 h-8 text-[#7c3aed]" />
-            </div>
-            <h1 className="text-xl font-bold text-white">Admin Access</h1>
-            <p className="text-sm text-white/40 mt-1">Enter admin password to continue</p>
+      <div className="min-h-screen flex items-center justify-center px-6"
+           style={{ background: 'var(--color-bg)' }}>
+        <div className="brutal-card max-w-sm w-full">
+          <div className="card-header-brutal">
+            <span>Admin Access</span>
+            <span>[LOCKED]</span>
           </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
-                placeholder="Enter password"
-                className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-[#7c3aed]/50 transition-colors pr-10"
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+          <div className="card-body-brutal">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 mx-auto flex items-center justify-center border border-[#333] mb-3"
+                   style={{ background: 'var(--color-bg)' }}>
+                <Lock className="w-7 h-7" style={{ color: 'var(--color-accent)' }} />
+              </div>
+              <h1 className="text-lg font-bold uppercase tracking-wider"
+                  style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+                Authenticate
+              </h1>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">Enter admin password to continue</p>
             </div>
-            {authError && (
-              <p className="text-red-400 text-xs text-center">{authError}</p>
-            )}
-            <button
-              type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#9333ea] text-white font-semibold text-sm hover:shadow-lg hover:shadow-purple-500/30 transition-all"
-            >
-              Authenticate
-            </button>
-          </form>
-          <p className="text-center text-[10px] text-white/20 mt-4">StellarID Admin Panel</p>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                  placeholder="Enter password"
+                  className="edge-input pr-10"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {authError && (
+                <p className="text-xs text-center" style={{ color: 'var(--color-accent)' }}>{authError}</p>
+              )}
+              <button type="submit" className="w-full btn-brutal btn-brutal-accent">
+                Authenticate
+              </button>
+            </form>
+            <p className="text-center text-[10px] mt-4" style={{ color: '#333' }}>
+              StellarID Admin Panel
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // --- LOADING ---
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[#7c3aed] animate-spin" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg)' }}>
+        <div className="w-12 h-12 border-2 border-[#333] border-t-[var(--color-accent)]"
+             style={{ animation: 'spin-slow 0.8s linear infinite' }} />
       </div>
     );
   }
 
+  // --- ERROR ---
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-md text-center rounded-2xl glass p-8 border border-white/10">
-          <Shield className="w-10 h-10 text-[#7c3aed] mx-auto mb-4" />
-          <h1 className="text-xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-white/50 text-sm mb-4">{error}</p>
-          <a href="/dashboard" className="text-sm text-[#00e676] hover:underline">Back to Dashboard</a>
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--color-bg)' }}>
+        <div className="brutal-card max-w-md w-full">
+          <div className="card-header-brutal">
+            <span>Admin Panel</span>
+            <span>[ERROR]</span>
+          </div>
+          <div className="card-body-brutal text-center py-12">
+            <Shield className="w-10 h-10 mx-auto mb-4" style={{ color: 'var(--color-accent)' }} />
+            <p className="text-[var(--color-text-muted)] text-sm mb-4">{error}</p>
+            <a href="/dashboard" className="text-sm hover:underline" style={{ color: 'var(--color-accent)' }}>
+              Back to Dashboard →
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -232,144 +230,180 @@ export default function AdminPage() {
     })) || []),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 15);
 
+  // --- MAIN DASHBOARD ---
   return (
-    <div
-      className="min-h-screen text-white"
-      style={{ background: 'linear-gradient(165deg, #08001a 0%, #0d0030 30%, #12003a 50%, #0a0020 100%)' }}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
+      <div className="max-w-[1400px] mx-auto px-6 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#7c3aed]/30 bg-[#7c3aed]/10 text-xs text-white/60 mb-3">
-            <BarChart3 className="w-3.5 h-3.5 text-[#00e676]" />
-            Admin Panel
+        <div className="mb-8 reveal-wrap">
+          <div className="reveal-content delay-1">
+            <span className="block text-sm font-bold uppercase tracking-[0.2em] mb-2"
+                  style={{ color: 'var(--color-accent)' }}>
+              // Admin Panel
+            </span>
+            <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
+              Analytics
+            </h1>
+            <p className="text-sm mt-2 text-[var(--color-text-muted)]">Platform-wide metrics and activity overview</p>
           </div>
-          <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-          <p className="text-sm text-white/35 mt-1">Platform-wide metrics and activity overview</p>
         </div>
 
         {/* Stat Cards */}
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard icon={Award} label="Total Credentials" value={stats.totalCredentials} color="text-[#7c3aed]" bgColor="bg-[#7c3aed]/10" />
-            <StatCard icon={Zap} label="Total Proofs" value={stats.totalProofs} color="text-[#00e676]" bgColor="bg-[#00e676]/10" />
-            <StatCard icon={Users} label="Total Users" value={stats.totalUsers} color="text-[#4ade80]" bgColor="bg-[#4ade80]/10" />
-            <StatCard icon={TrendingUp} label="Success Rate" value={`${stats.successRate}%`} color="text-[#a855f7]" bgColor="bg-[#a855f7]/10" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 mb-8">
+            {[
+              { icon: Award, label: 'Total Credentials', value: stats.totalCredentials },
+              { icon: Zap, label: 'Total Proofs', value: stats.totalProofs },
+              { icon: Users, label: 'Total Users', value: stats.totalUsers },
+              { icon: TrendingUp, label: 'Success Rate', value: `${stats.successRate}%` },
+            ].map((stat, idx) => (
+              <div key={stat.label} className="brutal-card">
+                <div className="card-header-brutal"
+                     style={idx === 0 ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' } : {}}>
+                  <span>{stat.label}</span>
+                </div>
+                <div className="card-body-brutal flex items-center gap-3">
+                  <div className="w-10 h-10 flex items-center justify-center border border-[#333]"
+                       style={{ background: 'var(--color-bg)' }}>
+                    <stat.icon className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+                  </div>
+                  <span className="text-2xl font-bold" style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+                    {stat.value}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* Chart + Activity - Two Column */}
-        <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 mb-8">
+        {/* Chart + Activity */}
+        <div className="grid lg:grid-cols-[1.5fr_1fr] gap-0 mb-8">
           {/* Chart */}
-          <div className="rounded-2xl glass p-6 border border-white/8">
-            <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#00e676]" />
-              30-Day Trend
-            </h3>
-            {mergedChart.length > 0 ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={mergedChart}>
-                  <defs>
-                    <linearGradient id="gradProofs" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#00e676" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#00e676" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="gradCreds" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#7c3aed" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#7c3aed" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} tickFormatter={(v: string) => v.substring(5)} axisLine={false} />
-                  <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{ background: 'rgba(10,0,32,0.95)', border: '1px solid rgba(124,58,237,0.3)', borderRadius: '12px', fontSize: '12px' }}
-                    labelStyle={{ color: 'rgba(255,255,255,0.5)' }}
-                  />
-                  <Area type="monotone" dataKey="proofs" stroke="#00e676" fill="url(#gradProofs)" strokeWidth={2} name="Proofs" />
-                  <Area type="monotone" dataKey="credentials" stroke="#7c3aed" fill="url(#gradCreds)" strokeWidth={2} name="Credentials" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[260px] flex items-center justify-center text-white/30 text-sm">
-                No data yet — activity will appear here
-              </div>
-            )}
+          <div className="brutal-card">
+            <div className="card-header-brutal" style={{ background: 'var(--color-highlight)', color: 'var(--color-bg)' }}>
+              <span className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                30-Day Trend
+              </span>
+              <span>[LIVE]</span>
+            </div>
+            <div className="card-body-brutal">
+              {mergedChart.length > 0 ? (
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={mergedChart}>
+                    <defs>
+                      <linearGradient id="gradProofs" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#d4ff00" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#d4ff00" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="gradCreds" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ff3c00" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#ff3c00" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="date" tick={{ fill: '#888', fontSize: 10 }} tickFormatter={(v: string) => v.substring(5)} axisLine={false} />
+                    <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: '#121212', border: '1px solid #333', borderRadius: '0', fontSize: '12px', fontFamily: 'Space Mono, monospace' }}
+                      labelStyle={{ color: '#888' }}
+                    />
+                    <Area type="monotone" dataKey="proofs" stroke="#d4ff00" fill="url(#gradProofs)" strokeWidth={2} name="Proofs" />
+                    <Area type="monotone" dataKey="credentials" stroke="#ff3c00" fill="url(#gradCreds)" strokeWidth={2} name="Credentials" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-[260px] flex items-center justify-center text-[var(--color-text-muted)] text-sm">
+                  No data yet — activity will appear here
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Activity Feed */}
-          <div className="rounded-2xl glass p-6 border border-white/8">
-            <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#7c3aed]" />
-              Recent Activity
-            </h3>
-            {allEvents.length > 0 ? (
-              <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
-                {allEvents.map((ev, i) => (
-                  <div key={ev.id + i} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                    {ev.type === 'proof' ? (
-                      <Zap className="w-4 h-4 text-[#00e676] shrink-0" />
-                    ) : (
-                      <Award className="w-4 h-4 text-[#7c3aed] shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{ev.label}</p>
-                      <p className="text-[10px] text-white/30">{ev.detail || ev.type}</p>
+          <div className="brutal-card">
+            <div className="card-header-brutal">
+              <span className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Recent Activity
+              </span>
+              <span>[FEED]</span>
+            </div>
+            <div className="card-body-brutal p-0">
+              {allEvents.length > 0 ? (
+                <div className="max-h-[320px] overflow-y-auto">
+                  {allEvents.map((ev, i) => (
+                    <div key={ev.id + i} className="flex items-center gap-3 px-4 py-3 border-b border-[#222] hover:bg-white/[0.02] transition-colors">
+                      {ev.type === 'proof' ? (
+                        <Zap className="w-4 h-4 shrink-0" style={{ color: 'var(--color-highlight)' }} />
+                      ) : (
+                        <Award className="w-4 h-4 shrink-0" style={{ color: 'var(--color-accent)' }} />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate text-white uppercase tracking-wider">{ev.label}</p>
+                        <p className="text-[10px] text-[var(--color-text-muted)]">{ev.detail || ev.type}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                          ev.status === 'verified' || ev.status === 'issued'
+                            ? 'text-[var(--color-highlight)]'
+                            : ev.status === 'failed' ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
+                        }`}>
+                          {ev.status}
+                        </span>
+                        <p className="text-[10px] text-[#333]">{timeAgo(ev.time)}</p>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <span className={`text-[10px] font-medium ${
-                        ev.status === 'verified' || ev.status === 'issued' ? 'text-[#00e676]' :
-                        ev.status === 'failed' ? 'text-red-400' : 'text-white/40'
-                      }`}>
-                        {ev.status}
-                      </span>
-                      <p className="text-[10px] text-white/20">{timeAgo(ev.time)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="h-[260px] flex items-center justify-center text-white/30 text-sm">
-                No recent activity
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="h-[320px] flex items-center justify-center text-[var(--color-text-muted)] text-sm">
+                  No recent activity
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Top Issuers */}
         {topIssuers.length > 0 && (
-          <div className="rounded-2xl glass p-6 border border-white/8">
-            <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#a855f7]" />
-              Top Issuers
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/8">
-                    <th className="text-left py-2 px-3 text-xs text-white/40 font-medium">#</th>
-                    <th className="text-left py-2 px-3 text-xs text-white/40 font-medium">Issuer</th>
-                    <th className="text-left py-2 px-3 text-xs text-white/40 font-medium">Status</th>
-                    <th className="text-right py-2 px-3 text-xs text-white/40 font-medium">Credentials</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topIssuers.map((issuer, idx) => (
-                    <tr key={issuer.id} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
-                      <td className="py-2.5 px-3 text-white/30 text-xs">{idx + 1}</td>
-                      <td className="py-2.5 px-3 font-medium text-xs">{issuer.name}</td>
-                      <td className="py-2.5 px-3">
-                        {issuer.verified ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-medium">Verified</span>
-                        ) : (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-white/30 font-medium">Pending</span>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 text-right font-mono text-xs text-white/60">{issuer.credential_count}</td>
+          <div className="brutal-card">
+            <div className="card-header-brutal">
+              <span className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Top Issuers
+              </span>
+              <span>[RANKING]</span>
+            </div>
+            <div className="card-body-brutal p-0">
+              <div className="overflow-x-auto">
+                <table className="edge-table w-full">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Issuer</th>
+                      <th>Status</th>
+                      <th className="text-right">Credentials</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {topIssuers.map((issuer, idx) => (
+                      <tr key={issuer.id}>
+                        <td>{idx + 1}</td>
+                        <td className="text-white font-bold">{issuer.name}</td>
+                        <td>
+                          {issuer.verified ? (
+                            <span className="badge-valid">Verified</span>
+                          ) : (
+                            <span className="badge-expired">Pending</span>
+                          )}
+                        </td>
+                        <td className="text-right font-mono text-white">{issuer.credential_count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
