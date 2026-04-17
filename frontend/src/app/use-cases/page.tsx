@@ -65,7 +65,7 @@ export default function UseCasesPage() {
             <div className="reveal-content delay-1">
               <span className="block text-sm font-bold uppercase tracking-[0.2em] mb-4"
                     style={{ color: 'var(--color-accent)' }}>
-                // Deployment Vectors
+                {'// Deployment Vectors'}
               </span>
               <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(2rem, 8vw, 5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
                 Use<br />

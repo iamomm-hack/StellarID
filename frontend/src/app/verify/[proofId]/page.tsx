@@ -127,7 +127,7 @@ export default function VerifyPage() {
         <div className="text-center mb-8">
           <span className="text-[10px] font-bold uppercase tracking-[0.2em]"
                 style={{ color: 'var(--color-accent)' }}>
-            // StellarID Verification
+            {'// StellarID Verification'}
           </span>
         </div>
 

@@ -157,7 +157,7 @@ export default function Home() {
                 <div className="w-2 h-2" style={{ background: 'var(--color-highlight)', animation: 'pulse-accent 2s ease-in-out infinite' }} />
                 <span className="text-xs font-bold uppercase tracking-[0.25em]"
                       style={{ color: 'var(--color-accent)' }}>
-                  // System Ready — Protocol V2.0
+                  {'// System Ready — Protocol V2.0'}
                 </span>
               </div>
 
@@ -245,7 +245,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
                   style={{ color: 'var(--color-accent)' }}>
-              // How It Works
+              {'// How It Works'}
             </span>
             <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
               Three Steps to <span style={{ color: 'var(--color-accent)' }}>Privacy</span>
@@ -287,7 +287,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
                   style={{ color: 'var(--color-accent)' }}>
-              // Core Modules
+              {'// Core Modules'}
             </span>
             <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
               Built <span className="outline-text">Different</span>
@@ -322,7 +322,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
                   style={{ color: 'var(--color-accent)' }}>
-              // The Problem
+              {'// The Problem'}
             </span>
             <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
               Identity is <span style={{ color: 'var(--color-accent)' }}>Broken</span>
@@ -373,7 +373,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <span className="text-xs font-bold uppercase tracking-[0.25em] mb-3 block"
                   style={{ color: 'var(--color-accent)' }}>
-              // Pricing Grid
+              {'// Pricing Grid'}
             </span>
             <h2 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
               Pricing

@@ -239,7 +239,7 @@ export default function AdminPage() {
           <div className="reveal-content delay-1">
             <span className="block text-sm font-bold uppercase tracking-[0.2em] mb-2"
                   style={{ color: 'var(--color-accent)' }}>
-              // Admin Panel
+              {'// Admin Panel'}
             </span>
             <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
               Analytics

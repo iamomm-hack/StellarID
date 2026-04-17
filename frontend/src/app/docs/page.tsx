@@ -207,7 +207,7 @@ export default function DocsPage() {
           <div className="reveal-content delay-1">
             <span className="block text-sm font-bold uppercase tracking-[0.2em] mb-4"
                   style={{ color: 'var(--color-accent)' }}>
-              // Developer Documentation
+              {'// Developer Documentation'}
             </span>
             <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(2rem, 6vw, 4rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
               Stellar<span style={{ color: 'var(--color-accent)' }}>ID</span> <span className="outline-text">Docs</span>
