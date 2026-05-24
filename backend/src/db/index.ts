@@ -129,10 +129,73 @@ async function runMigrations() {
 
       CREATE INDEX IF NOT EXISTS idx_issuer_endorsements_endorser ON issuer_endorsements(endorser_issuer_id);
       CREATE INDEX IF NOT EXISTS idx_issuer_endorsements_endorsed ON issuer_endorsements(endorsed_issuer_id);
+
+      CREATE TABLE IF NOT EXISTS issuer_trust_scores (
+        issuer_id UUID PRIMARY KEY REFERENCES issuers(id) ON DELETE CASCADE,
+        base_score DECIMAL(3,2) DEFAULT 0.10,
+        community_endorsements INTEGER DEFAULT 0,
+        official_verified BOOLEAN DEFAULT FALSE,
+        credentials_issued INTEGER DEFAULT 0,
+        credentials_revoked INTEGER DEFAULT 0,
+        revocation_rate DECIMAL(4,3) DEFAULT 0.000,
+        trust_score DECIMAL(3,2) DEFAULT 0.10,
+        last_calculated TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS user_reputation (
+        wallet_address VARCHAR(100) PRIMARY KEY,
+        total_score INTEGER DEFAULT 0,
+        tier VARCHAR(20) DEFAULT 'Verified',
+        credential_count INTEGER DEFAULT 0,
+        last_calculated TIMESTAMP DEFAULT NOW(),
+        score_breakdown JSONB DEFAULT '{}',
+        season_scores JSONB DEFAULT '{}'
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_reputation_score ON user_reputation(total_score);
+
+      CREATE TABLE IF NOT EXISTS user_reputation_history (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        wallet_address VARCHAR(100) REFERENCES user_reputation(wallet_address) ON DELETE CASCADE,
+        score INTEGER NOT NULL,
+        recorded_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_reputation_history_wallet ON user_reputation_history(wallet_address);
+      CREATE INDEX IF NOT EXISTS idx_user_reputation_history_date ON user_reputation_history(recorded_at);
+
+      CREATE TABLE IF NOT EXISTS api_keys (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        issuer_id UUID REFERENCES issuers(id) ON DELETE CASCADE,
+        key_hash VARCHAR(255) NOT NULL,
+        key_prefix VARCHAR(20) NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        permissions TEXT[] DEFAULT ARRAY['verify','read_profile'],
+        rate_limit_per_hour INTEGER DEFAULT 1000,
+        last_used_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
+        revoked_at TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_api_keys_issuer ON api_keys(issuer_id);
+      CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys(key_prefix);
+
+      CREATE TABLE IF NOT EXISTS api_usage_logs (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        api_key_id UUID REFERENCES api_keys(id) ON DELETE SET NULL,
+        endpoint VARCHAR(255) NOT NULL,
+        method VARCHAR(10) NOT NULL,
+        response_status INTEGER,
+        response_time_ms INTEGER,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_api_usage_logs_key ON api_usage_logs(api_key_id);
+      CREATE INDEX IF NOT EXISTS idx_api_usage_logs_created ON api_usage_logs(created_at);
     `);
-    console.log('[Migration] Database verification tables and columns checked/created.');
+    console.log('[Migration] Database verification, reputation & developer API tables checked/created.');
   } catch (err: any) {
-    console.error('[Migration] Error running verification schema migrations:', err.message);
+    console.error('[Migration] Error running schema migrations:', err.message);
   }
 }
 

@@ -241,6 +241,33 @@ CREATE TABLE IF NOT EXISTS user_reputation_history (
 CREATE INDEX IF NOT EXISTS idx_user_reputation_history_wallet ON user_reputation_history(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_user_reputation_history_date ON user_reputation_history(recorded_at);
 
+-- Developer API keys (Stripe-style)
+CREATE TABLE IF NOT EXISTS api_keys (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  issuer_id UUID REFERENCES issuers(id) ON DELETE CASCADE,
+  key_hash VARCHAR(255) NOT NULL,
+  key_prefix VARCHAR(20) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  permissions TEXT[] DEFAULT ARRAY['verify','read_profile'],
+  rate_limit_per_hour INTEGER DEFAULT 1000,
+  last_used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  revoked_at TIMESTAMP
+);
 
+CREATE INDEX IF NOT EXISTS idx_api_keys_issuer ON api_keys(issuer_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys(key_prefix);
 
+-- API usage logs (async logging)
+CREATE TABLE IF NOT EXISTS api_usage_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  api_key_id UUID REFERENCES api_keys(id) ON DELETE SET NULL,
+  endpoint VARCHAR(255) NOT NULL,
+  method VARCHAR(10) NOT NULL,
+  response_status INTEGER,
+  response_time_ms INTEGER,
+  created_at TIMESTAMP DEFAULT NOW()
+);
 
+CREATE INDEX IF NOT EXISTS idx_api_usage_logs_key ON api_usage_logs(api_key_id);
+CREATE INDEX IF NOT EXISTS idx_api_usage_logs_created ON api_usage_logs(created_at);

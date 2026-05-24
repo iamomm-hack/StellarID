@@ -487,6 +487,7 @@ export default function AdminPage() {
                       <td className="py-4 font-bold text-foreground">
                         <div className="flex items-center gap-2">
                           {issuer.logo_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img src={issuer.logo_url} alt="" className="w-6 h-6 rounded-md bg-zinc-800" />
                           )}
                           <div>

@@ -55,6 +55,7 @@ export default function BulkIssueHistoryPage() {
     if (expandedJobId) {
       fetchRecipients(expandedJobId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expandedJobId]);
 
   const [page, setPage] = useState(1);
@@ -104,6 +105,7 @@ export default function BulkIssueHistoryPage() {
     if (!isCheckingIssuer && !isNotIssuer) {
       fetchJobs();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCheckingIssuer, isNotIssuer, page]);
 
   const handleRetryFailed = async (jobId: string) => {
@@ -207,7 +209,7 @@ export default function BulkIssueHistoryPage() {
             <Inbox className="w-12 h-12 text-gray-600 mb-4" />
             <h3 className="text-lg font-bold mb-1">No Jobs Found</h3>
             <p className="text-sm text-gray-500 mb-6 max-w-sm">
-              You haven't created any bulk issuance jobs yet. Use the uploader to get started.
+              You haven&apos;t created any bulk issuance jobs yet. Use the uploader to get started.
             </p>
             <Link
               href="/dashboard/bulk-issue"

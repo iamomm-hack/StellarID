@@ -16,6 +16,8 @@ import multisigRouter from './routes/multisig';
 import profileRouter from './routes/profile';
 import bulkRouter from './routes/bulk';
 import reputationRouter from './routes/reputation';
+import developerRouter from './routes/developer';
+import publicApiRouter from './routes/publicApi';
 import { errorHandler } from './middleware/errorHandler';
 
 
@@ -66,6 +68,8 @@ app.use('/api/v1/multisig', multisigRouter);
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/bulk', bulkRouter);
 app.use('/api/v1/reputation', reputationRouter);
+app.use('/api/v1/developer', developerRouter);
+app.use('/api/v1/public', publicApiRouter);
 
 
 // Error handler (must be last)

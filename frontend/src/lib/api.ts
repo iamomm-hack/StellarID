@@ -101,3 +101,10 @@ export const reputationApi = {
   getHistory: (wallet: string) => api.get(`/reputation/${wallet}/history`),
 };
 
+export const developerApi = {
+  createKey: (data: { name: string; permissions?: string[] }) => api.post('/developer/keys', data),
+  listKeys: () => api.get('/developer/keys'),
+  revokeKey: (id: string) => api.delete(`/developer/keys/${id}`),
+  getUsageStats: () => api.get('/developer/usage/stats'),
+};
+

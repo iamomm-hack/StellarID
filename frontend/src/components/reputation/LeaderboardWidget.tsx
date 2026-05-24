@@ -43,6 +43,7 @@ export default function LeaderboardWidget() {
 
   useEffect(() => {
     fetchLeaderboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter, page]);
 
   // Client-side search filtering
@@ -186,6 +187,7 @@ export default function LeaderboardWidget() {
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             {user.avatar_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={user.avatar_url}
                                 alt={user.display_name}

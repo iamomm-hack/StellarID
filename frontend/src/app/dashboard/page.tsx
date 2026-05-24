@@ -145,6 +145,12 @@ function DashboardContent() {
             >
               <Upload className="w-3.5 h-3.5 text-accent-indigo" /> Bulk Issuance
             </Link>
+            <Link
+              href="/dashboard/developer"
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
+            >
+              <Terminal className="w-3.5 h-3.5 text-accent-indigo" /> Developer API
+            </Link>
             <button
               onClick={() => setShowRequestModal(true)}
               className="btn-stellar !py-2.5 !px-5 !text-[10px]"
