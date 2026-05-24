@@ -17,3 +17,12 @@ export const authRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const claimRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 attempts to allow smooth developer testing and page reloads
+  keyGenerator: (req) => req.ip || 'unknown',
+  message: { error: 'Too many claim attempts. Please try again in 15 minutes.', retryAfter: 900 },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

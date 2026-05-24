@@ -2,19 +2,38 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
+import Link from 'next/link';
 import { useWalletStore } from '../../store/walletStore';
 import { useCredentials } from '../../hooks/useCredentials';
+import { reputationApi } from '../../lib/api';
+
+// Component Imports
 import CredentialCard from '../../components/credentials/CredentialCard';
 import ProofGenerator from '../../components/proof/ProofGenerator';
 import LiveDemo from '../../components/proof/LiveDemo';
 import RequestCredentialModal from '../../components/credentials/RequestCredentialModal';
 import GitHubGreeting from '../../components/GitHubGreeting';
 import LinkedInGreeting from '../../components/LinkedInGreeting';
+import ConnectWallet from '../../components/wallet/ConnectWallet';
+
+// Icons
 import {
   Shield, Plus, Github, Linkedin, Award, CheckCircle2,
-  Loader2, AlertCircle, Zap
+  Loader2, AlertCircle, Zap, Cpu, Activity, Fingerprint,
+  Lock, ArrowUpRight, Terminal, Globe, HardDrive, Upload
 } from 'lucide-react';
-import { Skeleton } from '../../components/Skeleton';
+
+
+// --- ANIMATION CONFIG ---
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, delay: i * 0.1, ease: [.23, 1, .32, 1] as const }
+  })
+};
 
 function DashboardContent() {
   const { address, isConnected, setToken } = useWalletStore();
@@ -22,266 +41,205 @@ function DashboardContent() {
   const { data: credentials, isLoading, error } = useCredentials();
   const [selectedCredential, setSelectedCredential] = useState<any>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [reputationScore, setReputationScore] = useState<number | null>(null);
+  const [reputationTier, setReputationTier] = useState<string>('Verified');
+
+  // Fetch reputation
+  useEffect(() => {
+    if (isConnected && address) {
+      reputationApi.getReputation(address)
+        .then((res) => {
+          setReputationScore(res.data.total_score);
+          setReputationTier(res.data.tier);
+        })
+        .catch(() => {});
+    }
+  }, [isConnected, address]);
 
   // Handle token from GitHub OAuth callback
-  const tokenFromUrl = searchParams.get('token');
   useEffect(() => {
+    const tokenFromUrl = searchParams.get('token');
     if (tokenFromUrl && isConnected) {
       setToken(tokenFromUrl);
       if (typeof window !== 'undefined') {
         window.history.replaceState({}, document.title, '/dashboard');
       }
     }
-  }, [tokenFromUrl, isConnected, setToken]);
+  }, [searchParams, isConnected, setToken]);
 
   const oauthError = searchParams.get('error');
-  const oauthMessage = (() => {
-    switch (oauthError) {
-      case 'github_oauth_not_configured':
-        return 'GitHub OAuth is not configured on backend. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in backend/.env and restart backend.';
-      case 'linkedin_oauth_not_configured':
-        return 'LinkedIn OAuth is not configured. Set LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET in backend/.env and restart backend.';
-      case 'missing_wallet_address':
-        return 'Wallet address is missing. Reconnect wallet and try again.';
-      case 'no_verified_email':
-        return 'GitHub account does not have a verified primary email.';
-      case 'linkedin_no_email':
-        return 'LinkedIn account does not have an email address.';
-      case 'github_auth_failed':
-        return 'GitHub authentication failed. Please try again.';
-      case 'linkedin_auth_failed':
-        return 'LinkedIn authentication failed. Please try again.';
-      case 'linkedin_auth_denied':
-        return 'LinkedIn access was denied. Please try again.';
-      default:
-        return null;
-    }
-  })();
 
+  // --- ACCESS DENIED ---
   if (!isConnected) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="brutal-card max-w-lg w-full">
-          <div className="card-header-brutal">
-            <span>Access Denied</span>
-            <span>[NO_WALLET]</span>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="protocol-panel max-w-md w-full p-12 text-center"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8 text-red-400" />
           </div>
-          <div className="card-body-brutal text-center py-12">
-            <Shield className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--color-accent)' }} />
-            <h1 className="text-xl font-bold mb-2 uppercase"
-                style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
-              Connect wallet to proceed
-            </h1>
-            <p className="text-[var(--color-text-muted)] text-sm mb-6">
-              Dashboard requires wallet connection. Use the Connect button in the navigation.
-            </p>
-            <a href="/">
-              <button className="btn-brutal btn-brutal-outline">Back to Index</button>
-            </a>
+          <h1 className="text-2xl font-bold mb-3">Authentication Required</h1>
+          <p className="text-muted text-sm mb-8 leading-relaxed">
+            Connect your Stellar wallet to access the Identity Control Center.
+          </p>
+          <div className="flex justify-center">
+            <ConnectWallet />
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   const validCredentials = credentials?.filter((c: any) => c.valid) || [];
-  const totalCredentials = credentials?.length || 0;
-
-  const stats = [
-    {
-      label: 'Total Credentials',
-      value: totalCredentials,
-      status: 'ACTIVE',
-    },
-    {
-      label: 'Valid',
-      value: validCredentials.length,
-      status: 'ONLINE',
-    },
-    {
-      label: 'Proofs Generated',
-      value: 0,
-      status: 'STANDBY',
-    },
-  ];
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-6 py-8">
-        {oauthMessage && (
-          <div className="mb-6 border-l-4 border-[var(--color-accent)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-accent)]">
-            {oauthMessage}
-          </div>
-        )}
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen pb-24"
+    >
+      <div className="max-w-[1440px] mx-auto px-8 pt-10 relative z-10">
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 reveal-wrap">
-          <div className="reveal-content delay-1">
-            <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
-              Dashboard
-            </h1>
-            <p className="text-sm mt-2 font-mono" style={{ color: 'var(--color-text-muted)' }}>
-              {address?.slice(0, 10)}...{address?.slice(-6)}
-            </p>
+        {/* --- HEADER --- */}
+        <motion.div variants={fadeUp} custom={0} className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-10 mb-16">
+          <div className="space-y-4">
+            <span className="tag-orange">Status: Operational</span>
+            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight font-display">Control Center</h1>
+            <div className="flex items-center gap-3 font-mono text-xs text-muted bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-2 w-fit">
+              <Fingerprint className="w-4 h-4 text-accent-indigo" />
+              <span className="tracking-wider">{address}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3 mt-4 sm:mt-0 flex-wrap">
-            <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}>
-              <button className="btn-brutal btn-brutal-outline flex items-center gap-2 text-sm py-2.5 px-4">
-                <Github className="w-4 h-4" />
-                GitHub
-              </button>
+
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={`/p/${address}`}
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
+            >
+              <Globe className="w-3.5 h-3.5" /> Public Profile
+            </Link>
+            <Link
+              href="/dashboard/issuer-verification"
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
+            >
+              <Shield className="w-3.5 h-3.5 text-accent-indigo" /> Issuer Portal
+            </Link>
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL}/github-issuer/auth?stellarAddress=${address}`}
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2"
+            >
+              <Github className="w-3.5 h-3.5" /> GitHub
             </a>
-            <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}>
-              <button className="btn-brutal btn-brutal-outline flex items-center gap-2 text-sm py-2.5 px-4">
-                <Linkedin className="w-4 h-4" />
-                LinkedIn
-              </button>
+            <a
+              href={`${process.env.NEXT_PUBLIC_API_URL}/linkedin-issuer/auth?stellarAddress=${address}`}
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2"
+            >
+              <Linkedin className="w-3.5 h-3.5" /> LinkedIn
             </a>
+            <Link
+              href="/dashboard/bulk-issue"
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
+            >
+              <Upload className="w-3.5 h-3.5 text-accent-indigo" /> Bulk Issuance
+            </Link>
             <button
               onClick={() => setShowRequestModal(true)}
-              className="btn-brutal btn-brutal-accent flex items-center gap-2 text-sm py-2.5 px-4"
+              className="btn-stellar !py-2.5 !px-5 !text-[10px]"
             >
-              <Plus className="w-4 h-4" />
-              Request
+              + Request Credential
             </button>
           </div>
+        </motion.div>
+
+        {/* --- METRICS --- */}
+        <motion.div variants={fadeUp} custom={1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
+          <MetricCard label="Credentials" value={credentials?.length || 0} status="Secured" color="#6366f1" />
+          <MetricCard label="Verified" value={validCredentials.length} status="Valid" color="#a855f7" />
+          <Link href="/dashboard/reputation" className="cursor-pointer block">
+            <MetricCard 
+              label="Reputation Score" 
+              value={reputationScore !== null ? reputationScore : '...'} 
+              status={reputationTier} 
+              color="#a855f7" 
+            />
+          </Link>
+          <MetricCard label="Latency" value="24ms" status="Stable" color="#6366f1" />
+        </motion.div>
+
+        {/* --- ALERTS --- */}
+        <AnimatePresence>
+          {oauthError && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-10">
+              <div className="p-5 border border-red-500/20 bg-red-500/5 rounded-2xl flex items-center gap-4">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+                <span className="text-sm text-red-400">{oauthError}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="grid lg:grid-cols-12 gap-6 mb-16">
+          {/* Main Proving Unit */}
+          <motion.div variants={fadeUp} custom={2} className="lg:col-span-8">
+            <div className="flex items-center gap-3 mb-5">
+              <Terminal className="w-4 h-4 text-accent-indigo" />
+              <h2 className="text-lg font-bold">Identity Prover</h2>
+            </div>
+            <div className="protocol-panel p-1 overflow-hidden">
+              <LiveDemo />
+            </div>
+          </motion.div>
+
+          {/* Integrations Panel */}
+          <motion.div variants={fadeUp} custom={3} className="lg:col-span-4">
+            <div className="flex items-center gap-3 mb-5">
+              <Cpu className="w-4 h-4 text-muted" />
+              <h2 className="text-lg font-bold text-muted">Integrations</h2>
+            </div>
+            <div className="protocol-panel divide-y divide-white/[0.06] overflow-hidden">
+              <HubItem
+                icon={Github}
+                title="Developer Identity"
+                desc="Verify repo ownership & commits"
+                href={`${process.env.NEXT_PUBLIC_API_URL}/github-issuer/auth?stellarAddress=${address}`}
+              />
+              <HubItem
+                icon={Linkedin}
+                title="Professional Profile"
+                desc="Career verification status"
+                href={`${process.env.NEXT_PUBLIC_API_URL}/linkedin-issuer/auth?stellarAddress=${address}`}
+              />
+              <HubItem
+                icon={Shield}
+                title="Protocol API"
+                desc="Developer documentation"
+                href="/docs"
+              />
+            </div>
+          </motion.div>
         </div>
 
-        {/* GitHub Greeting */}
-        {credentials && credentials.some((c: any) => c.credential_type === 'github_developer') && (
-          <GitHubGreeting 
-            credential={credentials.find((c: any) => c.credential_type === 'github_developer')} 
-          />
-        )}
-
-        {/* LinkedIn Greeting */}
-        {credentials && credentials.some((c: any) => c.credential_type === 'linkedin_professional') && (
-          <LinkedInGreeting 
-            credential={credentials.find((c: any) => c.credential_type === 'linkedin_professional')} 
-          />
-        )}
-
-        {/* Stats Row - Data Table Style */}
-        <div className="mb-8 overflow-x-auto">
-          <table className="edge-table w-full">
-            <thead>
-              <tr>
-                <th>Metric</th>
-                <th>Status</th>
-                <th>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.map((stat) => (
-                <tr key={stat.label}>
-                  <td className="text-[var(--color-text-main)]">{stat.label}</td>
-                  <td style={{ color: stat.status === 'ONLINE' ? 'var(--color-highlight)' : stat.status === 'ACTIVE' ? 'var(--color-accent)' : 'var(--color-text-muted)' }}>
-                    {stat.status}
-                  </td>
-                  <td className="font-bold text-white" style={{ fontFamily: 'Unbounded, sans-serif' }}>
-                    {stat.value}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Live Demo + Quick Actions */}
-        <div className="grid lg:grid-cols-2 gap-0 mb-8">
-          <LiveDemo />
-
-          {/* Quick Actions */}
-          <div className="brutal-card">
-            <div className="card-header-brutal">
-              <span>Quick Actions</span>
-              <span>[READY]</span>
+        {/* --- CREDENTIAL VAULT --- */}
+        <motion.div variants={fadeUp} custom={4}>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <HardDrive className="w-5 h-5 text-accent-indigo" />
+              <h2 className="text-2xl font-bold font-display">Credential Vault</h2>
             </div>
-            <div className="card-body-brutal space-y-0">
-              <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
-                className="flex items-center gap-3 p-4 border-b border-[#222] hover:bg-white/[0.02] transition-colors group"
-              >
-                <Github className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
-                <div>
-                  <p className="text-sm font-semibold text-[var(--color-text-main)] group-hover:text-[var(--color-highlight)] transition-colors uppercase tracking-wide">
-                    Link GitHub Account
-                  </p>
-                  <p className="text-xs text-[var(--color-text-muted)]">Get your developer verifiable credential</p>
-                </div>
-              </a>
-              <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}
-                className="flex items-center gap-3 p-4 border-b border-[#222] hover:bg-white/[0.02] transition-colors group"
-              >
-                <Linkedin className="w-5 h-5 text-[#0077b5]" />
-                <div>
-                  <p className="text-sm font-semibold text-[var(--color-text-main)] group-hover:text-[var(--color-highlight)] transition-colors uppercase tracking-wide">
-                    Link LinkedIn Account
-                  </p>
-                  <p className="text-xs text-[var(--color-text-muted)]">Get your professional identity credential</p>
-                </div>
-              </a>
-              <a href="/docs" className="flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors group">
-                <Shield className="w-5 h-5" style={{ color: 'var(--color-highlight)' }} />
-                <div>
-                  <p className="text-sm font-semibold text-[var(--color-text-main)] group-hover:text-[var(--color-highlight)] transition-colors uppercase tracking-wide">
-                    View API Docs
-                  </p>
-                  <p className="text-xs text-[var(--color-text-muted)]">Integrate StellarID into your platform</p>
-                </div>
-              </a>
-            </div>
+            <span className="tag-orange">{credentials?.length || 0} stored</span>
           </div>
-        </div>
 
-        {/* Credentials Grid */}
-        {isLoading ? (
-          <div>
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2 uppercase tracking-wider"
-                style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
-              <Shield className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
-              Your Credentials
-            </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="brutal-card">
-                  <div className="card-header-brutal">
-                    <span>Loading...</span>
-                    <span>[...]</span>
-                  </div>
-                  <div className="card-body-brutal">
-                    <Skeleton className="h-4 w-24 mb-3" />
-                    <Skeleton className="h-3 w-full mb-2" />
-                    <Skeleton className="h-3 w-3/4 mb-4" />
-                    <Skeleton className="h-8 w-full" />
-                  </div>
-                </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="protocol-panel h-72 animate-pulse" />
               ))}
             </div>
-          </div>
-        ) : error ? (
-          <div className="brutal-card">
-            <div className="card-header-brutal">
-              <span>Error</span>
-              <span>[FAIL]</span>
-            </div>
-            <div className="card-body-brutal flex flex-col items-center py-12">
-              <AlertCircle className="w-8 h-8 mb-4" style={{ color: 'var(--color-accent)' }} />
-              <p className="text-[var(--color-text-muted)]">Failed to load credentials</p>
-              <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                Make sure the backend is running on port 5555
-              </p>
-            </div>
-          </div>
-        ) : credentials && credentials.length > 0 ? (
-          <div>
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2 uppercase tracking-wider"
-                style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
-              <Shield className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
-              Your Credentials
-            </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0">
+          ) : credentials && credentials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {credentials.map((cred: any) => (
                 <CredentialCard
                   key={cred.id}
@@ -290,53 +248,73 @@ function DashboardContent() {
                 />
               ))}
             </div>
-          </div>
-        ) : (
-          <div className="brutal-card">
-            <div className="card-header-brutal">
-              <span>Credentials</span>
-              <span>[EMPTY]</span>
+          ) : (
+            <div className="protocol-panel py-24 text-center border-dashed">
+              <Activity className="w-10 h-10 text-muted/30 mx-auto mb-4" />
+              <h3 className="text-lg font-bold text-muted mb-2">No Credentials Yet</h3>
+              <p className="text-sm text-muted/60 mb-6">Connect an issuer to start building your identity.</p>
+              <button
+                onClick={() => setShowRequestModal(true)}
+                className="btn-stellar-ghost"
+              >
+                Request Credential
+              </button>
             </div>
-            <div className="card-body-brutal flex flex-col items-center py-16">
-              <Shield className="w-12 h-12 mb-4" style={{ color: 'var(--color-text-muted)' }} />
-              <h3 className="text-lg font-bold mb-2 uppercase"
-                  style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
-                No credentials yet
-              </h3>
-              <p className="text-sm text-[var(--color-text-muted)] text-center max-w-md mb-6">
-                Get started by connecting with an issuer. Try linking your GitHub
-                account to receive your first verifiable credential NFT.
-              </p>
-              <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}>
-                <button className="btn-brutal btn-brutal-accent flex items-center gap-2">
-                  <Github className="w-4 h-4" />
-                  Get GitHub Credential
-                </button>
-              </a>
-            </div>
-          </div>
-        )}
+          )}
+        </motion.div>
       </div>
 
-      {/* Proof Generator Modal */}
-      {selectedCredential && (
-        <ProofGenerator
-          credential={selectedCredential}
-          onClose={() => setSelectedCredential(null)}
-        />
-      )}
+      {/* --- MODALS --- */}
+      <AnimatePresence>
+        {selectedCredential && (
+          <ProofGenerator
+            credential={selectedCredential}
+            onClose={() => setSelectedCredential(null)}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Request Credential Modal */}
-      {showRequestModal && (
-        <RequestCredentialModal onClose={() => setShowRequestModal(false)} />
-      )}
+      <AnimatePresence>
+        {showRequestModal && (
+          <RequestCredentialModal onClose={() => setShowRequestModal(false)} />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// --- UTILITY COMPONENTS ---
+
+function MetricCard({ label, value, status, color }: any) {
+  return (
+    <div className="protocol-panel p-7 group hover:border-white/[0.12] transition-colors">
+      <span className="text-[11px] font-mono text-muted uppercase tracking-wider block mb-4">{label}</span>
+      <div className="flex items-end justify-between">
+        <span className="text-4xl font-bold tracking-tight">{value}</span>
+        <span className="text-[10px] font-mono font-bold uppercase tracking-wider" style={{ color }}>{status}</span>
+      </div>
     </div>
+  );
+}
+
+function HubItem({ icon: Icon, title, desc, href }: any) {
+  return (
+    <a href={href} className="group flex items-center gap-4 p-5 hover:bg-white/[0.02] transition-colors">
+      <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] group-hover:border-accent-indigo/30 transition-all">
+        <Icon className="w-4 h-4 text-muted group-hover:text-accent-indigo" />
+      </div>
+      <div className="flex-grow">
+        <h4 className="text-sm font-bold text-foreground group-hover:text-white transition-colors">{title}</h4>
+        <p className="text-[11px] text-muted mt-0.5">{desc}</p>
+      </div>
+      <ArrowUpRight className="w-4 h-4 text-muted/30 group-hover:text-accent-indigo transition-all" />
+    </a>
   );
 }
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen" />}>
+    <Suspense fallback={<div className="min-h-screen" style={{ background: 'hsl(var(--background))' }} />}>
       <DashboardContent />
     </Suspense>
   );

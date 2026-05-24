@@ -1,150 +1,119 @@
 import type { Metadata } from 'next';
-import { Space_Mono } from 'next/font/google';
 import Link from 'next/link';
+import '@fontsource/geist-sans/400.css';
+import '@fontsource/geist-sans/500.css';
+import '@fontsource/geist-sans/600.css';
+import '@fontsource/geist-sans/700.css';
 import './globals.css';
+
+// Component Imports
 import Providers from '../components/Providers';
 import ConnectWallet from '../components/wallet/ConnectWallet';
 import NavLinks from '../components/NavLinks';
 import ToastProvider from '../components/ToastProvider';
 
-const spaceMono = Space_Mono({ subsets: ['latin'], weight: ['400', '700'] });
+// Motion Components (Client-side wrappers)
+import PageTransition from '../components/motion/PageTransition';
+import CinematicAtmosphere from '../components/motion/CinematicAtmosphere';
+import CursorFollower from '../components/motion/CursorFollower';
 
 export const metadata: Metadata = {
-  title: 'StellarID - Decentralized Identity Verification',
-  description:
-    'Prove who you are. Reveal nothing. Decentralized identity verification powered by Stellar blockchain and zero-knowledge proofs.',
-  keywords: ['identity', 'verification', 'stellar', 'blockchain', 'zero-knowledge', 'privacy'],
+  title: 'StellarID | Protocol-Grade Identity',
+  description: 'Futuristic decentralized identity infrastructure powered by Stellar.',
+  keywords: ['identity', 'stellar', 'blockchain', 'zero-knowledge', 'privacy'],
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="antialiased">
       <head>
-        {/* Unbounded font for display headings */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;600;900&display=swap"
+          href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap"
           rel="stylesheet"
         />
-        {/* Suppress wallet extension errors */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                const originalError = console.error;
-                const originalWarn = console.warn;
-                
-                console.error = function(...args) {
-                  const errorStr = String(args[0] || '');
-                  if (
-                    errorStr.includes('ethereum') ||
-                    errorStr.includes('Cannot assign to read only property') ||
-                    errorStr.includes('Cannot redefine property') ||
-                    errorStr.includes('MetaMask') ||
-                    errorStr.includes('solana') ||
-                    errorStr.includes('pageProvider') ||
-                    errorStr.includes('evmAsk')
-                  ) {
-                    return;
-                  }
-                  return originalError.apply(console, args);
-                };
-                
-                console.warn = function(...args) {
-                  const warnStr = String(args[0] || '');
-                  if (
-                    warnStr.includes('ethereum') ||
-                    warnStr.includes('solana') ||
-                    warnStr.includes('wallet')
-                  ) {
-                    return;
-                  }
-                  return originalWarn.apply(console, args);
-                };
-                
-                window.addEventListener('unhandledrejection', (event) => {
-                  const reason = String(event.reason || '');
-                  if (
-                    reason.includes('MetaMask') ||
-                    reason.includes('Failed to connect') ||
-                    reason.includes('extension not found') ||
-                    reason.includes('ethereum')
-                  ) {
-                    event.preventDefault();
-                  }
-                });
-              })();
-            `,
-          }}
-        />
       </head>
-      <body className={`${spaceMono.className} antialiased`}>
+      <body className="font-sans bg-background text-foreground overflow-x-hidden">
+        {/* Subtle ambient atmosphere */}
+        <CinematicAtmosphere />
+        
+        {/* Custom cursor follower */}
+        <CursorFollower />
+
         <Providers>
           <ToastProvider />
-          {/* Navigation - Brutalist Edge */}
-          <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#222]"
-               style={{ background: 'rgba(5,5,5,0.92)', backdropFilter: 'blur(8px)' }}>
-            <div className="max-w-[1400px] mx-auto px-6">
-              <div className="flex items-center justify-between h-[72px]">
-                <Link href="/" className="group" style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <div className="relative inline-block" style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: '1.3rem', letterSpacing: '-0.05em' }}>
-                    STELLAR<span style={{ color: 'var(--color-accent)' }}>ID</span>
-                    <div className="absolute bottom-0 left-0 w-full h-[3px]" style={{ background: 'var(--color-accent)' }} />
+          
+          <div className="relative flex flex-col min-h-screen">
+            
+            {/* --- PREMIUM NAVIGATION --- */}
+            <header className="fixed top-0 left-0 right-0 z-[100]">
+              <nav className="h-[72px] border-b bg-[hsl(260,87%,3%)]/80 backdrop-blur-md" style={{ borderColor: 'var(--border)' }}>
+                <div className="max-w-[1440px] mx-auto px-8 h-full flex items-center justify-between">
+                  <Link href="/" className="group flex items-center gap-2 outline-none">
+                    <div className="relative overflow-hidden font-display font-bold text-xl tracking-tight">
+                      <span className="block group-hover:-translate-y-full transition-transform duration-500" style={{ transitionTimingFunction: 'cubic-bezier(.23,1,.32,1)' }}>
+                        Stellar<span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #6366f1, #a855f7)' }}>ID</span>
+                      </span>
+                      <span className="absolute inset-0 block translate-y-full group-hover:translate-y-0 transition-transform duration-500 gradient-text" style={{ transitionTimingFunction: 'cubic-bezier(.23,1,.32,1)', backgroundImage: 'linear-gradient(to right, #a855f7, #fcd34d)' }}>
+                        StellarID
+                      </span>
+                    </div>
+                  </Link>
+
+                  <div className="hidden lg:block">
+                    <NavLinks />
                   </div>
-                </Link>
 
-                <NavLinks />
+                  <div className="flex items-center gap-4">
+                    <ConnectWallet />
+                  </div>
+                </div>
+              </nav>
+            </header>
 
-                <div className="flex items-center gap-3">
-                  <ConnectWallet />
+            {/* Page content */}
+            <main className="flex-grow pt-[72px]">
+              <PageTransition>
+                {children}
+              </PageTransition>
+            </main>
+
+            {/* --- EDITORIAL FOOTER --- */}
+            <footer className="relative z-10 border-t py-16 mt-24" style={{ borderColor: 'var(--border)' }}>
+              <div className="max-w-[1440px] mx-auto px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                <div className="space-y-3">
+                  <div className="font-display font-bold text-lg tracking-tight opacity-30">StellarID</div>
+                  <p className="text-[12px] text-muted max-w-xs">
+                    The decentralised identity layer for the Stellar ecosystem.
+                  </p>
+                </div>
+                
+                <div className="flex flex-col md:items-end gap-4">
+                  <div className="flex gap-8">
+                    {['Protocol', 'Dashboard', 'Docs', 'GitHub'].map((item) => (
+                      <Link 
+                        key={item} 
+                        href={item === 'GitHub' ? 'https://github.com' : `/${item.toLowerCase()}`} 
+                        className="text-[11px] font-mono uppercase tracking-wider text-muted hover:text-accent-indigo transition-colors duration-300"
+                      >
+                        {item}
+                      </Link>
+                    ))}
+                  </div>
+                  <div className="text-[10px] font-mono text-muted/50 tracking-wider">
+                    &copy; 2026 StellarID Protocol
+                  </div>
                 </div>
               </div>
-            </div>
-          </nav>
-
-          {/* Scrolling Marquee Ticker */}
-          <div className="marquee-strip fixed top-[72px] left-0 right-0 z-40">
-            <div className="marquee-track">
-              <div className="marquee-text">
-                <span>NFT CREDENTIALS</span><i className="dot" />
-                <span>PRIVACY-FIRST</span><i className="dot" />
-                <span>VERIFY ONCE</span><i className="dot" />
-                <span>PROVE EVERYWHERE</span><i className="dot" />
-                <span>PROTOCOL V2.0 LIVE</span><i className="dot" />
-                <span>DECENTRALIZED IDENTITY</span><i className="dot" />
-                <span>ZERO-KNOWLEDGE PROOFS</span><i className="dot" />
-                <span>STELLAR BLOCKCHAIN</span><i className="dot" />
-                <span>NFT CREDENTIALS</span><i className="dot" />
-                <span>PRIVACY-FIRST</span><i className="dot" />
-                <span>VERIFY ONCE</span><i className="dot" />
-                <span>PROVE EVERYWHERE</span><i className="dot" />
-              </div>
-              <div className="marquee-text" aria-hidden="true">
-                <span>NFT CREDENTIALS</span><i className="dot" />
-                <span>PRIVACY-FIRST</span><i className="dot" />
-                <span>VERIFY ONCE</span><i className="dot" />
-                <span>PROVE EVERYWHERE</span><i className="dot" />
-                <span>PROTOCOL V2.0 LIVE</span><i className="dot" />
-                <span>DECENTRALIZED IDENTITY</span><i className="dot" />
-                <span>ZERO-KNOWLEDGE PROOFS</span><i className="dot" />
-                <span>STELLAR BLOCKCHAIN</span><i className="dot" />
-                <span>NFT CREDENTIALS</span><i className="dot" />
-                <span>PRIVACY-FIRST</span><i className="dot" />
-                <span>VERIFY ONCE</span><i className="dot" />
-                <span>PROVE EVERYWHERE</span><i className="dot" />
-              </div>
-            </div>
+            </footer>
           </div>
-
-          {/* Main content - account for nav (72px) + ticker (~28px) */}
-          <main className="pt-[100px]">{children}</main>
-
-          {/* Footer */}
-          <footer className="border-t border-[#222] py-8 mt-16 text-center"
-                  style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-            &copy; 2026 - STELLARID || BUILT ON STELLAR // ZERO KNOWLEDGE
-          </footer>
         </Providers>
       </body>
     </html>

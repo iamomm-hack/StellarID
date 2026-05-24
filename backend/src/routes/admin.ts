@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { sendVerificationRevokedEmail } from '../services/email';
 
 const router = Router();
 
@@ -154,6 +155,94 @@ router.get('/top-issuers', adminMiddleware, async (_req: AuthRequest, res: Respo
   } catch (err) {
     console.error('Admin issuers error:', err);
     res.status(500).json({ error: 'Failed to fetch issuers' });
+  }
+});
+
+// POST /issuers/:id/verify-official — Admin overrides status to Official Verified
+router.post('/issuers/:id/verify-official', adminMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const result = await query(
+      `UPDATE issuers
+       SET verification_status = 'official_verified', verified = true, verification_date = NOW(), verified_by = $1
+       WHERE id = $2
+       RETURNING *`,
+      [req.user!.id, id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Issuer not found' });
+      return;
+    }
+
+    // Update trust scores
+    await query(
+      `UPDATE issuer_trust_scores
+       SET official_verified = true, trust_score = GREATEST(trust_score, 0.85)
+       WHERE issuer_id = $1`,
+      [id]
+    );
+
+    res.json({ success: true, message: 'Issuer verified officially by admin', issuer: result.rows[0] });
+  } catch (err: any) {
+    console.error('Admin verify official error:', err.message);
+    res.status(500).json({ error: 'Failed to verify issuer officially' });
+  }
+});
+
+// POST /issuers/:id/revoke-verification — Admin revokes status back to unverified with reason
+router.post('/issuers/:id/revoke-verification', adminMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason) {
+      res.status(400).json({ error: 'Reason for revocation is required' });
+      return;
+    }
+
+    const result = await query(
+      `UPDATE issuers
+       SET verification_status = 'unverified', verified = false, verification_date = NULL, verified_by = NULL,
+           domain_verified = false, domain_verified_at = NULL
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Issuer not found' });
+      return;
+    }
+
+    const issuer = result.rows[0];
+
+    // Reset trust scores
+    await query(
+      `UPDATE issuer_trust_scores
+       SET official_verified = false, trust_score = 0.10
+       WHERE issuer_id = $1`,
+      [id]
+    );
+
+    // Try notifying the issuer
+    try {
+      const userResult = await query(
+        'SELECT email FROM users WHERE stellar_address = $1',
+        [issuer.stellar_address]
+      );
+      if (userResult.rows.length > 0 && userResult.rows[0].email) {
+        await sendVerificationRevokedEmail(userResult.rows[0].email, issuer.name, reason);
+      }
+    } catch (emailErr) {
+      console.warn('Failed to send revocation email:', emailErr);
+    }
+
+    res.json({ success: true, message: 'Issuer verification status revoked', issuer });
+  } catch (err: any) {
+    console.error('Admin revoke verification error:', err.message);
+    res.status(500).json({ error: 'Failed to revoke verification status' });
   }
 });
 

@@ -3,6 +3,9 @@ dotenv.config();
 
 import app from './app';
 import { startExpiryJob } from './jobs/expiry-cron';
+import { startReputationCron } from './jobs/reputation-cron';
+import './services/bulkWorker';
+
 
 const PORT = process.env.PORT || 5555;
 
@@ -27,7 +30,8 @@ app.listen(PORT as number, '0.0.0.0', () => {
   // Start background jobs (non-critical — don't crash server if this fails)
   try {
     startExpiryJob();
+    startReputationCron();
   } catch (err: any) {
-    console.warn('Failed to start expiry job:', err.message);
+    console.warn('Failed to start background jobs:', err.message);
   }
 });

@@ -4,7 +4,7 @@ module.exports = {
   testMatch: ['**/tests/**/*.test.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': ['ts-jest', { isolatedModules: true }],
   },
   clearMocks: true,
   collectCoverageFrom: [

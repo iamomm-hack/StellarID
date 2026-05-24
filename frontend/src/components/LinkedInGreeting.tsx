@@ -1,5 +1,6 @@
 'use client';
 import { Linkedin } from 'lucide-react';
+import Image from 'next/image';
 import { useWalletStore } from '../store/walletStore';
 
 interface LinkedInGreetingProps {
@@ -12,23 +13,30 @@ export default function LinkedInGreeting({ credential }: LinkedInGreetingProps) 
   const picture = credential?.claim_data?.linkedin_picture || '';
 
   return (
-    <div className="flex items-center justify-between mb-6 border border-[#333] bg-[var(--color-surface)]"
-         style={{ borderLeft: '4px solid #0077b5' }}>
-      <div className="flex items-center gap-3 px-4 py-3">
+    <div className="flex items-center justify-between mb-6 p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 transition-colors">
+      <div className="flex items-center gap-3">
         {picture ? (
-          <img
+          <Image
             src={picture}
             alt={name}
-            className="w-8 h-8 border border-[#333]"
+            width={32}
+            height={32}
+            unoptimized
+            className="rounded-full border border-blue-500/30"
           />
         ) : (
-          <Linkedin className="w-5 h-5 text-[#0077b5]" />
+          <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <Linkedin className="w-4 h-4 text-blue-400" />
+          </div>
         )}
         <div>
-          <p className="text-sm font-bold text-white uppercase tracking-wider">
-            LinkedIn verified: <span className="text-[#0077b5]">{name}</span>
+          <p className="text-xs font-mono text-blue-400 uppercase tracking-wider">
+            LinkedIn Verification Active
           </p>
-          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+          <p className="text-sm font-bold text-foreground mt-0.5">
+            LinkedIn verified: <span className="text-blue-400">{name}</span>
+          </p>
+          <p className="text-[10px] text-muted mt-0.5">
             LinkedIn account linked • Professional identity confirmed
           </p>
         </div>

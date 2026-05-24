@@ -1,55 +1,40 @@
 'use client';
-import { Github, LogOut } from 'lucide-react';
-import { useWalletStore } from '../store/walletStore';
+
+import { Github, ExternalLink, LogOut } from 'lucide-react';
+import Image from 'next/image';
 
 interface GitHubGreetingProps {
-  credential: any;
+  username: string;
+  avatarUrl?: string;
+  profileUrl?: string;
+  onLogout?: () => void;
 }
 
-export default function GitHubGreeting({ credential }: GitHubGreetingProps) {
-  const { disconnect } = useWalletStore();
-  const username = credential?.claim_data?.github_username || 'Developer';
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 0 && hour < 12) return 'Good Morning';
-    if (hour >= 12 && hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
-  const handleLogout = () => {
-    if (
-      confirm(
-        `Are you sure you want to logout? You'll be disconnected from GitHub (${username}).`
-      )
-    ) {
-      disconnect();
-      window.location.href = '/dashboard';
-    }
-  };
-
+export default function GitHubGreeting({ username, avatarUrl, profileUrl, onLogout }: GitHubGreetingProps) {
   return (
-    <div className="flex items-center justify-between mb-6 border border-[#333] bg-[var(--color-surface)]"
-         style={{ borderLeft: '4px solid var(--color-highlight)' }}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        <Github className="w-5 h-5" style={{ color: 'var(--color-highlight)' }} />
-        <div>
-          <p className="text-sm font-bold text-white uppercase tracking-wider">
-            {getGreeting()}, <span style={{ color: 'var(--color-highlight)' }}>{username}</span>
-          </p>
-          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-            GitHub account linked • Click logout to disconnect
-          </p>
-        </div>
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+      {avatarUrl && (
+        <Image src={avatarUrl} alt={username} width={32} height={32} unoptimized className="rounded-full border border-white/[0.08]" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-mono text-muted truncate">Connected as</p>
+        <p className="text-sm font-bold text-foreground truncate">{username}</p>
       </div>
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-2 px-3 py-1.5 mr-4 text-xs font-bold uppercase tracking-wider transition-all"
-        style={{ color: 'var(--color-accent)', border: '1px solid var(--color-accent)', background: 'rgba(255, 60, 0, 0.1)' }}
-      >
-        <LogOut className="w-3.5 h-3.5" />
-        Logout
-      </button>
+      <div className="flex items-center gap-1.5">
+        {profileUrl && (
+          <a href={profileUrl} target="_blank" rel="noopener noreferrer"
+            className="w-7 h-7 flex items-center justify-center rounded-lg border border-white/[0.06] hover:border-accent-indigo/30 transition-colors">
+            <ExternalLink className="w-3 h-3 text-muted" />
+          </a>
+        )}
+        {onLogout && (
+          <button onClick={onLogout}
+            className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors"
+            style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
+            <LogOut className="w-3 h-3 text-accent-indigo" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

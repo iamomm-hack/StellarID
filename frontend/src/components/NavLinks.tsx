@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
 
 export default function NavLinks() {
   const pathname = usePathname();
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isActive = (href: string) =>
@@ -22,56 +24,111 @@ export default function NavLinks() {
 
   return (
     <>
-      {/* Desktop Nav */}
-      <div className="hidden lg:flex items-center gap-6">
-        {navItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`nav-link-edge ${isActive(item.href) ? 'active' : ''}`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
+      {/* --- DESKTOP NAV --- */}
+      <nav 
+        className="hidden lg:flex items-center gap-1 px-2 py-1.5 rounded-full border border-white/[0.06] bg-white/[0.02]"
+        onMouseLeave={() => setHoveredIdx(null)}
+      >
+        {navItems.map((item, idx) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              onMouseEnter={() => setHoveredIdx(idx)}
+              className={`relative px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 z-10 ${
+                active ? 'text-foreground' : 'text-muted hover:text-foreground/70'
+              }`}
+            >
+              {/* Hover pill */}
+              {hoveredIdx === idx && (
+                <motion.div
+                  layoutId="nav-hover"
+                  className="absolute inset-0 z-[-1] rounded-full bg-white/[0.05]"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                />
+              )}
+              
+              {/* Active indicator */}
+              {active && (
+                <motion.div
+                  layoutId="nav-active"
+                  className="absolute inset-0 z-[-1] rounded-full bg-white/[0.08] border border-white/[0.08]"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                />
+              )}
 
-      {/* Mobile Hamburger */}
+              {item.label}
+
+              {/* Active dot */}
+              {active && (
+                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-accent-indigo" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* --- MOBILE TRIGGER --- */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden w-9 h-9 flex items-center justify-center border border-[#333] text-[var(--color-text-muted)] hover:text-white hover:border-[var(--color-accent)] transition-colors"
-        aria-label="Menu"
+        className="lg:hidden w-10 h-10 flex items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.02]"
       >
-        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
       </button>
 
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/70 z-40 lg:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="fixed top-[72px] left-0 right-0 z-50 lg:hidden border-b border-[#222] p-4"
-               style={{ background: 'rgba(5,5,5,0.97)' }}>
-            <div className="flex flex-col gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`px-4 py-3 text-sm font-semibold uppercase tracking-wider transition-colors ${
-                    isActive(item.href)
-                      ? 'text-white border-l-4 border-[var(--color-accent)] pl-3'
-                      : 'text-[var(--color-text-muted)] hover:text-white hover:pl-5'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+      {/* --- MOBILE MENU --- */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] lg:hidden"
+            />
+
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 w-full max-w-[300px] border-l border-white/[0.06] z-[101] lg:hidden p-8 flex flex-col"
+              style={{ background: 'hsl(var(--background))' }}
+            >
+              <div className="flex flex-col gap-6 mt-16">
+                {navItems.map((item, i) => {
+                  const active = isActive(item.href);
+                  return (
+                    <motion.div
+                      key={item.label}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.06 + 0.15 }}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`text-xl font-bold uppercase tracking-tight transition-colors duration-300 flex items-center gap-3 ${
+                          active ? 'text-foreground' : 'text-muted hover:text-foreground/70'
+                        }`}
+                      >
+                        {active && <span className="w-2 h-2 rounded-full bg-accent-indigo" />}
+                        {item.label}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-auto pt-8 border-t border-white/[0.06]">
+                <p className="text-[10px] font-mono text-muted">StellarID Protocol v3.0</p>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

@@ -129,3 +129,118 @@ CREATE TABLE IF NOT EXISTS fee_sponsorship_logs (
 
 CREATE INDEX IF NOT EXISTS idx_fee_sponsorship_user ON fee_sponsorship_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_fee_sponsorship_created ON fee_sponsorship_logs(created_at);
+
+-- Pending credentials for email-based claiming flow
+CREATE TABLE IF NOT EXISTS pending_credentials (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  issuer_id UUID NOT NULL REFERENCES issuers(id) ON DELETE CASCADE,
+  recipient_email VARCHAR(255) NOT NULL,
+  recipient_wallet VARCHAR(100),
+  credential_type VARCHAR(100) NOT NULL,
+  credential_data JSONB NOT NULL,
+  claim_token UUID UNIQUE NOT NULL DEFAULT uuid_generate_v4(),
+  status VARCHAR(20) DEFAULT 'pending',
+  claim_attempts INTEGER DEFAULT 0,
+  expires_at TIMESTAMP NOT NULL,
+  claimed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_credentials_token ON pending_credentials(claim_token);
+CREATE INDEX IF NOT EXISTS idx_pending_credentials_email ON pending_credentials(recipient_email);
+CREATE INDEX IF NOT EXISTS idx_pending_credentials_status ON pending_credentials(status);
+
+-- Reputation system tables
+CREATE TABLE IF NOT EXISTS issuer_trust_scores (
+  issuer_id UUID PRIMARY KEY REFERENCES issuers(id) ON DELETE CASCADE,
+  base_score DECIMAL(3,2) DEFAULT 0.10,
+  community_endorsements INTEGER DEFAULT 0,
+  official_verified BOOLEAN DEFAULT FALSE,
+  credentials_issued INTEGER DEFAULT 0,
+  credentials_revoked INTEGER DEFAULT 0,
+  revocation_rate DECIMAL(4,3) DEFAULT 0.000,
+  trust_score DECIMAL(3,2) DEFAULT 0.10,
+  last_calculated TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_reputation (
+  wallet_address VARCHAR(100) PRIMARY KEY,
+  total_score INTEGER DEFAULT 0,
+  tier VARCHAR(20) DEFAULT 'Verified',
+  credential_count INTEGER DEFAULT 0,
+  last_calculated TIMESTAMP DEFAULT NOW(),
+  score_breakdown JSONB DEFAULT '{}',
+  season_scores JSONB DEFAULT '{}'
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_reputation_score ON user_reputation(total_score);
+
+-- Bulk issuance jobs
+CREATE TABLE IF NOT EXISTS bulk_issuance_jobs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  issuer_id UUID NOT NULL REFERENCES issuers(id) ON DELETE CASCADE,
+  job_name VARCHAR(255) NOT NULL,
+  credential_template JSONB NOT NULL,
+  total_recipients INTEGER NOT NULL,
+  processed_count INTEGER DEFAULT 0,
+  success_count INTEGER DEFAULT 0,
+  failed_count INTEGER DEFAULT 0,
+  status VARCHAR(20) DEFAULT 'queued',
+  csv_ipfs_hash VARCHAR(255),
+  error_log JSONB DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT NOW(),
+  completed_at TIMESTAMP
+);
+
+-- Bulk issuance recipients
+CREATE TABLE IF NOT EXISTS bulk_issuance_recipients (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  job_id UUID REFERENCES bulk_issuance_jobs(id) ON DELETE CASCADE,
+  recipient_email VARCHAR(255) NOT NULL,
+  recipient_wallet VARCHAR(100),
+  custom_fields JSONB DEFAULT '{}',
+  pending_credential_id UUID REFERENCES pending_credentials(id) ON DELETE SET NULL,
+  status VARCHAR(20) DEFAULT 'queued',
+  error_message TEXT,
+  processed_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_bulk_issuance_jobs_issuer ON bulk_issuance_jobs(issuer_id);
+CREATE INDEX IF NOT EXISTS idx_bulk_issuance_recipients_job ON bulk_issuance_recipients(job_id);
+
+-- Alter issuers table to add verification columns
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS verification_status VARCHAR(30) DEFAULT 'unverified';
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS verification_date TIMESTAMP;
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS verified_by UUID;
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS domain VARCHAR(255);
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS domain_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS domain_verification_token VARCHAR(100);
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS domain_verified_at TIMESTAMP;
+ALTER TABLE issuers ADD COLUMN IF NOT EXISTS endorsement_count INTEGER DEFAULT 0;
+
+-- Create table issuer_endorsements
+CREATE TABLE IF NOT EXISTS issuer_endorsements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  endorser_issuer_id UUID REFERENCES issuers(id) ON DELETE CASCADE,
+  endorsed_issuer_id UUID REFERENCES issuers(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(endorser_issuer_id, endorsed_issuer_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_issuer_endorsements_endorser ON issuer_endorsements(endorser_issuer_id);
+CREATE INDEX IF NOT EXISTS idx_issuer_endorsements_endorsed ON issuer_endorsements(endorsed_issuer_id);
+
+-- Create table user_reputation_history
+CREATE TABLE IF NOT EXISTS user_reputation_history (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wallet_address VARCHAR(100) REFERENCES user_reputation(wallet_address) ON DELETE CASCADE,
+  score INTEGER NOT NULL,
+  recorded_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_reputation_history_wallet ON user_reputation_history(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_user_reputation_history_date ON user_reputation_history(recorded_at);
+
+
+
+

@@ -6,8 +6,10 @@ import * as path from 'path';
 dotenv.config();
 
 async function migrate(): Promise<void> {
+  const isNeon = process.env.DATABASE_URL?.includes('neon.tech');
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: (process.env.NODE_ENV === 'production' || isNeon) ? { rejectUnauthorized: false } : undefined,
   });
 
   console.log('Starting database migration...');

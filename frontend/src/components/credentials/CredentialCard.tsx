@@ -1,16 +1,25 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+
+import { useState, useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import {
-  Shield, ShieldCheck, ShieldX, ShieldAlert,
-  Copy, Check, Fingerprint, Clock, Building2,
-  Cake, Github, Linkedin, Wallet, GraduationCap, Home, BarChart3, KeyRound, Trash2, type LucideIcon
+  Shield, ShieldCheck, Copy, Check, Fingerprint,
+  Cake, Github, Linkedin, Wallet, GraduationCap,
+  Home, BarChart3, KeyRound, Trash2, Zap, Globe, Award
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useDeleteCredential } from '../../hooks/useCredentials';
+import VerificationBadge from './VerificationBadge';
 
 interface Credential {
   id: string;
   credential_type: string;
-  issuer: { name: string; logo_url: string; verified: boolean };
+  issuer: { 
+    name: string; 
+    logo_url: string; 
+    verified: boolean; 
+    verification_status?: 'official_verified' | 'community_verified' | 'unverified';
+  };
   issued_at: string;
   expires_at: string;
   revoked: boolean;
@@ -32,156 +41,150 @@ const typeIcons: Record<string, LucideIcon> = {
   student: GraduationCap,
   us_resident: Home,
   accredited_investor: BarChart3,
+  stellar_hackathon_winner: Award,
 };
 
 const typeLabels: Record<string, string> = {
   age_verification: 'Age Verification',
-  github_developer: 'GitHub Developer',
-  linkedin_professional: 'LinkedIn Professional',
-  income_check: 'Income Verification',
-  income_100k: 'Income ($100k+)',
-  income_200k: 'Income ($200k+)',
-  student: 'Student Status',
-  alumni: 'Alumni Status',
-  us_resident: 'US Residency',
-  accredited_investor: 'Accredited Investor',
-  age_18: 'Age (18+)',
-  age_21: 'Age (21+)',
+  github_developer: 'Developer Identity',
+  linkedin_professional: 'Professional Credential',
+  income_check: 'Financial Proof',
+  student: 'Education Verify',
+  us_resident: 'Residency Node',
+  accredited_investor: 'Investor Seal',
+  stellar_hackathon_winner: 'Stellar Hackathon Winner',
 };
 
 export default function CredentialCard({ credential, onGenerateProof }: CredentialCardProps) {
   const [copied, setCopied] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const { mutate: deleteCredential, isPending: isDeleting } = useDeleteCredential();
 
-  const copyTokenId = () => {
-    navigator.clipboard.writeText(credential.nft_token_id);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // Subtle tilt effect
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseX = useSpring(x, { stiffness: 250, damping: 30 });
+  const mouseY = useSpring(y, { stiffness: 250, damping: 30 });
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [6, -6]);
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-6, 6]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to unlink this ${typeLabels[credential.credential_type] || credential.credential_type} credential?`)) {
-      deleteCredential(credential.id);
-    }
-  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
 
-  const getStatusBadge = () => {
-    if (credential.revoked) {
-      return (
-        <span className="badge-revoked">
-          <ShieldX className="w-3 h-3" /> Revoked
-        </span>
-      );
-    }
-    if (credential.expired) {
-      return (
-        <span className="badge-expired">
-          <ShieldAlert className="w-3 h-3" /> Expired
-        </span>
-      );
-    }
-    return (
-      <span className="badge-valid">
-        <ShieldCheck className="w-3 h-3" /> Valid
-      </span>
-    );
-  };
-
-  const getHeaderStyle = () => {
-    if (credential.revoked) return { background: '#ff3c00', color: '#050505' };
-    if (credential.expired) return { background: '#888', color: '#050505' };
-    return { background: 'var(--color-highlight)', color: 'var(--color-bg)' };
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
+  const statusColor = credential.revoked ? '#ef4444' : credential.expired ? 'var(--text-muted)' : '#6366f1';
   const IconComp = typeIcons[credential.credential_type] || KeyRound;
 
   return (
-    <div className="brutal-card">
-      <div className="card-header-brutal" style={getHeaderStyle()}>
-        <span>{typeLabels[credential.credential_type] || credential.credential_type}</span>
-        <span>[{credential.valid ? 'ACTIVE' : credential.revoked ? 'REVOKED' : 'EXPIRED'}]</span>
-      </div>
-      <div className="card-body-brutal">
-        {/* Icon + Status */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-10 h-10 flex items-center justify-center border border-[#333]"
-               style={{ background: 'var(--color-bg)' }}>
-            <IconComp className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, perspective: 1200, transformStyle: 'preserve-3d' }}
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="group relative w-full h-full will-change-transform"
+    >
+      <div className="relative overflow-hidden rounded-2xl h-full flex flex-col transition-colors duration-300 group-hover:border-white/[0.12]"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        
+        {/* Header */}
+        <div className="px-5 py-3 flex items-center justify-between border-b" style={{ borderColor: 'var(--border)' }}>
+          <span className="text-[10px] font-mono text-muted">
+            #{credential.nft_token_id.slice(-6)}
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: statusColor }} />
+            <span className="text-[10px] font-mono font-bold" style={{ color: statusColor }}>
+              {credential.valid ? 'Active' : 'Void'}
+            </span>
           </div>
-          {getStatusBadge()}
         </div>
 
-        {/* Issuer */}
-        <div className="flex items-center gap-1.5 mb-4">
-          <Building2 className="w-3 h-3 text-[var(--color-text-muted)]" />
-          <span className="text-xs text-[var(--color-text-muted)]">{credential.issuer.name}</span>
-          {credential.issuer.verified && (
-            <ShieldCheck className="w-3 h-3" style={{ color: 'var(--color-highlight)' }} />
-          )}
-        </div>
+        {/* Body */}
+        <div className="p-6 flex-grow flex flex-col">
+          <div className="flex justify-between items-start mb-6">
+            <div className="w-12 h-12 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
+              <IconComp className="w-6 h-6" style={{ color: statusColor }} />
+            </div>
+            <div className="text-right">
+              <h3 className="text-base font-bold text-foreground mb-1">
+                {typeLabels[credential.credential_type] || 'Identity Fragment'}
+              </h3>
+              <div className="flex items-center justify-end gap-1.5 text-muted">
+                <Globe className="w-3 h-3" />
+                <span className="text-[9px] font-mono">Verified</span>
+              </div>
+            </div>
+          </div>
 
-        {/* Details - Table style */}
-        <table className="edge-table w-full mb-4" style={{ fontSize: '0.8rem' }}>
-          <tbody>
-            <tr>
-              <td className="py-1.5 px-0"><Clock className="w-3 h-3 inline mr-1" />Issued</td>
-              <td className="py-1.5 px-0 text-right text-white">{formatDate(credential.issued_at)}</td>
-            </tr>
-            <tr>
-              <td className="py-1.5 px-0"><Clock className="w-3 h-3 inline mr-1" />Expires</td>
-              <td className="py-1.5 px-0 text-right text-white">{formatDate(credential.expires_at)}</td>
-            </tr>
-            {credential.nft_token_id && (
-              <tr>
-                <td className="py-1.5 px-0"><Fingerprint className="w-3 h-3 inline mr-1" />NFT ID</td>
-                <td className="py-1.5 px-0 text-right">
-                  <button
-                    onClick={copyTokenId}
-                    className="text-white hover:text-[var(--color-highlight)] transition-colors font-mono text-xs"
-                  >
-                    {credential.nft_token_id.substring(0, 12)}...
-                    {copied ? (
-                      <Check className="w-3 h-3 inline ml-1" style={{ color: 'var(--color-highlight)' }} />
-                    ) : (
-                      <Copy className="w-3 h-3 inline ml-1" />
-                    )}
-                  </button>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          {/* Details */}
+          <div className="space-y-3 mb-auto">
+            <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
+              <span className="text-[9px] font-mono text-muted block mb-1">Issuer</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-foreground">{credential.issuer.name}</span>
+                <VerificationBadge 
+                  status={credential.issuer.verification_status || (credential.issuer.verified ? 'official_verified' : 'unverified')} 
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
+                <span className="text-[9px] font-mono text-muted block mb-1">Issued</span>
+                <span className="text-[11px] font-mono text-foreground/70">{new Date(credential.issued_at).toLocaleDateString()}</span>
+              </div>
+              <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3">
+                <span className="text-[9px] font-mono text-muted block mb-1">Security</span>
+                <span className="text-[11px] font-mono text-foreground/70">ZKP + ECDSA</span>
+              </div>
+            </div>
+          </div>
 
-        {/* Buttons */}
-        <div className="space-y-2">
-          {credential.valid && (
+          {/* Fingerprint */}
+          <div className="mt-5 flex items-center justify-between rounded-xl p-3 border border-white/[0.04]" style={{ background: 'hsl(var(--background))' }}>
+            <div className="flex items-center gap-2">
+              <Fingerprint className="w-3.5 h-3.5 text-muted" />
+              <span className="text-[10px] font-mono text-muted truncate w-28">{credential.nft_token_id}</span>
+            </div>
             <button
-              onClick={() => onGenerateProof(credential)}
-              className="w-full btn-brutal btn-brutal-accent flex items-center justify-center gap-2 py-2.5 text-sm"
+              onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(credential.nft_token_id); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+              className="p-1 hover:bg-white/[0.04] rounded-md transition-colors"
             >
-              <Shield className="w-4 h-4" />
-              Generate ZK Proof
+              {copied ? <Check className="w-3 h-3 text-accent-indigo" /> : <Copy className="w-3 h-3 text-muted" />}
             </button>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="p-4 grid grid-cols-2 gap-2 border-t" style={{ borderColor: 'var(--border)' }}>
+          {credential.valid ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); onGenerateProof(credential); }}
+              className="btn-stellar !py-2.5 !text-[10px] !rounded-xl"
+            >
+              <Zap className="w-3 h-3" /> Prove
+            </button>
+          ) : (
+            <div className="flex items-center justify-center text-[10px] font-mono text-muted bg-white/[0.02] rounded-xl">
+              Invalid
+            </div>
           )}
           <button
-            onClick={handleDelete}
+            onClick={(e) => { e.stopPropagation(); if (confirm('Delete this credential?')) deleteCredential(credential.id); }}
             disabled={isDeleting}
-            className="w-full btn-brutal btn-brutal-outline flex items-center justify-center gap-2 py-2.5 text-sm disabled:opacity-40"
-            style={{ color: 'var(--color-accent)' }}
+            className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-white/[0.06] text-[10px] font-bold text-muted hover:text-red-400 hover:bg-red-400/5 hover:border-red-400/20 transition-all disabled:opacity-20"
           >
-            <Trash2 className="w-4 h-4" />
-            {isDeleting ? 'Unlinking...' : 'Unlink Credential'}
+            <Trash2 className="w-3 h-3" />
+            {isDeleting ? 'Deleting...' : 'Remove'}
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

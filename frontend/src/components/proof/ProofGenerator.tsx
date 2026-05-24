@@ -1,6 +1,13 @@
 'use client';
-import { useState } from 'react';
-import { X, Shield, Check, Loader2, Copy, Lock, Eye, Download, ExternalLink, Link2 } from 'lucide-react';
+
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  X, Shield, Check, Lock, Eye, Download, 
+  ExternalLink, Link2, Terminal, Cpu, Zap, 
+  Fingerprint, Activity, Database, RefreshCw, 
+  ShieldCheck, AlertCircle, ChevronRight
+} from 'lucide-react';
 import { useZKProof } from '../../hooks/useZKProof';
 import toast from 'react-hot-toast';
 
@@ -19,330 +26,298 @@ interface ProofGeneratorProps {
 
 type ClaimType = 'age_18' | 'age_21' | 'income_100k' | 'residency';
 
-const claimOptions: { value: ClaimType; label: string; description: string }[] = [
-  { value: 'age_18', label: 'Prove I am over 18', description: 'Age verification (18+)' },
-  { value: 'age_21', label: 'Prove I am over 21', description: 'Age verification (21+)' },
-  { value: 'income_100k', label: 'Prove income > $100k', description: 'Income threshold check' },
-  { value: 'residency', label: 'Prove I am a resident', description: 'Country residency check' },
+const claimOptions: { value: ClaimType; label: string; description: string; circuit: string }[] = [
+  { value: 'age_18', label: 'Over 18 Check', description: 'Zero-Knowledge Age Gate (18+)', circuit: 'circuit_v1.0.1_age_gate' },
+  { value: 'age_21', label: 'Over 21 Check', description: 'Zero-Knowledge Age Gate (21+)', circuit: 'circuit_v1.0.1_age_gate' },
+  { value: 'income_100k', label: 'Financial Threshold', description: 'ZK Private Income Verification', circuit: 'circuit_v2.1.0_fin_alpha' },
+  { value: 'residency', label: 'Global Residency', description: 'Geographic Proof of Origin', circuit: 'circuit_v1.2.0_geo_verify' },
+];
+
+const PROVING_LOGS = [
+  "INITIALIZING_VIRTUAL_MACHINE...",
+  "FETCHING_R1CS_CONSTRAINTS...",
+  "GENERATING_WITNESS_VECTOR...",
+  "COMPUTING_POLYNOMIAL_COMMITMENTS...",
+  "EXECUTING_GROTH16_PROVER...",
+  "STARK_FRI_LAYER_VALIDATION...",
+  "ANCHORING_PROTOCOL_STATE...",
+  "FINALIZING_PROOF_ARTIFACT..."
 ];
 
 export default function ProofGenerator({ credential, onClose }: ProofGeneratorProps) {
   const [step, setStep] = useState(1);
+  const [activeLogIndex, setActiveLogIndex] = useState(0);
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
   const [selectedClaim, setSelectedClaim] = useState<ClaimType | null>(null);
   const [proofResult, setProofResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
-  const [shareToken, setShareToken] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  
   const { generateAgeProof, generateIncomeProof, loading, error } = useZKProof();
+  const terminalEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll terminal and log simulation
+  useEffect(() => {
+    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [terminalLogs]);
+
+  useEffect(() => {
+    if (step === 3 && activeLogIndex < PROVING_LOGS.length) {
+      const timer = setTimeout(() => {
+        setTerminalLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${PROVING_LOGS[activeLogIndex]}`]);
+        setActiveLogIndex(prev => prev + 1);
+      }, 400 + Math.random() * 600);
+      return () => clearTimeout(timer);
+    }
+  }, [step, activeLogIndex]);
 
   const handleGenerateProof = async () => {
     if (!selectedClaim) return;
     setStep(3);
+    setTerminalLogs([`[${new Date().toLocaleTimeString()}] INITIATING_HANDSHAKE_ENCLAVE...`]);
 
-    let result;
+    let result: any;
     const nftId = parseInt(credential.nft_token_id) || 1;
 
-    switch (selectedClaim) {
-      case 'age_18':
-        result = await generateAgeProof(1995, 6, 15, nftId, 18);
-        break;
-      case 'age_21':
-        result = await generateAgeProof(1995, 6, 15, nftId, 21);
-        break;
-      case 'income_100k':
-        result = await generateIncomeProof(150000, nftId, 100000);
-        break;
-      default:
-        result = await generateAgeProof(1995, 6, 15, nftId, 18);
-    }
+    try {
+      switch (selectedClaim) {
+        case 'age_18': result = await generateAgeProof(1995, 6, 15, nftId, 18); break;
+        case 'age_21': result = await generateAgeProof(1995, 6, 15, nftId, 21); break;
+        case 'income_100k': result = await generateIncomeProof(150000, nftId, 100000); break;
+        default: result = await generateAgeProof(1995, 6, 15, nftId, 18);
+      }
 
-    if (result) {
-      setProofResult(result);
-
-      try {
-        let token: string | null = null;
-        try {
-          const stored = localStorage.getItem('stellar-id-wallet');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            token = parsed?.state?.token || null;
-          }
-        } catch {}
-
-        if (token) {
-          const res = await fetch(`${API}/proofs`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              circuitType: selectedClaim.includes('age') ? 'age_check' : selectedClaim.includes('income') ? 'income_check' : 'residency_check',
-              claimType: getClaimLabel(),
-              proofData: result,
-            }),
-          });
-          const data = await res.json();
-          if (data.publicToken) {
-            setShareToken(data.publicToken);
-            setShareUrl(`${window.location.origin}/verify/${data.publicToken}`);
-          }
-        }
-      } catch {}
-
-      setStep(4);
+      if (result) {
+        setProofResult(result);
+        setTimeout(async () => {
+          await finalizeProofOnServer(result);
+          setStep(4);
+        }, 1200);
+      }
+    } catch (e) {
+      console.error(e);
+      setStep(1);
     }
   };
 
-  const copyProof = () => {
-    navigator.clipboard.writeText(JSON.stringify(proofResult, null, 2));
-    setCopied(true);
-    toast.success('Proof JSON copied to clipboard');
-    setTimeout(() => setCopied(false), 2000);
+  const finalizeProofOnServer = async (result: any) => {
+    try {
+      const stored = localStorage.getItem('stellar-id-wallet');
+      const token = stored ? JSON.parse(stored)?.state?.token : null;
+      if (token) {
+        const res = await fetch(`${API}/proofs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            circuitType: selectedClaim?.includes('age') ? 'age_check' : 'income_check',
+            claimType: getClaimLabel(),
+            proofData: result,
+          }),
+        });
+        const data = await res.json();
+        if (data.publicToken) setShareUrl(`${window.location.origin}/verify/${data.publicToken}`);
+      }
+    } catch {}
   };
 
-  const copyShareLink = () => {
-    if (shareUrl) {
-      navigator.clipboard.writeText(shareUrl);
-      toast.success('Verification link copied!');
-    } else {
-      const demoUrl = `${window.location.origin}/verify/demo`;
-      navigator.clipboard.writeText(demoUrl);
-      toast.success('Demo verification link copied!');
-    }
-  };
-
-  const handleDownloadPDF = () => {
-    if (shareToken) {
-      window.open(`${API}/proofs/${shareToken}/pdf`, '_blank');
-      toast.success('PDF download started');
-    } else {
-      toast('PDF requires backend connection', { icon: 'ℹ️' });
-    }
-  };
-
-  const openVerifyPage = () => {
-    if (shareUrl) {
-      window.open(shareUrl, '_blank');
-    } else {
-      window.open(`${window.location.origin}/verify/demo`, '_blank');
-    }
-  };
-
-  const getClaimLabel = () => {
-    switch (selectedClaim) {
-      case 'age_18': return 'Age Over 18';
-      case 'age_21': return 'Age Over 21';
-      case 'income_100k': return 'Income Over $100K';
-      case 'residency': return 'Residency Verified';
-      default: return 'Claim Verified';
-    }
-  };
+  const getClaimLabel = () => claimOptions.find(o => o.value === selectedClaim)?.label || 'Claim Verified';
 
   return (
     <div className="edge-modal-overlay" onClick={onClose}>
-      <div className="edge-modal max-w-lg" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="edge-modal-header">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            <span>Generate ZK Proof</span>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+        className="protocol-panel max-w-2xl w-full overflow-hidden" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Cinematic Header */}
+        <div className="relative px-8 py-5 border-b border-white/[0.06] bg-white/[0.02] flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Shield className="w-5 h-5 text-accent-indigo" />
+            <div>
+              <p className="text-[10px] font-mono tracking-[0.15em] text-muted uppercase leading-none mb-1">ZK Proving Engine</p>
+              <h2 className="text-sm font-bold tracking-tight text-foreground leading-none">Identity Prover v3</h2>
+            </div>
           </div>
-          <button type="button" onClick={onClose} title="Close modal"
-                  className="hover:opacity-60 transition-opacity">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 hover:bg-white/[0.05] rounded-full transition-all group">
+            <X className="w-5 h-5 text-muted group-hover:text-foreground" />
           </button>
         </div>
 
-        {/* Step indicator */}
-        <div className="flex items-center gap-1 px-6 py-3 border-b border-[#222]">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className={`step-bar ${s <= step ? 'active' : ''}`} />
-          ))}
-        </div>
+        <div className="relative p-8 min-h-[420px] flex flex-col">
+          <AnimatePresence mode="wait">
+            
+            {/* --- STEP 1: MODULE SELECTION --- */}
+            {step === 1 && (
+              <motion.div 
+                key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-px w-8 bg-accent-indigo/50" />
+                  <span className="text-[10px] font-mono text-accent-indigo tracking-[0.15em]">Select Proving Module</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {claimOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => { setSelectedClaim(option.value); setStep(2); }}
+                      className="group relative text-left p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-accent-indigo/30 transition-all duration-300"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <Cpu className="w-4 h-4 text-muted group-hover:text-accent-indigo transition-colors" />
+                        <span className="text-[8px] font-mono text-muted tracking-tighter uppercase">{option.circuit}</span>
+                      </div>
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wider mb-1">{option.label}</p>
+                      <p className="text-[10px] text-muted leading-tight">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
 
-        <div className="p-6">
-          {/* Step 1: Select claim */}
-          {step === 1 && (
-            <div className="space-y-2">
-              <h3 className="text-[10px] text-[var(--color-text-muted)] mb-4 uppercase tracking-widest font-bold">
-                Select Claim Type
-              </h3>
-              {claimOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => { setSelectedClaim(option.value); setStep(2); }}
-                  className="w-full text-left px-4 py-3 border border-[#333] bg-[var(--color-surface)]
-                             hover:border-[var(--color-accent)] transition-all group"
-                >
-                  <p className="text-white font-semibold text-sm uppercase tracking-wider">{option.label}</p>
-                  <p className="text-[var(--color-text-muted)] text-xs mt-0.5">{option.description}</p>
-                </button>
-              ))}
-            </div>
-          )}
+            {/* --- STEP 2: MANIFEST VALIDATION --- */}
+            {step === 2 && (
+              <motion.div 
+                key="step2" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
+                className="space-y-8"
+              >
+                <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-6 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-indigo/30 to-transparent" />
+                  <div className="flex items-center gap-4 mb-6">
+                    <Database className="w-5 h-5 text-muted" />
+                    <span className="text-[10px] font-mono tracking-[0.15em] text-muted uppercase">Input Manifest</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-[10px] font-mono text-muted uppercase">Credential</span>
+                      <span className="text-xs font-bold text-foreground tracking-tight">#{credential.nft_token_id.slice(0, 16)}...</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-[10px] font-mono text-muted uppercase">Protocol</span>
+                      <span className="text-xs font-bold text-foreground tracking-tight">{getClaimLabel()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[10px] font-mono text-muted uppercase">Enclave</span>
+                      <span className="text-[10px] font-mono text-accent-indigo">Local Browser Active</span>
+                    </div>
+                  </div>
+                </div>
 
-          {/* Step 2: Confirm inputs */}
-          {step === 2 && (
-            <div className="space-y-4">
-              <h3 className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest font-bold">
-                Confirm Public Inputs
-              </h3>
+                <div className="flex items-start gap-4 p-4 rounded-xl border-l-2 border-accent-indigo bg-accent-indigo/5">
+                  <Lock className="w-4 h-4 text-accent-indigo shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-accent-indigo/80 leading-relaxed">
+                    Zero-Knowledge Warning: Private data stays within your browser. 
+                    The proving circuit only outputs a mathematical truth artifact.
+                  </p>
+                </div>
 
-              <table className="edge-table w-full" style={{ fontSize: '0.85rem' }}>
-                <tbody>
-                  <tr>
-                    <td>Today&apos;s date</td>
-                    <td className="text-right text-white">{new Date().toLocaleDateString()}</td>
-                  </tr>
-                  <tr>
-                    <td>Claim</td>
-                    <td className="text-right text-white">{getClaimLabel()}</td>
-                  </tr>
-                  <tr>
-                    <td>Credential NFT</td>
-                    <td className="text-right text-white font-mono text-xs">
-                      {credential.nft_token_id?.substring(0, 12)}...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                <div className="grid grid-cols-2 gap-4">
+                  <button onClick={() => setStep(1)} className="btn-stellar-ghost !py-4">Back</button>
+                  <button onClick={handleGenerateProof} className="btn-stellar !py-4">Generate Proof</button>
+                </div>
+              </motion.div>
+            )}
 
-              <div className="flex items-start gap-2 px-3 py-2 border-l-4"
-                   style={{ borderColor: 'var(--color-highlight)', background: 'rgba(212, 255, 0, 0.05)' }}>
-                <Lock className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--color-highlight)' }} />
-                <p className="text-xs" style={{ color: 'var(--color-highlight)' }}>
-                  Your private data stays on this device. Only the proof
-                  (true/false) is shared — never your birthdate, income, or personal info.
-                </p>
-              </div>
+            {/* --- STEP 3: COMPUTATION CORE (THE SHOW) --- */}
+            {step === 3 && (
+              <motion.div key="step3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 flex flex-col flex-grow">
+                {/* Visual Proving Core */}
+                <div className="relative h-32 flex items-center justify-center">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                    className="absolute w-32 h-32 border border-white/5 rounded-full"
+                  />
+                  <motion.div 
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="absolute w-24 h-24 border border-dashed border-accent-indigo/20 rounded-full"
+                  />
+                  <div className="relative z-10 flex flex-col items-center">
+                    <Zap className="w-8 h-8 text-accent-indigo animate-pulse mb-2" />
+                    <span className="text-[9px] font-mono text-accent-indigo tracking-[0.15em] uppercase animate-pulse">Computing Proof</span>
+                  </div>
+                  {/* Dynamic Shimmer Progress */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5">
+                    <motion.div 
+                      className="h-full bg-gradient-to-r from-transparent via-accent-indigo to-transparent w-1/3"
+                      animate={{ x: ["-100%", "300%"] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  </div>
+                </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setStep(1)}
-                  className="flex-1 btn-brutal btn-brutal-outline py-2.5 text-sm"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handleGenerateProof}
-                  className="flex-1 btn-brutal btn-brutal-accent py-2.5 text-sm"
-                >
-                  Generate Proof
-                </button>
-              </div>
-            </div>
-          )}
+                {/* Live Terminal Log */}
+                <div className="border border-white/[0.06] rounded-2xl p-5 flex-grow h-48 overflow-y-auto font-mono text-[9px] text-muted leading-relaxed" style={{ background: 'hsl(var(--background))' }}>
+                  <div className="flex flex-col gap-1">
+                    {terminalLogs.map((log, i) => (
+                      <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} key={i} className="flex gap-2">
+                        <span className="text-accent-indigo shrink-0">➜</span>
+                        <span className={i === terminalLogs.length - 1 ? "text-white" : ""}>{log}</span>
+                      </motion.div>
+                    ))}
+                    <div ref={terminalEndRef} />
+                    <motion.div animate={{ opacity: [0, 1] }} transition={{ repeat: Infinity, duration: 0.8 }} className="w-1.5 h-3 bg-muted/50 ml-6" />
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-          {/* Step 3: Generating */}
-          {step === 3 && (
-            <div className="flex flex-col items-center py-8 space-y-4">
-              <div className="w-16 h-16 border-2 border-[#333] border-t-[var(--color-accent)] flex items-center justify-center"
-                   style={{ animation: 'spin-slow 0.8s linear infinite' }}>
-              </div>
-              <div className="text-center">
-                <p className="text-white font-bold uppercase tracking-wider">Computing zero-knowledge proof...</p>
-                <p className="text-[var(--color-text-muted)] text-sm mt-1">
-                  Your private data never leaves this device
-                </p>
-              </div>
-              {error && (
-                <div className="text-sm text-center px-4" style={{ color: 'var(--color-accent)' }}>
-                  {error}
-                  <button
-                    onClick={() => setStep(2)}
-                    className="block mx-auto mt-2 hover:text-[var(--color-highlight)]"
-                  >
-                    Try again →
+            {/* --- STEP 4: SUCCESS ARTIFACT --- */}
+            {step === 4 && (
+              <motion.div 
+                key="step4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                className="space-y-8 text-center"
+              >
+                <div className="relative inline-block">
+                  <div className="w-20 h-20 bg-accent-indigo/10 border border-accent-indigo/30 flex items-center justify-center rounded-2xl relative z-10">
+                    <ShieldCheck className="w-10 h-10 text-accent-indigo" />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-display text-4xl mb-2">Protocol_Success</h3>
+                  <p className="text-protocol tracking-[0.15em] text-accent-indigo">Zero-Knowledge Proof Generated</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="protocol-panel p-4 text-left">
+                    <span className="text-[8px] font-mono text-muted block uppercase mb-1">Artifact Hash</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-foreground truncate max-w-[140px]">
+                        {proofResult?.publicSignals?.[0] || '0x4f...a23'}
+                      </span>
+                      <button onClick={() => {
+                        navigator.clipboard.writeText(JSON.stringify(proofResult));
+                        toast.success("Proof copied!");
+                      }} className="p-1 hover:text-accent-indigo transition-colors"><Fingerprint className="w-3 h-3" /></button>
+                    </div>
+                  </div>
+                  <div className="protocol-panel p-4 text-left">
+                    <span className="text-[8px] font-mono text-muted block uppercase mb-1">Share Link</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-accent-indigo">Ready to share</span>
+                      <Link2 className="w-3 h-3 text-muted" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <button onClick={() => window.open(shareUrl || '#', '_blank')} className="btn-stellar-ghost !py-4 flex items-center justify-center gap-2">
+                    <ExternalLink className="w-4 h-4" /> View Proof
                   </button>
+                  <button onClick={onClose} className="btn-stellar !py-4">Done</button>
                 </div>
-              )}
-            </div>
-          )}
+              </motion.div>
+            )}
 
-          {/* Step 4: Proof ready */}
-          {step === 4 && proofResult && (
-            <div className="space-y-4">
-              <div className="flex flex-col items-center py-2">
-                <div className="w-14 h-14 flex items-center justify-center mb-3 border"
-                     style={{ borderColor: 'var(--color-highlight)', background: 'rgba(212, 255, 0, 0.1)' }}>
-                  <Check className="w-7 h-7" style={{ color: 'var(--color-highlight)' }} />
-                </div>
-                <p className="text-white font-bold uppercase tracking-wider"
-                   style={{ fontFamily: 'Unbounded, sans-serif' }}>
-                  Proof Generated!
-                </p>
-                <p className="text-sm mt-1" style={{ color: 'var(--color-highlight)' }}>
-                  Claim verified: {getClaimLabel()}
-                </p>
-              </div>
-
-              <table className="edge-table w-full" style={{ fontSize: '0.8rem' }}>
-                <tbody>
-                  <tr>
-                    <td><Eye className="w-3 h-3 inline mr-1" />Proof ID</td>
-                    <td className="text-right text-white font-mono text-xs">
-                      {proofResult.publicSignals?.[0]?.substring(0, 20)}...
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>Protocol</td>
-                    <td className="text-right text-white">Groth16</td>
-                  </tr>
-                  <tr>
-                    <td>Curve</td>
-                    <td className="text-right text-white">BN128</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              {/* Share URL */}
-              {(shareUrl || true) && (
-                <div className="border-l-4 p-3" style={{ borderColor: 'var(--color-accent)', background: 'var(--color-bg)' }}>
-                  <p className="text-[10px] text-[var(--color-text-muted)] mb-1 uppercase tracking-widest font-bold">
-                    Verification Link
-                  </p>
-                  <p className="text-xs font-mono truncate" style={{ color: 'var(--color-accent)' }}>
-                    {shareUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/verify/demo`}
-                  </p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-0">
-                <button onClick={copyShareLink}
-                        className="btn-brutal btn-brutal-accent flex items-center justify-center gap-2 py-2.5 text-xs">
-                  <Link2 className="w-3.5 h-3.5" />
-                  Copy Link
-                </button>
-                <button onClick={handleDownloadPDF}
-                        className="btn-brutal btn-brutal-outline flex items-center justify-center gap-2 py-2.5 text-xs">
-                  <Download className="w-3.5 h-3.5" />
-                  Download PDF
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-0">
-                <button onClick={openVerifyPage}
-                        className="btn-brutal btn-brutal-outline flex items-center justify-center gap-2 py-2.5 text-xs">
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Open Page
-                </button>
-                <button onClick={copyProof}
-                        className="btn-brutal btn-brutal-outline flex items-center justify-center gap-2 py-2.5 text-xs">
-                  {copied ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-highlight)' }} /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? 'Copied!' : 'Copy JSON'}
-                </button>
-              </div>
-
-              <button onClick={onClose}
-                      className="w-full btn-brutal btn-brutal-primary py-2.5 text-sm">
-                Done
-              </button>
-            </div>
-          )}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Shield, Users, Zap, TrendingUp, Clock, Award,
   BarChart3, CheckCircle2, XCircle, Building2, Loader2,
-  Activity, ArrowRight, Lock, Eye, EyeOff,
+  Activity, ArrowRight, Lock, Eye, EyeOff, Terminal,
+  ShieldCheck, AlertCircle
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import VerificationBadge from '@/components/credentials/VerificationBadge';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1';
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Stellar0281';
@@ -50,8 +53,10 @@ export default function AdminPage() {
   const [activity, setActivity] = useState<ActivityData | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [topIssuers, setTopIssuers] = useState<any[]>([]);
+  const [allIssuers, setAllIssuers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [revokeReasonMap, setRevokeReasonMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (sessionStorage.getItem('stellarid_admin') === 'true') {
@@ -67,6 +72,72 @@ export default function AdminPage() {
       sessionStorage.setItem('stellarid_admin', 'true');
     } else {
       setAuthError('Invalid password');
+    }
+  };
+
+  const handleVerifyOfficial = async (id: string) => {
+    let token: string | null = null;
+    try {
+      const stored = localStorage.getItem('stellar-id-wallet');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        token = parsed?.state?.token || null;
+      }
+    } catch {}
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API}/admin/issuers/${id}/verify-official`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert('Issuer officially verified!');
+        window.location.reload();
+      }
+    } catch (err) {
+      alert('Failed to verify issuer.');
+    }
+  };
+
+  const handleRevokeVerification = async (id: string) => {
+    const reason = revokeReasonMap[id];
+    if (!reason) {
+      alert('Please enter a reason for revocation.');
+      return;
+    }
+
+    let token: string | null = null;
+    try {
+      const stored = localStorage.getItem('stellar-id-wallet');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        token = parsed?.state?.token || null;
+      }
+    } catch {}
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API}/admin/issuers/${id}/revoke-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert('Issuer verification tier status revoked.');
+        window.location.reload();
+      }
+    } catch (err) {
+      alert('Failed to revoke verification.');
     }
   };
 
@@ -96,13 +167,15 @@ export default function AdminPage() {
       fetch(`${API}/admin/activity`, { headers }).then(r => r.json()),
       fetch(`${API}/admin/chart-data`, { headers }).then(r => r.json()),
       fetch(`${API}/admin/top-issuers`, { headers }).then(r => r.json()),
+      fetch(`${API}/issuers`, { headers }).then(r => r.json()),
     ])
-      .then(([s, a, c, i]) => {
+      .then(([s, a, c, i, all_i]) => {
         if (s.error) { setError(s.error); return; }
         setStats(s);
         setActivity(a);
         setChartData(c);
         setTopIssuers(Array.isArray(i) ? i : []);
+        setAllIssuers(Array.isArray(all_i) ? all_i : []);
       })
       .catch(() => setError('Failed to load analytics. Make sure backend is running and you have admin access.'))
       .finally(() => setLoading(false));
@@ -127,54 +200,43 @@ export default function AdminPage() {
   // --- LOGIN SCREEN ---
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6"
-           style={{ background: 'var(--color-bg)' }}>
-        <div className="brutal-card max-w-sm w-full">
-          <div className="card-header-brutal">
-            <span>Admin Access</span>
-            <span>[LOCKED]</span>
-          </div>
-          <div className="card-body-brutal">
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 mx-auto flex items-center justify-center border border-[#333] mb-3"
-                   style={{ background: 'var(--color-bg)' }}>
-                <Lock className="w-7 h-7" style={{ color: 'var(--color-accent)' }} />
-              </div>
-              <h1 className="text-lg font-bold uppercase tracking-wider"
-                  style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
-                Authenticate
-              </h1>
-              <p className="text-xs text-[var(--color-text-muted)] mt-1">Enter admin password to continue</p>
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'hsl(var(--background))' }}>
+        <div className="protocol-panel max-w-sm w-full p-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-accent-indigo via-accent-purple to-transparent" />
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-2xl bg-white/[0.03] border border-white/[0.06] mb-4">
+              <Lock className="w-6 h-6 text-accent-indigo animate-pulse" />
             </div>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
-                  placeholder="Enter password"
-                  className="edge-input pr-10"
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-white transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {authError && (
-                <p className="text-xs text-center" style={{ color: 'var(--color-accent)' }}>{authError}</p>
-              )}
-              <button type="submit" className="w-full btn-brutal btn-brutal-accent">
-                Authenticate
-              </button>
-            </form>
-            <p className="text-center text-[10px] mt-4" style={{ color: '#333' }}>
-              StellarID Admin Panel
-            </p>
+            <h1 className="text-xl font-bold font-display text-foreground uppercase tracking-wider">
+              Admin Gateway
+            </h1>
+            <p className="text-xs text-muted mt-2">Enter admin authorization key to continue</p>
           </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setAuthError(''); }}
+                placeholder="Authorization Key"
+                className="w-full px-4 py-3 bg-white/[0.02] border border-white/[0.06] rounded-xl text-sm text-foreground focus:outline-none focus:border-accent-indigo/50 transition-colors pr-10"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {authError && (
+              <p className="text-xs text-center text-red-400 font-mono">{authError}</p>
+            )}
+            <button type="submit" className="w-full btn-stellar !py-3">
+              Unlock Terminal
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -183,9 +245,11 @@ export default function AdminPage() {
   // --- LOADING ---
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-bg)' }}>
-        <div className="w-12 h-12 border-2 border-[#333] border-t-[var(--color-accent)]"
-             style={{ animation: 'spin-slow 0.8s linear infinite' }} />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'hsl(var(--background))' }}>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 text-accent-indigo animate-spin" />
+          <span className="text-xs font-mono text-muted animate-pulse">Syncing platform metrics...</span>
+        </div>
       </div>
     );
   }
@@ -193,19 +257,14 @@ export default function AdminPage() {
   // --- ERROR ---
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'var(--color-bg)' }}>
-        <div className="brutal-card max-w-md w-full">
-          <div className="card-header-brutal">
-            <span>Admin Panel</span>
-            <span>[ERROR]</span>
-          </div>
-          <div className="card-body-brutal text-center py-12">
-            <Shield className="w-10 h-10 mx-auto mb-4" style={{ color: 'var(--color-accent)' }} />
-            <p className="text-[var(--color-text-muted)] text-sm mb-4">{error}</p>
-            <a href="/dashboard" className="text-sm hover:underline" style={{ color: 'var(--color-accent)' }}>
-              Back to Dashboard →
-            </a>
-          </div>
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ background: 'hsl(var(--background))' }}>
+        <div className="protocol-panel max-w-md w-full p-8 text-center">
+          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
+          <h2 className="text-lg font-bold text-foreground mb-2">Authorization Failed</h2>
+          <p className="text-muted text-sm mb-6 leading-relaxed">{error}</p>
+          <Link href="/dashboard" className="btn-stellar-ghost !py-2.5 w-full justify-center">
+            Back to Dashboard
+          </Link>
         </div>
       </div>
     );
@@ -232,42 +291,38 @@ export default function AdminPage() {
 
   // --- MAIN DASHBOARD ---
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-bg)' }}>
-      <div className="max-w-[1400px] mx-auto px-6 py-8">
+    <div className="min-h-screen" style={{ background: 'hsl(var(--background))' }}>
+      <div className="max-w-[1400px] mx-auto px-6 py-12">
         {/* Header */}
-        <div className="mb-8 reveal-wrap">
-          <div className="reveal-content delay-1">
-            <span className="block text-sm font-bold uppercase tracking-[0.2em] mb-2"
-                  style={{ color: 'var(--color-accent)' }}>
-              {'// Admin Panel'}
-            </span>
-            <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
-              Analytics
-            </h1>
-            <p className="text-sm mt-2 text-[var(--color-text-muted)]">Platform-wide metrics and activity overview</p>
-          </div>
+        <div className="mb-12">
+          <span className="tag-orange mb-3 block w-fit">
+            System Terminal
+          </span>
+          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight font-display text-foreground">
+            Platform Analytics
+          </h1>
+          <p className="text-sm mt-3 text-muted">Platform-wide metrics and zero-knowledge activity log</p>
         </div>
 
         {/* Stat Cards */}
         {stats && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {[
-              { icon: Award, label: 'Total Credentials', value: stats.totalCredentials },
-              { icon: Zap, label: 'Total Proofs', value: stats.totalProofs },
-              { icon: Users, label: 'Total Users', value: stats.totalUsers },
-              { icon: TrendingUp, label: 'Success Rate', value: `${stats.successRate}%` },
-            ].map((stat, idx) => (
-              <div key={stat.label} className="brutal-card">
-                <div className="card-header-brutal"
-                     style={idx === 0 ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' } : {}}>
-                  <span>{stat.label}</span>
+              { icon: Award, label: 'Total Credentials', value: stats.totalCredentials, status: 'Active', color: 'var(--accent-indigo)' },
+              { icon: Zap, label: 'Total Proofs', value: stats.totalProofs, status: 'Verified', color: 'var(--accent-purple)' },
+              { icon: Users, label: 'Total Users', value: stats.totalUsers, status: 'Registered', color: 'var(--accent-indigo)' },
+              { icon: TrendingUp, label: 'Success Rate', value: `${stats.successRate}%`, status: 'Stable', color: 'var(--accent-amber)' },
+            ].map((stat) => (
+              <div key={stat.label} className="protocol-panel p-6 hover:border-white/[0.12] transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] font-mono text-muted uppercase tracking-wider block">{stat.label}</span>
+                  <span className="text-[10px] font-mono font-bold" style={{ color: stat.color }}>{stat.status}</span>
                 </div>
-                <div className="card-body-brutal flex items-center gap-3">
-                  <div className="w-10 h-10 flex items-center justify-center border border-[#333]"
-                       style={{ background: 'var(--color-bg)' }}>
-                    <stat.icon className="w-5 h-5" style={{ color: 'var(--color-accent)' }} />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/[0.02] border border-white/[0.04]">
+                    <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
                   </div>
-                  <span className="text-2xl font-bold" style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
+                  <span className="text-3xl font-bold tracking-tight text-foreground font-display">
                     {stat.value}
                   </span>
                 </div>
@@ -277,88 +332,90 @@ export default function AdminPage() {
         )}
 
         {/* Chart + Activity */}
-        <div className="grid lg:grid-cols-[1.5fr_1fr] gap-0 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
           {/* Chart */}
-          <div className="brutal-card">
-            <div className="card-header-brutal" style={{ background: 'var(--color-highlight)', color: 'var(--color-bg)' }}>
-              <span className="flex items-center gap-2">
-                <Activity className="w-4 h-4" />
+          <div className="protocol-panel p-6 lg:col-span-8">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-6">
+              <span className="flex items-center gap-2 font-display text-sm font-bold text-foreground">
+                <Activity className="w-4 h-4 text-accent-indigo" />
                 30-Day Trend
               </span>
-              <span>[LIVE]</span>
+              <span className="text-[10px] font-mono text-accent-indigo uppercase">Live Telemetry</span>
             </div>
-            <div className="card-body-brutal">
+            <div className="w-full">
               {mergedChart.length > 0 ? (
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="100%" height={280}>
                   <AreaChart data={mergedChart}>
                     <defs>
                       <linearGradient id="gradProofs" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#d4ff00" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#d4ff00" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#6366f1" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="gradCreds" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#ff3c00" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#ff3c00" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#a855f7" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="date" tick={{ fill: '#888', fontSize: 10 }} tickFormatter={(v: string) => v.substring(5)} axisLine={false} />
-                    <YAxis tick={{ fill: '#888', fontSize: 10 }} axisLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                    <XAxis dataKey="date" tick={{ fill: 'hsl(var(--foreground)/0.4)', fontSize: 9, fontFamily: 'monospace' }} tickFormatter={(v: string) => v.substring(5)} axisLine={false} />
+                    <YAxis tick={{ fill: 'hsl(var(--foreground)/0.4)', fontSize: 9, fontFamily: 'monospace' }} axisLine={false} />
                     <Tooltip
-                      contentStyle={{ background: '#121212', border: '1px solid #333', borderRadius: '0', fontSize: '12px', fontFamily: 'Space Mono, monospace' }}
-                      labelStyle={{ color: '#888' }}
+                      contentStyle={{ background: 'hsl(260 50% 6%)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', fontSize: '11px', fontFamily: 'monospace' }}
+                      labelStyle={{ color: 'hsl(var(--foreground)/0.6)' }}
                     />
-                    <Area type="monotone" dataKey="proofs" stroke="#d4ff00" fill="url(#gradProofs)" strokeWidth={2} name="Proofs" />
-                    <Area type="monotone" dataKey="credentials" stroke="#ff3c00" fill="url(#gradCreds)" strokeWidth={2} name="Credentials" />
+                    <Area type="monotone" dataKey="proofs" stroke="#6366f1" fill="url(#gradProofs)" strokeWidth={2} name="Proofs" />
+                    <Area type="monotone" dataKey="credentials" stroke="#a855f7" fill="url(#gradCreds)" strokeWidth={2} name="Credentials" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[260px] flex items-center justify-center text-[var(--color-text-muted)] text-sm">
-                  No data yet — activity will appear here
+                <div className="h-[280px] flex items-center justify-center text-muted text-sm font-mono">
+                  No telemetric data available yet
                 </div>
               )}
             </div>
           </div>
 
           {/* Activity Feed */}
-          <div className="brutal-card">
-            <div className="card-header-brutal">
-              <span className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
+          <div className="protocol-panel p-6 lg:col-span-4 flex flex-col">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-4">
+              <span className="flex items-center gap-2 font-display text-sm font-bold text-foreground">
+                <Clock className="w-4 h-4 text-muted" />
                 Recent Activity
               </span>
-              <span>[FEED]</span>
+              <span className="text-[10px] font-mono text-muted uppercase">Feed</span>
             </div>
-            <div className="card-body-brutal p-0">
+            <div className="flex-grow overflow-hidden">
               {allEvents.length > 0 ? (
-                <div className="max-h-[320px] overflow-y-auto">
+                <div className="max-h-[280px] overflow-y-auto space-y-3 pr-2 scrollbar-thin">
                   {allEvents.map((ev, i) => (
-                    <div key={ev.id + i} className="flex items-center gap-3 px-4 py-3 border-b border-[#222] hover:bg-white/[0.02] transition-colors">
-                      {ev.type === 'proof' ? (
-                        <Zap className="w-4 h-4 shrink-0" style={{ color: 'var(--color-highlight)' }} />
-                      ) : (
-                        <Award className="w-4 h-4 shrink-0" style={{ color: 'var(--color-accent)' }} />
-                      )}
+                    <div key={ev.id + i} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:bg-white/[0.03] transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-white/[0.02] border border-white/[0.04] flex items-center justify-center shrink-0">
+                        {ev.type === 'proof' ? (
+                          <Zap className="w-3.5 h-3.5 text-accent-indigo" />
+                        ) : (
+                          <Award className="w-3.5 h-3.5 text-accent-purple" />
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate text-white uppercase tracking-wider">{ev.label}</p>
-                        <p className="text-[10px] text-[var(--color-text-muted)]">{ev.detail || ev.type}</p>
+                        <p className="text-xs font-bold truncate text-foreground font-display uppercase tracking-wider">{ev.label.replace(/_/g, ' ')}</p>
+                        <p className="text-[10px] text-muted truncate">{ev.detail || ev.type}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                        <span className={`text-[9px] font-mono font-bold uppercase tracking-wider ${
                           ev.status === 'verified' || ev.status === 'issued'
-                            ? 'text-[var(--color-highlight)]'
-                            : ev.status === 'failed' ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
+                            ? 'text-accent-indigo'
+                            : ev.status === 'failed' ? 'text-red-400' : 'text-muted'
                         }`}>
                           {ev.status}
                         </span>
-                        <p className="text-[10px] text-[#333]">{timeAgo(ev.time)}</p>
+                        <p className="text-[9px] text-muted/50 font-mono mt-0.5">{timeAgo(ev.time)}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="h-[320px] flex items-center justify-center text-[var(--color-text-muted)] text-sm">
-                  No recent activity
+                <div className="h-[280px] flex items-center justify-center text-muted text-sm">
+                  No events found in feed
                 </div>
               )}
             </div>
@@ -367,46 +424,134 @@ export default function AdminPage() {
 
         {/* Top Issuers */}
         {topIssuers.length > 0 && (
-          <div className="brutal-card">
-            <div className="card-header-brutal">
-              <span className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                Top Issuers
-              </span>
-              <span>[RANKING]</span>
+          <div className="protocol-panel p-6 mb-10">
+            <div className="flex items-center gap-2 border-b border-white/[0.06] pb-4 mb-6">
+              <Building2 className="w-4 h-4 text-accent-indigo" />
+              <span className="font-display text-sm font-bold text-foreground">Top Active Issuers</span>
             </div>
-            <div className="card-body-brutal p-0">
-              <div className="overflow-x-auto">
-                <table className="edge-table w-full">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Issuer</th>
-                      <th>Status</th>
-                      <th className="text-right">Credentials</th>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-muted">
+                <thead>
+                  <tr className="border-b border-white/[0.06] text-muted text-[10px] uppercase font-mono tracking-wider">
+                    <th className="pb-3 font-semibold">Rank</th>
+                    <th className="pb-3 font-semibold">Issuer Identity</th>
+                    <th className="pb-3 font-semibold">Verification Node</th>
+                    <th className="pb-3 font-semibold text-right">Volume Issued</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {topIssuers.map((issuer, idx) => (
+                    <tr key={issuer.id} className="hover:bg-white/[0.01] transition-colors">
+                      <td className="py-4 font-mono font-bold text-accent-indigo">#{idx + 1}</td>
+                      <td className="py-4 font-bold text-foreground">{issuer.name}</td>
+                      <td className="py-4">
+                        {issuer.verified ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-indigo-500/10 text-accent-indigo border border-indigo-500/20">Verified</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider bg-white/[0.04] text-muted border border-white/[0.06]">Pending</span>
+                        )}
+                      </td>
+                      <td className="py-4 text-right font-mono text-foreground font-bold">{issuer.credential_count}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {topIssuers.map((issuer, idx) => (
-                      <tr key={issuer.id}>
-                        <td>{idx + 1}</td>
-                        <td className="text-white font-bold">{issuer.name}</td>
-                        <td>
-                          {issuer.verified ? (
-                            <span className="badge-valid">Verified</span>
-                          ) : (
-                            <span className="badge-expired">Pending</span>
-                          )}
-                        </td>
-                        <td className="text-right font-mono text-white">{issuer.credential_count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
+
+        {/* Manage Issuer Verification Tiers */}
+        <div className="protocol-panel p-6">
+          <div className="flex items-center gap-2 border-b border-white/[0.06] pb-4 mb-6">
+            <ShieldCheck className="w-4 h-4 text-accent-indigo" />
+            <span className="font-display text-sm font-bold text-foreground">Manage Issuer Verification Tiers</span>
+          </div>
+
+          {allIssuers.length === 0 ? (
+            <p className="text-xs text-muted font-mono">No issuers registered on the platform.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-muted">
+                <thead>
+                  <tr className="border-b border-white/[0.06] text-muted text-[10px] uppercase font-mono tracking-wider">
+                    <th className="pb-3 font-semibold">Issuer</th>
+                    <th className="pb-3 font-semibold">Stellar Address</th>
+                    <th className="pb-3 font-semibold">Current Status</th>
+                    <th className="pb-3 font-semibold">Domain / Peer Rating</th>
+                    <th className="pb-3 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04]">
+                  {allIssuers.map((issuer) => (
+                    <tr key={issuer.id} className="hover:bg-white/[0.01] transition-colors">
+                      <td className="py-4 font-bold text-foreground">
+                        <div className="flex items-center gap-2">
+                          {issuer.logo_url && (
+                            <img src={issuer.logo_url} alt="" className="w-6 h-6 rounded-md bg-zinc-800" />
+                          )}
+                          <div>
+                            <div>{issuer.name}</div>
+                            <div className="text-[10px] text-muted font-normal mt-0.5">{issuer.description || 'No description'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 font-mono text-[11px]">
+                        {issuer.stellar_address ? `${issuer.stellar_address.substring(0, 8)}...${issuer.stellar_address.substring(issuer.stellar_address.length - 8)}` : 'N/A'}
+                      </td>
+                      <td className="py-4">
+                        <VerificationBadge status={issuer.verification_status} />
+                      </td>
+                      <td className="py-4">
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-mono">
+                            Domain: {issuer.domain ? (
+                              <span className={issuer.domain_verified ? 'text-green-400' : 'text-yellow-400'}>
+                                {issuer.domain} ({issuer.domain_verified ? 'Verified' : 'Pending'})
+                              </span>
+                            ) : 'None'}
+                          </div>
+                          <div className="text-[10px] font-mono text-muted">
+                            Peer Endorsements: {issuer.endorsement_count || 0}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 text-right">
+                        <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">
+                          {issuer.verification_status !== 'official_verified' && (
+                            <button
+                              onClick={() => handleVerifyOfficial(issuer.id)}
+                              className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-[11px] transition-colors"
+                            >
+                              Verify Officially
+                            </button>
+                          )}
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              placeholder="Reason..."
+                              value={revokeReasonMap[issuer.id] || ''}
+                              onChange={(e) => setRevokeReasonMap({
+                                ...revokeReasonMap,
+                                [issuer.id]: e.target.value
+                              })}
+                              className="px-2 py-1 bg-white/[0.02] border border-white/[0.06] rounded-md text-[10px] text-foreground focus:outline-none focus:border-indigo-500/50 w-28"
+                            />
+                            <button
+                              onClick={() => handleRevokeVerification(issuer.id)}
+                              className="px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/40 font-semibold text-[11px] transition-colors"
+                            >
+                              Revoke Status
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

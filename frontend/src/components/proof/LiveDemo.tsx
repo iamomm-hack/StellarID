@@ -1,173 +1,218 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Shield, Zap, Clock, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Shield, Zap, CheckCircle2, Cpu, 
+  Lock, Fingerprint, Globe, Activity, EyeOff
+} from 'lucide-react';
 
-const circuits = [
-  { id: 'age_check', label: 'Age Verification', desc: 'Prove you are 18+ without revealing birthdate' },
-  { id: 'membership_check', label: 'Membership Check', desc: 'Prove group membership without revealing identity' },
+// --- PROTOCOL STAGES ---
+const STAGES = [
+  {
+    id: 'handshake',
+    title: 'Identity Handshake',
+    num: '01',
+    desc: 'Establishing secure connection with the Stellar network issuer.',
+    icon: Globe,
+    color: '#FF6A00'
+  },
+  {
+    id: 'witness',
+    title: 'Witness Generation',
+    num: '02',
+    desc: 'Compiling private inputs into a mathematical witness vector.',
+    icon: Cpu,
+    color: '#FF8C38'
+  },
+  {
+    id: 'proving',
+    title: 'Proof Computation',
+    num: '03',
+    desc: 'Executing Groth16 zk-SNARK prover for the cryptographic truth artifact.',
+    icon: Activity,
+    color: '#CC5500'
+  },
+  {
+    id: 'verified',
+    title: 'Protocol Finality',
+    num: '04',
+    desc: 'Identity verified with zero knowledge leakage.',
+    icon: Shield,
+    color: '#FF6A00'
+  }
 ];
 
-type DemoState = 'idle' | 'generating' | 'success';
-
 export default function LiveDemo() {
-  const [selectedCircuit, setSelectedCircuit] = useState(circuits[0]);
-  const [state, setState] = useState<DemoState>('idle');
-  const [elapsed, setElapsed] = useState(0);
-  const [finalTime, setFinalTime] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [activeStage, setActiveStage] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
 
-  const handleGenerate = () => {
-    setState('generating');
-    setElapsed(0);
+  const runDemo = () => {
+    if (isRunning) return;
+    setIsRunning(true);
+    setActiveStage(0);
+    setLogs([]);
 
-    const startTime = Date.now();
-    intervalRef.current = setInterval(() => {
-      setElapsed(Date.now() - startTime);
-    }, 10);
+    const protocol = [
+      { stage: 0, log: "Initiating P2P handshake...", delay: 0 },
+      { stage: 0, log: "Network tunnel established.", delay: 800 },
+      { stage: 1, log: "Fetching R1CS constraints...", delay: 1600 },
+      { stage: 1, log: "Witness vector compiled.", delay: 2400 },
+      { stage: 2, log: "Executing SNARK prover (BN128)...", delay: 3200 },
+      { stage: 2, log: "Polynomial commitments verified.", delay: 4000 },
+      { stage: 2, log: "Proof artifact generated.", delay: 4800 },
+      { stage: 3, log: "Identity verified. Zero data leaked.", delay: 5600 },
+    ];
 
-    const duration = 800 + Math.random() * 600;
-    setTimeout(() => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setFinalTime(duration);
-      setState('success');
-    }, duration);
+    protocol.forEach(({ stage, log, delay }) => {
+      setTimeout(() => {
+        setActiveStage(stage);
+        setLogs(prev => [...prev, `> ${log}`]);
+        if (stage === 3 && log.includes("Zero data")) {
+          setIsRunning(false);
+        }
+      }, delay);
+    });
   };
-
-  const handleReset = () => {
-    setState('idle');
-    setElapsed(0);
-    setFinalTime(0);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
 
   return (
-    <div className="brutal-card relative overflow-hidden">
-      {/* Success flash overlay */}
-      {state === 'success' && (
-        <div className="absolute inset-0 pointer-events-none"
-             style={{ background: 'rgba(212, 255, 0, 0.03)', animation: 'glitchFlicker 2s infinite' }} />
-      )}
-
-      <div className="card-header-brutal"
-           style={state === 'success'
-             ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' }
-             : {}}>
-        <span className="flex items-center gap-2">
-          <Zap className="w-4 h-4" />
-          Live ZK Proof Demo
-        </span>
-        <span>[{state === 'idle' ? 'READY' : state === 'generating' ? 'COMPUTING' : 'VERIFIED'}]</span>
+    <div className="bg-[#0a0a0a] rounded-2xl overflow-hidden">
+      
+      {/* Header */}
+      <div className="px-6 py-4 flex items-center justify-between border-b border-white/[0.06]">
+        <div className="flex items-center gap-3">
+          <Zap className="w-4 h-4 text-[#FF6A00]" />
+          <span className="text-[11px] font-mono text-[#666660] uppercase tracking-wider">Live Protocol Demo</span>
+        </div>
+        <button
+          onClick={runDemo}
+          disabled={isRunning}
+          className="btn-stellar !py-2 !px-5 !text-[10px] disabled:opacity-40"
+        >
+          {isRunning ? 'Running...' : activeStage === 3 ? 'Run Again' : 'Start Demo'}
+        </button>
       </div>
 
-      <div className="card-body-brutal relative z-10">
-        {state === 'idle' && (
-          <>
-            <p className="text-sm text-[var(--color-text-muted)] mb-5">
-              Generate a real zero-knowledge proof. No wallet needed.
-            </p>
+      <div className="grid lg:grid-cols-2 gap-0">
+        {/* Left — Steps */}
+        <div className="p-6 border-r border-white/[0.06]">
+          <div className="space-y-3">
+            {STAGES.map((stage, idx) => {
+              const Icon = stage.icon;
+              const isActive = activeStage === idx;
+              const isPast = activeStage > idx;
+              const isFuture = activeStage < idx;
 
-            {/* Circuit selector */}
-            <div className="mb-5">
-              <label className="text-[10px] text-[var(--color-text-muted)] mb-2 block uppercase tracking-widest font-bold">
-                Select Proof Type
-              </label>
-              <div className="grid grid-cols-2 gap-0">
-                {circuits.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setSelectedCircuit(c)}
-                    className={`text-left p-3 border border-[#333] text-sm transition-all duration-200 ${
-                      selectedCircuit.id === c.id
-                        ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5 text-white'
-                        : 'text-[var(--color-text-muted)] hover:border-[#555]'
-                    }`}
-                  >
-                    <span className="font-bold block uppercase text-xs tracking-wider">{c.label}</span>
-                    <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5 block">{c.desc}</span>
-                  </button>
-                ))}
+              return (
+                <motion.div
+                  key={stage.id}
+                  animate={{ 
+                    opacity: isFuture ? 0.3 : 1,
+                    scale: isActive ? 1.02 : 1
+                  }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex items-start gap-4 p-4 rounded-xl transition-colors duration-300 ${
+                    isActive ? 'bg-white/[0.04] border border-white/[0.08]' :
+                    isPast ? 'border border-transparent' :
+                    'border border-transparent'
+                  }`}
+                >
+                  {/* Step indicator */}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                    isPast ? 'bg-[#FF6A00]/10 border border-[#FF6A00]/20' :
+                    isActive ? 'border-2' : 'bg-white/[0.03] border border-white/[0.06]'
+                  }`} style={isActive ? { borderColor: stage.color + '40', background: stage.color + '10' } : {}}>
+                    {isPast ? (
+                      <CheckCircle2 className="w-4 h-4 text-[#FF6A00]" />
+                    ) : (
+                      <Icon className="w-4 h-4" style={{ color: isActive ? stage.color : '#666660' }} />
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-grow">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-mono font-bold" style={{ color: isActive ? stage.color : '#666660' }}>{stage.num}</span>
+                      <h4 className={`text-sm font-bold ${isActive ? 'text-[#f5f5f0]' : isPast ? 'text-[#a8a8a0]' : 'text-[#666660]'}`}>
+                        {stage.title}
+                      </h4>
+                    </div>
+                    <p className="text-[11px] text-[#666660] leading-relaxed">{stage.desc}</p>
+
+                    {/* Active stage pulsing bar */}
+                    {isActive && isRunning && (
+                      <motion.div className="mt-3 h-0.5 rounded-full overflow-hidden bg-white/[0.06]">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ background: stage.color }}
+                          animate={{ width: ['0%', '100%'] }}
+                          transition={{ duration: 1.5, ease: 'easeInOut' }}
+                        />
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right — Terminal */}
+        <div className="p-6 flex flex-col">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500/40" />
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/40" />
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500/40" />
+            </div>
+            <span className="text-[10px] font-mono text-[#666660] ml-2">zk_prover.sh</span>
+          </div>
+          
+          <div className="bg-[#111111] rounded-xl border border-white/[0.06] p-5 font-mono text-xs flex-grow min-h-[280px] overflow-y-auto">
+            {logs.length === 0 ? (
+              <div className="flex items-center gap-2 text-[#666660]">
+                <span className="text-[#FF6A00]">$</span> 
+                <span>Press &quot;Start Demo&quot; to begin...</span>
               </div>
-            </div>
+            ) : (
+              logs.map((log, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="mb-2 flex items-start gap-2"
+                >
+                  <span className="text-[#FF6A00] shrink-0">➜</span>
+                  <span className={i === logs.length - 1 ? 'text-[#f5f5f0]' : 'text-[#a8a8a0]'}>{log}</span>
+                </motion.div>
+              ))
+            )}
 
-            <button
-              onClick={handleGenerate}
-              className="w-full btn-brutal btn-brutal-primary flex items-center justify-center gap-2"
-            >
-              <Shield className="w-4 h-4" />
-              Generate ZK Proof
-            </button>
-          </>
-        )}
+            {isRunning && (
+              <motion.div
+                animate={{ opacity: [0, 1] }}
+                transition={{ repeat: Infinity, duration: 0.6 }}
+                className="w-2 h-4 bg-[#FF6A00]/60 mt-2"
+              />
+            )}
 
-        {state === 'generating' && (
-          <div className="py-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 border-2 border-[#333] border-t-[var(--color-accent)]"
-                 style={{ animation: 'spin-slow 0.8s linear infinite' }} />
-            <p className="text-sm text-[var(--color-text-main)] mb-1">
-              Generating proof for <span style={{ color: 'var(--color-accent)' }} className="font-bold">{selectedCircuit.label}</span>
-            </p>
-            <div className="flex items-center justify-center gap-1.5 text-[var(--color-text-muted)]">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="font-mono text-lg text-white">{(elapsed / 1000).toFixed(2)}s</span>
-            </div>
-            <div className="mt-4 mx-auto max-w-[200px] h-1 bg-[#222] overflow-hidden">
-              <div className="h-full" 
-                   style={{ 
-                     width: `${Math.min(95, (elapsed / 14))}%`,
-                     background: 'var(--color-accent)',
-                     transition: 'width 0.1s linear'
-                   }} />
-            </div>
+            {/* Success state */}
+            {activeStage === 3 && !isRunning && logs.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 rounded-xl border border-[#FF6A00]/20 bg-[#FF6A00]/5"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Shield className="w-4 h-4 text-[#FF6A00]" />
+                  <span className="text-[#FF6A00] font-bold text-[11px]">VERIFIED</span>
+                </div>
+                <p className="text-[10px] text-[#FF6A00]/70">Proof: 0x4f...8a2 • Zero data leaked</p>
+              </motion.div>
+            )}
           </div>
-        )}
-
-        {state === 'success' && (
-          <div className="py-4 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center border border-[var(--color-highlight)]"
-                 style={{ background: 'rgba(212, 255, 0, 0.1)' }}>
-              <CheckCircle2 className="w-8 h-8" style={{ color: 'var(--color-highlight)' }} />
-            </div>
-            <p className="text-lg font-bold mb-1 uppercase tracking-wider"
-               style={{ fontFamily: 'Unbounded, sans-serif', color: 'var(--color-highlight)' }}>
-              Proof Verified
-            </p>
-            <p className="text-sm text-[var(--color-text-muted)] mb-1">
-              <span className="font-mono text-white">{(finalTime / 1000).toFixed(2)}s</span> — {selectedCircuit.label}
-            </p>
-            <p className="text-xs text-[var(--color-text-muted)] mb-5">Zero data shared. Only YES/NO result transmitted.</p>
-
-            {/* Results table */}
-            <table className="edge-table w-full mb-5" style={{ fontSize: '0.8rem' }}>
-              <tbody>
-                <tr>
-                  <td>Data Exposed</td>
-                  <td style={{ color: 'var(--color-highlight)' }} className="text-right font-bold">NONE</td>
-                </tr>
-                <tr>
-                  <td>Proof Size</td>
-                  <td className="text-right text-white font-bold">256 B</td>
-                </tr>
-                <tr>
-                  <td>Verification</td>
-                  <td style={{ color: 'var(--color-highlight)' }} className="text-right font-bold">VALID</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <button
-              onClick={handleReset}
-              className="text-sm text-[var(--color-text-muted)] hover:text-white transition-colors uppercase tracking-wider"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 inline mr-1" /> Try another proof
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

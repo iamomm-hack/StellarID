@@ -13,7 +13,12 @@ export async function uploadToIPFS(data: string): Promise<string> {
   }
 
   try {
-    const jsonData = JSON.parse(data);
+    let jsonData: any;
+    try {
+      jsonData = JSON.parse(data);
+    } catch {
+      jsonData = { textContent: data };
+    }
 
     const response = await axios.post(
       'https://api.pinata.cloud/pinning/pinJSONToIPFS',

@@ -1,12 +1,20 @@
 'use client';
 
+import { motion, Variants } from 'framer-motion';
 import {
   Shield,
   Fingerprint,
   CheckCircle2,
   ArrowRight,
-  Layers,
 } from 'lucide-react';
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.7, delay: i * 0.12, ease: [.23, 1, .32, 1] as const }
+  })
+};
 
 const steps = [
   {
@@ -15,6 +23,7 @@ const steps = [
     title: 'Get Verified',
     desc: 'Connect your wallet and get verified by a trusted issuer like GitHub, a university, or a KYC provider.',
     detail: 'StellarID partners with trusted issuers who verify your real-world credentials. You connect your Stellar wallet, submit your claim, and the issuer validates it — all without storing your raw data on-chain.',
+    color: '#6366f1',
   },
   {
     step: '02',
@@ -22,6 +31,7 @@ const steps = [
     title: 'Receive NFT Credential',
     desc: 'Your verified claim is minted as an NFT on Stellar. The underlying data stays encrypted and private.',
     detail: 'Once verified, a non-transferable NFT credential is minted to your wallet on the Stellar blockchain. This NFT contains only a cryptographic commitment — your actual identity data never touches the blockchain.',
+    color: '#a855f7',
   },
   {
     step: '03',
@@ -29,66 +39,78 @@ const steps = [
     title: 'Prove with ZK Proofs',
     desc: 'Generate zero-knowledge proofs to prove claims to any platform. They learn YES/NO — nothing else.',
     detail: 'When a platform requests verification, you generate a zero-knowledge proof locally on your device. The platform receives a mathematical guarantee of your claim — without learning anything about your underlying data.',
+    color: '#fcd34d',
   },
 ];
 
 export default function HowItWorksPage() {
   return (
-    <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'var(--color-bg)' }}>
+    <div className="min-h-screen relative overflow-x-hidden">
       <section className="py-24 relative">
         <div className="max-w-[1400px] mx-auto px-6 relative z-10">
           {/* Header */}
-          <div className="mb-20 reveal-wrap">
-            <div className="reveal-content delay-1">
-              <span className="block text-sm font-bold uppercase tracking-[0.2em] mb-4"
-                    style={{ color: 'var(--color-accent)' }}>
-                {'// Protocol Overview'}
-              </span>
-              <h1 style={{ fontFamily: 'Unbounded, sans-serif', fontWeight: 900, fontSize: 'clamp(2rem, 8vw, 5rem)', lineHeight: 0.9, textTransform: 'uppercase', letterSpacing: '-0.04em', color: '#fff' }}>
-                How It<br />
-                <span className="outline-text">Works</span>
-              </h1>
-              <p className="text-[var(--color-text-muted)] max-w-2xl mt-6">
-                From verification to proof generation — your identity stays private at every step.
-              </p>
-            </div>
-          </div>
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            className="mb-20"
+          >
+            <motion.span variants={fadeUp} custom={0} className="tag-orange mb-4 block w-fit">
+              Protocol Overview
+            </motion.span>
+            <motion.h1 variants={fadeUp} custom={1} className="text-display font-display">
+              How It<br />
+              <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #6366f1, #a855f7)' }}>Works</span>
+            </motion.h1>
+            <motion.p variants={fadeUp} custom={2} className="text-muted max-w-2xl mt-6 text-lg leading-relaxed">
+              From verification to proof generation — your identity stays private at every step.
+            </motion.p>
+          </motion.div>
 
           {/* Steps */}
           <div className="space-y-0">
             {steps.map((item, idx) => (
-              <div key={item.step} className="brutal-card reveal-wrap">
-                <div className="card-header-brutal"
-                     style={idx === steps.length - 1 ? { background: 'var(--color-highlight)', color: 'var(--color-bg)' } : {}}>
-                  <span>Step {item.step}</span>
-                  <span>[{item.title.toUpperCase()}]</span>
-                </div>
-                <div className="card-body-brutal">
-                  <div className="reveal-content" style={{ animationDelay: `${0.2 + idx * 0.15}s` }}>
-                    <div className="flex flex-col sm:flex-row gap-6 items-start">
-                      <div className="w-14 h-14 flex items-center justify-center flex-shrink-0 border border-[#333]"
-                           style={{ background: 'var(--color-bg)' }}>
-                        <item.icon className="w-7 h-7" style={{ color: 'var(--color-accent)' }} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-xl mb-2 uppercase tracking-wider"
-                            style={{ fontFamily: 'Unbounded, sans-serif', color: '#fff' }}>
-                          {item.title}
-                        </h3>
-                        <p className="text-base text-[var(--color-text-main)] mb-3">{item.desc}</p>
-                        <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{item.detail}</p>
-                      </div>
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: idx * 0.12, ease: [.23, 1, .32, 1] }}
+                className="relative p-10 border-b group"
+                style={{ borderColor: 'var(--border)' }}
+              >
+                <div className="flex flex-col sm:flex-row gap-8 items-start">
+                  {/* Step number + icon */}
+                  <div className="flex flex-col items-center gap-3 flex-shrink-0">
+                    <span className="text-[13px] font-mono font-bold" style={{ color: item.color }}>
+                      {item.step}
+                    </span>
+                    <div className="liquid-glass w-14 h-14 rounded-xl flex items-center justify-center">
+                      <item.icon className="w-7 h-7" style={{ color: item.color }} />
                     </div>
                   </div>
+
+                  {/* Content */}
+                  <div>
+                    <h3 className="font-display text-xl font-bold mb-2 text-foreground group-hover:translate-x-1 transition-transform duration-500">
+                      {item.title}<span style={{ color: item.color }}>.</span>
+                    </h3>
+                    <p className="text-base text-foreground/80 mb-3">{item.desc}</p>
+                    <p className="text-sm text-muted leading-relaxed">{item.detail}</p>
+                  </div>
                 </div>
-              </div>
+
+                {/* Bottom accent on hover */}
+                <div className="absolute bottom-0 left-0 w-full h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `linear-gradient(90deg, transparent, ${item.color}40, transparent)` }}
+                />
+              </motion.div>
             ))}
           </div>
 
           {/* Bottom CTA */}
           <div className="text-center mt-16">
             <a href="/dashboard">
-              <button className="btn-brutal btn-brutal-primary inline-flex items-center gap-2">
+              <button className="btn-stellar inline-flex items-center gap-2">
                 Try It Now <ArrowRight className="w-4 h-4" />
               </button>
             </a>

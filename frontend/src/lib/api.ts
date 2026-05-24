@@ -58,9 +58,46 @@ export const credentialsApi = {
 
 export const issuersApi = {
   getAll: () => api.get('/issuers'),
+  getMe: () => api.get('/issuers/me'),
+  register: (data: any) => api.post('/issuers/register', data),
+  requestDomainVerification: (id: string, domain: string) =>
+    api.post(`/issuers/${id}/request-domain-verification`, { domain }),
+  confirmDomainVerification: (id: string) =>
+    api.post(`/issuers/${id}/confirm-domain-verification`),
+  requestEmailVerification: (id: string, email: string) =>
+    api.post(`/issuers/${id}/request-email-verification`, { email }),
+  confirmEmailVerification: (id: string, token: string) =>
+    api.post(`/issuers/${id}/confirm-email-verification`, { token }),
+  endorse: (id: string) =>
+    api.post(`/issuers/${id}/endorse`),
+  getEndorsements: (id: string) =>
+    api.get(`/issuers/${id}/endorsements`),
+  getPublicProfile: (id: string) =>
+    api.get(`/issuers/${id}/public`),
+};
+
+export const adminApi = {
+  verifyOfficial: (id: string) =>
+    api.post(`/admin/issuers/${id}/verify-official`),
+  revokeVerification: (id: string, reason: string) =>
+    api.post(`/admin/issuers/${id}/revoke-verification`, { reason }),
 };
 
 export const verifyApi = {
   verify: (data: any, apiKey: string) =>
     api.post('/verify', data, { headers: { 'X-API-Key': apiKey } }),
 };
+
+export const profileApi = {
+  getCardData: (wallet: string) => api.get(`/profile/${wallet}/card-data`),
+  getCredentials: (wallet: string) => api.get(`/profile/${wallet}/credentials`),
+  getShareUrls: (wallet: string) => api.get(`/profile/${wallet}/share-url`),
+};
+
+export const reputationApi = {
+  getReputation: (wallet: string) => api.get(`/reputation/${wallet}`),
+  recalculate: (wallet: string) => api.post(`/reputation/${wallet}/recalculate`),
+  getLeaderboard: (filter = 'global', limit = 100) => api.get(`/reputation/leaderboard?filter=${filter}&limit=${limit}`),
+  getHistory: (wallet: string) => api.get(`/reputation/${wallet}/history`),
+};
+

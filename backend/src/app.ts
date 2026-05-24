@@ -13,7 +13,11 @@ import adminRouter from './routes/admin';
 import proofsRouter from './routes/proofs';
 import feeSponsorRouter from './routes/fee-sponsor';
 import multisigRouter from './routes/multisig';
+import profileRouter from './routes/profile';
+import bulkRouter from './routes/bulk';
+import reputationRouter from './routes/reputation';
 import { errorHandler } from './middleware/errorHandler';
+
 
 const app = express();
 
@@ -59,6 +63,10 @@ app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/proofs', proofsRouter);
 app.use('/api/v1/fee-sponsor', feeSponsorRouter);
 app.use('/api/v1/multisig', multisigRouter);
+app.use('/api/v1/profile', profileRouter);
+app.use('/api/v1/bulk', bulkRouter);
+app.use('/api/v1/reputation', reputationRouter);
+
 
 // Error handler (must be last)
 app.use(errorHandler);
