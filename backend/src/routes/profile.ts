@@ -1,8 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
-import { getCache, setCache } from '../services/redis';
-import { calculateAndSaveUserReputation } from '../utils/reputation';
+import { getCache, setCache, invalidateProfileCache } from '../services/redis';
+import { calculateAndSaveUserReputation, recordActivity } from '../utils/reputation';
 import { generateCardSvg } from '../utils/cardTemplate';
+import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { BADGE_DEFINITIONS } from '../config/badges';
 import sharp from 'sharp';
 import axios from 'axios';
 
@@ -11,25 +13,7 @@ const router = Router();
 const CARD_CACHE_TTL = parseInt(process.env.CARD_CACHE_TTL || '300', 10);
 const OG_IMAGE_CACHE_TTL = parseInt(process.env.OG_IMAGE_CACHE_TTL || '3600', 10);
 
-/**
- * Helper to compute badges based on user data
- */
-function getBadges(credentialCount: number, reputationScore: number, hasRecent: boolean): string[] {
-  const badges: string[] = [];
-  if (credentialCount >= 1) {
-    badges.push('First Claim');
-  }
-  if (credentialCount >= 10) {
-    badges.push('10+ Claims');
-  }
-  if (reputationScore >= 500) {
-    badges.push('Elite Builder');
-  }
-  if (hasRecent) {
-    badges.push('Active Streak');
-  }
-  return badges;
-}
+
 
 /**
  * GET /api/v1/profile/:wallet_address/card-data
@@ -97,18 +81,15 @@ router.get('/:wallet_address/card-data', async (req: Request, res: Response): Pr
       date: new Date(row.issued_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
     }));
 
-    // Check for recent activity within 30 days
-    const recentRes = await query(
-      `SELECT EXISTS(
-        SELECT 1 FROM credentials 
-        WHERE user_id = $1 AND issued_at > NOW() - INTERVAL '30 days' AND revoked = false
-      ) as has_recent`,
-      [user.id]
+    // Fetch badges from database
+    const badgesRes = await query(
+      `SELECT badge_id FROM user_badges WHERE wallet_address = $1 ORDER BY earned_at DESC`,
+      [wallet_address]
     );
-    const hasRecent = recentRes.rows[0]?.has_recent || false;
-
-    // Badges list
-    const badges = getBadges(rep.credential_count, rep.total_score, hasRecent);
+    const badges = badgesRes.rows.map((row: any) => {
+      const def = BADGE_DEFINITIONS.find((b) => b.id === row.badge_id);
+      return def ? def.name : row.badge_id;
+    });
 
     // Member since date
     const memberSince = new Date(user.created_at).toLocaleDateString('en-US', {
@@ -193,6 +174,9 @@ router.get('/:wallet_address/credentials', async (req: Request, res: Response): 
  */
 async function fetchAvatarBase64(githubUsername: string | null): Promise<string | null> {
   if (!githubUsername) return null;
+  if (process.env.NODE_ENV === 'test') {
+    return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  }
   try {
     const url = `https://github.com/${githubUsername}.png`;
     const response = await axios.get(url, { responseType: 'arraybuffer', timeout: 5000 });
@@ -279,16 +263,15 @@ router.get('/:wallet_address/og-image', async (req: Request, res: Response): Pro
         date: new Date(row.issued_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
       }));
 
-      const recentRes = await query(
-        `SELECT EXISTS(
-          SELECT 1 FROM credentials 
-          WHERE user_id = $1 AND issued_at > NOW() - INTERVAL '30 days' AND revoked = false
-        ) as has_recent`,
-        [user.id]
+      // Fetch badges from database
+      const badgesRes = await query(
+        `SELECT badge_id FROM user_badges WHERE wallet_address = $1 ORDER BY earned_at DESC`,
+        [wallet_address]
       );
-      const hasRecent = recentRes.rows[0]?.has_recent || false;
-
-      const badges = getBadges(rep.credential_count, rep.total_score, hasRecent);
+      const badges = badgesRes.rows.map((row: any) => {
+        const def = BADGE_DEFINITIONS.find((b) => b.id === row.badge_id);
+        return def ? def.name : row.badge_id;
+      });
       const memberSince = new Date(user.created_at).toLocaleDateString('en-US', {
         month: 'short',
         year: 'numeric',
@@ -363,6 +346,54 @@ router.get('/:wallet_address/share-url', async (req: Request, res: Response): Pr
   } catch (err: any) {
     console.error('Error generating share urls:', err);
     res.status(500).json({ error: 'Failed to generate share links' });
+  }
+});
+
+/**
+ * PUT /api/v1/profile/update
+ * Updates user profile details (city, college)
+ */
+router.put('/update', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { city, college } = req.body;
+
+    const userRes = await query(
+      'SELECT stellar_address FROM users WHERE id = $1',
+      [req.user!.id]
+    );
+
+    if (userRes.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const walletAddress = userRes.rows[0].stellar_address;
+
+    // Update city and college fields
+    await query(
+      `UPDATE users 
+       SET city = COALESCE($1, city), 
+           college = COALESCE($2, college) 
+       WHERE id = $3`,
+      [city !== undefined ? city.trim() : null, college !== undefined ? college.trim() : null, req.user!.id]
+    );
+
+    // Record activity for profile update
+    await recordActivity(walletAddress, 'update_profile');
+
+    // Recalculate reputation score and badges
+    await calculateAndSaveUserReputation(walletAddress);
+
+    // Invalidate profile caching
+    await invalidateProfileCache(walletAddress);
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+    });
+  } catch (err: any) {
+    console.error('Error updating profile:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 

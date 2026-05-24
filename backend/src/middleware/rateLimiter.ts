@@ -3,7 +3,10 @@ import { Request, Response, NextFunction } from 'express';
 import { getCache, setCache } from '../services/redis';
 import { ApiKeyRequest } from './apiKeyAuth';
 
-export const verifyRateLimit = rateLimit({
+// Pass-through middleware for tests
+const passThroughMiddleware = (req: Request, res: Response, next: NextFunction) => next();
+
+export const verifyRateLimit = process.env.NODE_ENV === 'test' ? passThroughMiddleware : rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 100,
   keyGenerator: (req) => (req.headers['x-api-key'] as string) || req.ip || 'unknown',
@@ -12,7 +15,7 @@ export const verifyRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
-export const authRateLimit = rateLimit({
+export const authRateLimit = process.env.NODE_ENV === 'test' ? passThroughMiddleware : rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 20,
   keyGenerator: (req) => req.ip || 'unknown',
@@ -21,7 +24,7 @@ export const authRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
-export const claimRateLimit = rateLimit({
+export const claimRateLimit = process.env.NODE_ENV === 'test' ? passThroughMiddleware : rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // 100 attempts to allow smooth developer testing and page reloads
   keyGenerator: (req) => req.ip || 'unknown',

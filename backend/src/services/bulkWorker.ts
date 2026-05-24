@@ -184,18 +184,27 @@ export async function processBulkIssuanceJob(jobId: string): Promise<void> {
 }
 
 // Setup BullMQ worker
-export const bulkWorker = new Worker(
-  'bulk-issuance',
-  async (job) => {
-    const { jobId } = job.data;
-    await processBulkIssuanceJob(jobId);
-  },
-  {
-    connection: connectionOptions,
-    concurrency: parseInt(process.env.BULL_CONCURRENCY || '5'),
-  }
-);
+export let bulkWorker: any;
 
-bulkWorker.on('error', (err) => {
-  console.warn('⚠️ BullMQ Worker: Redis connection error (using in-memory fallback):', err.message);
-});
+if (process.env.NODE_ENV === 'test') {
+  bulkWorker = {
+    on: () => {},
+    close: async () => {},
+  };
+} else {
+  bulkWorker = new Worker(
+    'bulk-issuance',
+    async (job) => {
+      const { jobId } = job.data;
+      await processBulkIssuanceJob(jobId);
+    },
+    {
+      connection: connectionOptions,
+      concurrency: parseInt(process.env.BULL_CONCURRENCY || '5'),
+    }
+  );
+
+  bulkWorker.on('error', (err) => {
+    console.warn('⚠️ BullMQ Worker: Redis connection error (using in-memory fallback):', err.message);
+  });
+}

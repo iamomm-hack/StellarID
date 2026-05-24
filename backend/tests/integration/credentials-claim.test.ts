@@ -26,6 +26,9 @@ jest.mock('../../src/services/redis', () => ({
   setCache: jest.fn().mockResolvedValue(undefined),
   deleteCache: jest.fn().mockResolvedValue(undefined),
   invalidateProfileCache: jest.fn().mockResolvedValue(undefined),
+  zAddLeaderboard: jest.fn().mockResolvedValue(undefined),
+  zGetLeaderboard: jest.fn().mockResolvedValue(null),
+  zGetRank: jest.fn().mockResolvedValue(null),
 }));
 
 // In-memory mock store for pending credentials in tests
@@ -136,6 +139,17 @@ jest.mock('../../src/db', () => ({
     // 6. Insert into credentials
     if (text.includes('INSERT INTO credentials')) {
       return { rows: [{ id: 'mock-credential-id' }] };
+    }
+
+    // 7. Check if credential already exists
+    if (text.includes('SELECT id FROM credentials') && text.includes('user_id = $1')) {
+      const hasClaimed = Object.values(mockDbPendingStore).some(
+        c => c.status === 'claimed'
+      );
+      if (hasClaimed) {
+        return { rows: [{ id: 'mock-credential-id' }] };
+      }
+      return { rows: [] };
     }
 
     return { rows: [] };

@@ -1,0 +1,43 @@
+{
+  "name": "stellarid-sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript SDK for StellarID, the protocol-grade identity layer on Stellar.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "stellar",
+    "identity",
+    "sdk",
+    "zk-proof",
+    "verification",
+    "blockchain",
+    "did"
+  ],
+  "author": "StellarID Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.24",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  }
+}

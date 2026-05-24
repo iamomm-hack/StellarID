@@ -192,24 +192,52 @@ async function runMigrations() {
 
       CREATE INDEX IF NOT EXISTS idx_api_usage_logs_key ON api_usage_logs(api_key_id);
       CREATE INDEX IF NOT EXISTS idx_api_usage_logs_created ON api_usage_logs(created_at);
+
+      -- Support location and college scoping for builders
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS college VARCHAR(150);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS ai_summary TEXT;
+
+      -- User badges table
+      CREATE TABLE IF NOT EXISTS user_badges (
+        wallet_address VARCHAR(100) NOT NULL,
+        badge_id VARCHAR(50) NOT NULL,
+        earned_at TIMESTAMP DEFAULT NOW(),
+        PRIMARY KEY (wallet_address, badge_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_badges_wallet ON user_badges(wallet_address);
+
+      -- User activity/streak table
+      CREATE TABLE IF NOT EXISTS user_activity (
+        wallet_address VARCHAR(100) NOT NULL,
+        activity_date DATE NOT NULL,
+        activity_type VARCHAR(50) NOT NULL,
+        PRIMARY KEY (wallet_address, activity_date)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_activity_wallet ON user_activity(wallet_address);
+      CREATE INDEX IF NOT EXISTS idx_user_activity_date ON user_activity(activity_date);
     `);
-    console.log('[Migration] Database verification, reputation & developer API tables checked/created.');
+    console.log('[Migration] Database verification, reputation, developer API, user badges & activity tables checked/created.');
   } catch (err: any) {
     console.error('[Migration] Error running schema migrations:', err.message);
   }
 }
 
 // Test connection on startup
-pool.query('SELECT NOW()')
-  .then(async (res) => {
-    console.log(`Database connected at ${res.rows[0].now}`);
-    startKeepAlive(); // Start keep-alive only after successful connection
-    await runMigrations();
-    seedDefaultData(); // Auto-seed default credentials/issuers for testing
-  })
-  .catch((err) => {
-    console.error('Database connection error:', formatDbError(err));
-  });
+if (process.env.NODE_ENV !== 'test') {
+  pool.query('SELECT NOW()')
+    .then(async (res) => {
+      console.log(`Database connected at ${res.rows[0].now}`);
+      startKeepAlive(); // Start keep-alive only after successful connection
+      await runMigrations();
+      seedDefaultData(); // Auto-seed default credentials/issuers for testing
+    })
+    .catch((err) => {
+      console.error('Database connection error:', formatDbError(err));
+    });
+}
 
 export async function query(text: string, params?: any[]): Promise<QueryResult> {
   const start = Date.now();

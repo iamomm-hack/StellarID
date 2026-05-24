@@ -6,6 +6,7 @@ import { uploadToIPFS } from '../services/ipfs';
 import { mintCredentialNFT } from '../services/stellar';
 import { sendClaimInvitationEmail, sendClaimConfirmationEmail } from '../services/email';
 import { invalidateProfileCache } from '../services/redis';
+import { calculateAndSaveUserReputation, recordActivity } from '../utils/reputation';
 
 const router = Router();
 
@@ -439,6 +440,14 @@ router.post('/claim/:token', claimRateLimit, async (req: Request, res: Response)
 
     // Invalidate profile cache
     await invalidateProfileCache(walletAddress);
+
+    // Record activity for claim and update reputation/badges/leaderboard
+    try {
+      await recordActivity(walletAddress, 'claim_credential');
+      await calculateAndSaveUserReputation(walletAddress);
+    } catch (repErr) {
+      console.error('Failed to update reputation/activity on claim:', repErr);
+    }
 
     await sendClaimConfirmationEmail(
       pending.recipient_email,

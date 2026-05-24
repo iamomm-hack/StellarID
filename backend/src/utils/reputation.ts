@@ -1,4 +1,6 @@
 import { query } from '../db';
+import { zAddLeaderboard } from '../services/redis';
+import { BADGE_DEFINITIONS } from '../config/badges';
 
 export interface CredentialScoreItem {
   credential_id: string;
@@ -274,5 +276,221 @@ export async function calculateAndSaveUserReputation(walletAddress: string): Pro
     ]
   );
 
+  // Update Redis sorted set leaderboard
+  await zAddLeaderboard(walletAddress, result.total_score);
+
+  // Automatically calculate and save new badges unlocked by this reputation update
+  try {
+    await evaluateAndSaveUserBadges(walletAddress);
+  } catch (err) {
+    console.error('Failed to auto-evaluate badges for', walletAddress, err);
+  }
+
   return result;
+}
+
+/**
+ * Record builder activity for streak tracking
+ */
+export async function recordActivity(walletAddress: string, activityType: string): Promise<void> {
+  try {
+    const normalizedWallet = walletAddress.trim();
+    await query(
+      `INSERT INTO user_activity (wallet_address, activity_date, activity_type)
+       VALUES ($1, CURRENT_DATE, $2)
+       ON CONFLICT (wallet_address, activity_date) DO NOTHING`,
+      [normalizedWallet, activityType]
+    );
+  } catch (err) {
+    console.error('Error recording activity:', err);
+  }
+}
+
+/**
+ * Calculate user current and longest streak of consecutive days with activity
+ */
+export async function getUserStreak(walletAddress: string): Promise<{ currentStreak: number; longestStreak: number }> {
+  try {
+    const normalizedWallet = walletAddress.trim();
+    const result = await query(
+      `SELECT DISTINCT activity_date::text as date_str
+       FROM user_activity
+       WHERE wallet_address = $1
+       ORDER BY activity_date DESC`,
+      [normalizedWallet]
+    );
+
+    const dates = result.rows.map((row) => new Date(row.date_str));
+    if (dates.length === 0) {
+      return { currentStreak: 0, longestStreak: 0 };
+    }
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setUTCDate(today.getUTCDate() - 1);
+
+    // Calculate current streak
+    let currentStreak = 0;
+    let expectedDate = new Date(today);
+
+    // If the latest activity is older than yesterday, current streak is reset to 0
+    const latestActivityDate = new Date(dates[0]);
+    latestActivityDate.setUTCHours(0, 0, 0, 0);
+
+    if (latestActivityDate.getTime() < yesterday.getTime()) {
+      currentStreak = 0;
+    } else {
+      // Start checking from the most recent activity date in our logs
+      expectedDate = new Date(latestActivityDate);
+      let dateIndex = 0;
+
+      while (dateIndex < dates.length) {
+        const checkDate = new Date(dates[dateIndex]);
+        checkDate.setUTCHours(0, 0, 0, 0);
+
+        if (checkDate.getTime() === expectedDate.getTime()) {
+          currentStreak++;
+          expectedDate.setUTCDate(expectedDate.getUTCDate() - 1);
+          dateIndex++;
+        } else if (checkDate.getTime() > expectedDate.getTime()) {
+          // Skip duplicate/newer dates that don't match expected sequence
+          dateIndex++;
+        } else {
+          // Gap detected, current streak is broken
+          break;
+        }
+      }
+    }
+
+    // Calculate longest streak historically
+    let longestStreak = 0;
+    let tempStreak = 0;
+    let lastDate: Date | null = null;
+
+    // Traverse dates chronologically (oldest to newest) to count streaks
+    const chronologicalDates = [...dates].reverse();
+
+    for (const currentDate of chronologicalDates) {
+      currentDate.setUTCHours(0, 0, 0, 0);
+      
+      if (!lastDate) {
+        tempStreak = 1;
+      } else {
+        const diffMs = currentDate.getTime() - lastDate.getTime();
+        const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          tempStreak++;
+        } else if (diffDays > 1) {
+          if (tempStreak > longestStreak) {
+            longestStreak = tempStreak;
+          }
+          tempStreak = 1;
+        }
+      }
+      lastDate = currentDate;
+    }
+
+    if (tempStreak > longestStreak) {
+      longestStreak = tempStreak;
+    }
+
+    return { currentStreak, longestStreak };
+  } catch (err) {
+    console.error('Error calculating streak:', err);
+    return { currentStreak: 0, longestStreak: 0 };
+  }
+}
+
+/**
+ * Evaluate all badges for a user and save newly unlocked ones to the database
+ */
+export async function evaluateAndSaveUserBadges(walletAddress: string): Promise<string[]> {
+  const normalizedWallet = walletAddress.trim();
+
+  // 1. Fetch user general stats
+  const userRes = await query(
+    `SELECT id, github_username, created_at FROM users WHERE stellar_address = $1`,
+    [normalizedWallet]
+  );
+  if (userRes.rows.length === 0) {
+    return [];
+  }
+
+  const user = userRes.rows[0];
+  const github_verified = !!user.github_username;
+
+  // 2. Fetch join order (users created at or before this user)
+  const joinOrderRes = await query(
+    `SELECT COUNT(*)::int as count FROM users WHERE created_at <= $1`,
+    [user.created_at]
+  );
+  const joinOrder = joinOrderRes.rows[0]?.count || 9999;
+
+  // 3. Fetch reputation and credential stats
+  const repRes = await query(
+    `SELECT total_score, tier, credential_count FROM user_reputation WHERE wallet_address = $1`,
+    [normalizedWallet]
+  );
+  const reputation = repRes.rows[0] || { total_score: 0, tier: 'Verified', credential_count: 0 };
+
+  // 4. Fetch credentials to check for Stellar ecosystem or win certifications
+  const credsRes = await query(
+    `SELECT c.credential_type, i.name as issuer_name
+     FROM credentials c
+     JOIN users u ON c.user_id = u.id
+     JOIN issuers i ON c.issuer_id = i.id
+     WHERE u.stellar_address = $1 AND c.revoked = false AND c.expired = false`,
+    [normalizedWallet]
+  );
+
+  const has_stellar_credential = credsRes.rows.some((cred: any) => {
+    const typeStr = (cred.credential_type || '').toLowerCase();
+    const issuerStr = (cred.issuer_name || '').toLowerCase();
+    return typeStr.includes('stellar') || issuerStr.includes('stellar');
+  });
+
+  const has_win_credential = credsRes.rows.some((cred: any) => {
+    const typeStr = (cred.credential_type || '').toLowerCase();
+    return (
+      typeStr.includes('winner') ||
+      typeStr.includes('win') ||
+      typeStr.includes('grand prize') ||
+      typeStr.includes('first prize') ||
+      typeStr.includes('hackathon_winner')
+    );
+  });
+
+  // 5. Get activity streak
+  const streak = await getUserStreak(normalizedWallet);
+
+  // 6. Build stats object
+  const stats = {
+    total_credentials: reputation.credential_count,
+    tier: reputation.tier,
+    has_stellar_credential,
+    has_win_credential,
+    streak_days: streak.longestStreak,
+    github_verified,
+    join_order: joinOrder,
+  };
+
+  // 7. Evaluate each badge definition
+  const unlockedBadges: string[] = [];
+  for (const badge of BADGE_DEFINITIONS) {
+    if (badge.check(stats)) {
+      unlockedBadges.push(badge.id);
+      // Save to database
+      await query(
+        `INSERT INTO user_badges (wallet_address, badge_id, earned_at)
+         VALUES ($1, $2, NOW())
+         ON CONFLICT (wallet_address, badge_id) DO NOTHING`,
+        [normalizedWallet, badge.id]
+      );
+    }
+  }
+
+  return unlockedBadges;
 }

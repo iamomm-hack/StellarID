@@ -346,4 +346,55 @@ router.get('/proof/:credential_id', async (req: ApiKeyRequest, res: Response): P
   }
 });
 
+/**
+ * POST /api/v1/public/embed/badge
+ * Get embedding HTML code and URL for a wallet's reputation badge.
+ * Requires 'verify' or 'read_profile' permission.
+ */
+router.post('/embed/badge', async (req: ApiKeyRequest, res: Response): Promise<void> => {
+  const start = Date.now();
+  try {
+    const { wallet_address, style = 'dark', size = 'md' } = req.body;
+
+    // Permission check
+    const hasPermission = req.apiKey?.permissions.includes('verify') || req.apiKey?.permissions.includes('read_profile');
+    if (!hasPermission) {
+      res.status(403).json({ error: 'API key does not have "verify" or "read_profile" permission' });
+      logApiUsage(req.apiKey!.id, '/embed/badge', 'POST', 403, Date.now() - start);
+      return;
+    }
+
+    if (!wallet_address || !/^G[A-Z2-7]{55}$/.test(wallet_address)) {
+      res.status(400).json({ error: 'Invalid or missing Stellar wallet address format' });
+      logApiUsage(req.apiKey!.id, '/embed/badge', 'POST', 400, Date.now() - start);
+      return;
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const iframeUrl = `${frontendUrl}/embed/badge/${wallet_address}?style=${style}&size=${size}`;
+
+    let width = 300;
+    let height = 80;
+    if (size === 'sm') {
+      width = 240;
+      height = 60;
+    } else if (size === 'lg') {
+      width = 360;
+      height = 100;
+    }
+
+    const html = `<iframe src="${iframeUrl}" width="${width}" height="${height}" style="border:none;overflow:hidden;border-radius:12px;" scrolling="no" frameborder="0" allowTransparency="true"></iframe>`;
+
+    res.json({
+      html,
+      iframe_url: iframeUrl,
+    });
+    logApiUsage(req.apiKey!.id, '/embed/badge', 'POST', 200, Date.now() - start);
+  } catch (err: any) {
+    console.error('Public API embed badge error:', err.message);
+    res.status(500).json({ error: 'Failed to generate embed code' });
+    logApiUsage(req.apiKey?.id || '', '/embed/badge', 'POST', 500, Date.now() - start);
+  }
+});
+
 export default router;

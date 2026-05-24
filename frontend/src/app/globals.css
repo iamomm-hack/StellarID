@@ -309,3 +309,16 @@
     cursor: none !important;
   }
 }
+
+/* Embed Page Style Overrides to hide main layout Chrome */
+body:has(.embed-badge-container) header,
+body:has(.embed-badge-container) footer {
+  display: none !important;
+}
+body:has(.embed-badge-container) main {
+  padding-top: 0 !important;
+}
+body:has(.embed-badge-container) {
+  background-color: transparent !important;
+  overflow: hidden !important;
+}

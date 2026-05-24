@@ -11,21 +11,34 @@ export const connectionOptions = {
 };
 
 // Create bulk issuance queue
-export const bulkQueue = new Queue('bulk-issuance', {
-  connection: connectionOptions,
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 5000,
+export let bulkQueue: any;
+
+if (process.env.NODE_ENV === 'test') {
+  bulkQueue = {
+    add: async (name: string, data: any) => {
+      console.log(`[Test Mode] Mock bulkQueue.add called with:`, name, data);
+      return { id: 'mock-job-id' };
     },
-    removeOnComplete: true,
-    removeOnFail: false,
-  },
-});
+    on: () => {},
+    close: async () => {},
+  };
+} else {
+  bulkQueue = new Queue('bulk-issuance', {
+    connection: connectionOptions,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 5000,
+      },
+      removeOnComplete: true,
+      removeOnFail: false,
+    },
+  });
 
-bulkQueue.on('error', (err) => {
-  console.warn('⚠️ BullMQ Queue: Redis connection error (using in-memory fallback):', err.message);
-});
+  bulkQueue.on('error', (err) => {
+    console.warn('⚠️ BullMQ Queue: Redis connection error (using in-memory fallback):', err.message);
+  });
 
-console.log('📦 BullMQ: Bulk issuance queue initialized.');
+  console.log('📦 BullMQ: Bulk issuance queue initialized.');
+}

@@ -163,8 +163,6 @@ describe('StellarID Integration Tests', () => {
   });
 
   afterAll((done) => {
-    // Force exit to prevent Jest from hanging on open handles (e.g. Rate Limiters / Redis)
-    setTimeout(() => process.exit(0), 100);
     done();
   });
 });

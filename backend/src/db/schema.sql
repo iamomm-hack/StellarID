@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   stellar_address VARCHAR(60) UNIQUE NOT NULL,
   email VARCHAR(255) UNIQUE,
   github_username VARCHAR(100),
+  ai_summary TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -271,3 +272,28 @@ CREATE TABLE IF NOT EXISTS api_usage_logs (
 
 CREATE INDEX IF NOT EXISTS idx_api_usage_logs_key ON api_usage_logs(api_key_id);
 CREATE INDEX IF NOT EXISTS idx_api_usage_logs_created ON api_usage_logs(created_at);
+
+-- Support location and college scoping for builders
+ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS college VARCHAR(150);
+
+-- User badges table
+CREATE TABLE IF NOT EXISTS user_badges (
+  wallet_address VARCHAR(100) NOT NULL,
+  badge_id VARCHAR(50) NOT NULL,
+  earned_at TIMESTAMP DEFAULT NOW(),
+  PRIMARY KEY (wallet_address, badge_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_badges_wallet ON user_badges(wallet_address);
+
+-- User activity/streak table
+CREATE TABLE IF NOT EXISTS user_activity (
+  wallet_address VARCHAR(100) NOT NULL,
+  activity_date DATE NOT NULL,
+  activity_type VARCHAR(50) NOT NULL,
+  PRIMARY KEY (wallet_address, activity_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_activity_wallet ON user_activity(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_user_activity_date ON user_activity(activity_date);

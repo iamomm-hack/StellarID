@@ -7,6 +7,9 @@ jest.mock('../../src/services/redis', () => ({
   setCache: jest.fn().mockResolvedValue(undefined),
   deleteCache: jest.fn().mockResolvedValue(undefined),
   invalidateProfileCache: jest.fn().mockResolvedValue(undefined),
+  zAddLeaderboard: jest.fn().mockResolvedValue(undefined),
+  zGetLeaderboard: jest.fn().mockResolvedValue(null),
+  zGetRank: jest.fn().mockResolvedValue(null),
 }));
 
 // Mock database query

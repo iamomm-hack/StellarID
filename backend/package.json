@@ -9,7 +9,7 @@
     "start": "node dist/index.js",
     "migrate": "ts-node --files src/db/migrate.ts",
     "copy-vkeys": "mkdir -p circuits && cp ../zk-circuits/build/*_verification_key.json circuits/ 2>/dev/null || echo 'No vkeys to copy yet'",
-    "test": "jest --forceExit",
+    "test": "jest",
     "test:watch": "jest --watch"
   },
   "dependencies": {

@@ -7,6 +7,9 @@ jest.mock('../../src/services/redis', () => ({
   setCache: jest.fn().mockResolvedValue(undefined),
   deleteCache: jest.fn().mockResolvedValue(undefined),
   invalidateProfileCache: jest.fn().mockResolvedValue(undefined),
+  zAddLeaderboard: jest.fn().mockResolvedValue(undefined),
+  zGetLeaderboard: jest.fn().mockResolvedValue(null),
+  zGetRank: jest.fn().mockResolvedValue(null),
 }));
 
 // Mock database query
@@ -71,6 +74,18 @@ jest.mock('../../src/db', () => ({
     // 3. Check for recent activity within 30 days
     if (text.includes('EXISTS') && text.includes('credentials') && text.includes("30 days")) {
       return { rows: [{ has_recent: true }] };
+    }
+
+    // 3.5. Fetch user badges
+    if (text.includes('FROM user_badges') && text.includes('wallet_address = $1')) {
+      const address = params?.[0];
+      if (address === 'GD277777777777777777777777777777777777777777777777777777') {
+        return { rows: [{ badge_id: 'First Claim' }, { badge_id: 'Active Streak' }] };
+      }
+      if (address === 'GDIV2222222222222222222222222222222222222222222222222222') {
+        return { rows: [{ badge_id: 'elite_builder' }] };
+      }
+      return { rows: [] };
     }
 
     // 4. Fallback inserts/upserts (user_reputation, issuer_trust_scores)

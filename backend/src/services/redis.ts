@@ -7,6 +7,9 @@ let lastAttemptTime = 0;
 const RETRY_COOLDOWN_MS = 60 * 1000; // 1 minute cooldown between reconnection attempts
 
 async function getClient(): Promise<RedisClientType | null> {
+  if (process.env.NODE_ENV === 'test') {
+    return null;
+  }
   const now = Date.now();
 
   if (client) {
@@ -137,4 +140,66 @@ export async function invalidateProfileCache(walletAddress: string): Promise<voi
     deleteCache(`og_image_${normalizedWallet}`),
     deleteCache(`reputation_data_${normalizedWallet}`),
   ]);
+}
+
+/**
+ * Add or update user score in Redis Sorted Set leaderboard
+ */
+export async function zAddLeaderboard(walletAddress: string, score: number): Promise<void> {
+  const redis = await getClient();
+  if (redis && isConnected) {
+    try {
+      await redis.zAdd('leaderboard:global', {
+        score,
+        value: walletAddress.trim(),
+      });
+    } catch (err) {
+      console.warn('⚠️ zAddLeaderboard failed:', err);
+    }
+  }
+}
+
+/**
+ * Retrieve sorted list from global leaderboard
+ */
+export async function zGetLeaderboard(
+  limit: number,
+  offset: number
+): Promise<{ wallet: string; score: number }[] | null> {
+  const redis = await getClient();
+  if (redis && isConnected) {
+    try {
+      const results = await redis.zRangeWithScores('leaderboard:global', offset, offset + limit - 1, {
+        REV: true,
+      });
+      return results.map((r) => ({
+        wallet: r.value,
+        score: r.score,
+      }));
+    } catch (err) {
+      console.warn('⚠️ zGetLeaderboard failed:', err);
+    }
+  }
+  return null; // Fallback to DB
+}
+
+/**
+ * Retrieve rank (0-based) and score of a specific user
+ */
+export async function zGetRank(walletAddress: string): Promise<{ rank: number; score: number } | null> {
+  const redis = await getClient();
+  if (redis && isConnected) {
+    try {
+      const trimmed = walletAddress.trim();
+      const rank = await redis.zRevRank('leaderboard:global', trimmed);
+      const score = await redis.zScore('leaderboard:global', trimmed);
+      
+      if (rank !== null && score !== null) {
+        return { rank, score };
+      }
+    } catch (err) {
+      console.warn('⚠️ zGetRank failed:', err);
+    }
+  }
+  return null; // Fallback to DB
 }
