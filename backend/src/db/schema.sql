@@ -19,6 +19,11 @@ CREATE TABLE IF NOT EXISTS issuers (
   verified BOOLEAN DEFAULT false,
   logo_url TEXT,
   issuer_type VARCHAR(50) DEFAULT 'manual',
+  subscription_tier VARCHAR(20) DEFAULT 'free',
+  subscription_status VARCHAR(20) DEFAULT 'active',
+  stripe_customer_id VARCHAR(100),
+  stripe_subscription_id VARCHAR(100),
+  subscription_expires_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -297,3 +302,19 @@ CREATE TABLE IF NOT EXISTS user_activity (
 
 CREATE INDEX IF NOT EXISTS idx_user_activity_wallet ON user_activity(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_user_activity_date ON user_activity(activity_date);
+
+-- Discord Bot Integrations
+ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_id VARCHAR(50);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_username VARCHAR(100);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id) WHERE discord_id IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS discord_gates (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  guild_id VARCHAR(50) NOT NULL,
+  channel_id VARCHAR(50) NOT NULL,
+  min_tier VARCHAR(30) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(guild_id, channel_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_discord_gates_guild ON discord_gates(guild_id);

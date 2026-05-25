@@ -119,6 +119,12 @@ async function runMigrations() {
       ALTER TABLE issuers ADD COLUMN IF NOT EXISTS domain_verified_at TIMESTAMP;
       ALTER TABLE issuers ADD COLUMN IF NOT EXISTS endorsement_count INTEGER DEFAULT 0;
 
+      ALTER TABLE issuers ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR(20) DEFAULT 'free';
+      ALTER TABLE issuers ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20) DEFAULT 'active';
+      ALTER TABLE issuers ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(100);
+      ALTER TABLE issuers ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(100);
+      ALTER TABLE issuers ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP WITH TIME ZONE;
+
       CREATE TABLE IF NOT EXISTS issuer_endorsements (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         endorser_issuer_id UUID REFERENCES issuers(id) ON DELETE CASCADE,
@@ -218,6 +224,22 @@ async function runMigrations() {
 
       CREATE INDEX IF NOT EXISTS idx_user_activity_wallet ON user_activity(wallet_address);
       CREATE INDEX IF NOT EXISTS idx_user_activity_date ON user_activity(activity_date);
+
+      -- Discord Bot Integrations
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_id VARCHAR(50);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_username VARCHAR(100);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_users_discord_id ON users(discord_id) WHERE discord_id IS NOT NULL;
+
+      CREATE TABLE IF NOT EXISTS discord_gates (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        guild_id VARCHAR(50) NOT NULL,
+        channel_id VARCHAR(50) NOT NULL,
+        min_tier VARCHAR(30) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(guild_id, channel_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_discord_gates_guild ON discord_gates(guild_id);
     `);
     console.log('[Migration] Database verification, reputation, developer API, user badges & activity tables checked/created.');
   } catch (err: any) {

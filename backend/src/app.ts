@@ -18,6 +18,7 @@ import bulkRouter from './routes/bulk';
 import reputationRouter from './routes/reputation';
 import developerRouter from './routes/developer';
 import publicApiRouter from './routes/publicApi';
+import billingRouter from './routes/billing';
 import { errorHandler } from './middleware/errorHandler';
 
 
@@ -42,6 +43,9 @@ app.use(cors({
   },
   credentials: true,
 }));
+// Webhook path requires raw body for Stripe signature validation
+app.use('/api/v1/billing/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json({ limit: '10mb' }));
 
 // Health checks
@@ -70,6 +74,7 @@ app.use('/api/v1/bulk', bulkRouter);
 app.use('/api/v1/reputation', reputationRouter);
 app.use('/api/v1/developer', developerRouter);
 app.use('/api/v1/public', publicApiRouter);
+app.use('/api/v1/billing', billingRouter);
 
 
 // Error handler (must be last)

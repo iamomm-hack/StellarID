@@ -122,6 +122,12 @@ function DashboardContent() {
               <Globe className="w-3.5 h-3.5" /> Public Profile
             </Link>
             <Link
+              href="/dashboard/reputation"
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
+            >
+              <Award className="w-3.5 h-3.5 text-accent-indigo" /> Leaderboard
+            </Link>
+            <Link
               href="/dashboard/issuer-verification"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
@@ -138,6 +144,12 @@ function DashboardContent() {
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Terminal className="w-3.5 h-3.5 text-accent-indigo" /> Developer API
+            </Link>
+            <Link
+              href="/dashboard/billing"
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
+            >
+              <Zap className="w-3.5 h-3.5 text-accent-indigo" /> Plans & Billing
             </Link>
             <button
               onClick={() => setShowRequestModal(true)}
@@ -158,6 +170,7 @@ function DashboardContent() {
               value={reputationScore !== null ? reputationScore : '...'} 
               status={reputationTier} 
               color="#a855f7" 
+              isClickable={true}
             />
           </Link>
           <MetricCard label="Latency" value="24ms" status="Stable" color="#6366f1" />
@@ -252,10 +265,21 @@ function DashboardContent() {
 
 // --- UTILITY COMPONENTS ---
 
-function MetricCard({ label, value, status, color }: any) {
+function MetricCard({ label, value, status, color, isClickable }: any) {
   return (
-    <div className="protocol-panel p-7 group hover:border-white/[0.12] transition-colors">
-      <span className="text-[11px] font-mono text-muted uppercase tracking-wider block mb-4">{label}</span>
+    <div className={`protocol-panel p-7 group transition-all duration-300 ${
+      isClickable 
+        ? 'hover:border-indigo-500/40 hover:bg-indigo-500/[0.02] cursor-pointer' 
+        : 'hover:border-white/[0.12]'
+    }`}>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[11px] font-mono text-muted uppercase tracking-wider block">{label}</span>
+        {isClickable && (
+          <span className="text-[10px] font-mono text-muted group-hover:text-indigo-400 transition-colors">
+            View Details →
+          </span>
+        )}
+      </div>
       <div className="flex items-end justify-between">
         <span className="text-4xl font-bold tracking-tight">{value}</span>
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider" style={{ color }}>{status}</span>

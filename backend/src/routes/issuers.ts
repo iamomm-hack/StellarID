@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { checkSubscriptionLimits } from '../middleware/subscription';
 import { uploadToIPFS } from '../services/ipfs';
 import { mintCredentialNFT, revokeCredential } from '../services/stellar';
 import { verifyDomainDNS } from '../utils/dns';
@@ -484,7 +485,7 @@ router.get('/:id/public', async (req: Request, res: Response) => {
 });
 
 // POST /:id/mint — Issuer mints a credential NFT for a user
-router.post('/:id/mint', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/:id/mint', authMiddleware, checkSubscriptionLimits, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { userId, credentialType, claimData, expiresAt } = req.body;

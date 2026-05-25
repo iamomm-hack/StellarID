@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { checkSubscriptionLimits } from '../middleware/subscription';
 import { claimRateLimit } from '../middleware/rateLimiter';
 import { uploadToIPFS } from '../services/ipfs';
 import { mintCredentialNFT } from '../services/stellar';
@@ -152,7 +153,7 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) =>
 });
 
 // POST /issue-with-email — Issue credential invitation via email
-router.post('/issue-with-email', authMiddleware, async (req: AuthRequest, res: Response) => {
+router.post('/issue-with-email', authMiddleware, checkSubscriptionLimits, async (req: AuthRequest, res: Response) => {
   try {
     const { issuerId, recipientEmail, recipientWallet, credentialData, credentialType, expiresAt } = req.body;
 

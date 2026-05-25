@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { getIssuerSubscriptionStatus } from '../middleware/subscription';
 
 const router = Router();
 
@@ -44,13 +45,18 @@ router.post('/keys', authMiddleware, async (req: AuthRequest, res: Response): Pr
 
     const issuerId = issuerRes.rows[0].id;
 
-    // Check key limit (max 10 active keys per issuer)
+    // Check subscription key limit
     const keyCountRes = await query(
       'SELECT COUNT(*)::int as total FROM api_keys WHERE issuer_id = $1 AND revoked_at IS NULL',
       [issuerId]
     );
-    if (keyCountRes.rows[0].total >= 10) {
-      res.status(400).json({ error: 'Maximum 10 active API keys per issuer. Revoke an existing key first.' });
+    
+    const subStatus = await getIssuerSubscriptionStatus(issuerId);
+    if (keyCountRes.rows[0].total >= subStatus.limits.maxApiKeys) {
+      res.status(402).json({
+        error: 'Subscription limit exceeded',
+        message: `Your current plan (${subStatus.limits.name}) allows up to ${subStatus.limits.maxApiKeys} active API key(s). You currently have ${keyCountRes.rows[0].total} active key(s). Please upgrade your subscription plan to generate more.`,
+      });
       return;
     }
 

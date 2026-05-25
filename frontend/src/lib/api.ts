@@ -100,6 +100,10 @@ export const reputationApi = {
   recalculate: (wallet: string) => api.post(`/reputation/${wallet}/recalculate`),
   getLeaderboard: (filter = 'global', limit = 100) => api.get(`/reputation/leaderboard?filter=${filter}&limit=${limit}`),
   getHistory: (wallet: string) => api.get(`/reputation/${wallet}/history`),
+  getDiscordTokenData: (token: string) => api.get(`/reputation/discord/token/${token}`),
+  linkDiscord: (data: { token: string; stellar_address: string; signature: string; message: string }) =>
+    api.post('/reputation/discord/link', data),
+  getDiscordUser: (discordId: string) => api.get(`/reputation/discord/user/${discordId}`),
 };
 
 export const developerApi = {
@@ -107,5 +111,12 @@ export const developerApi = {
   listKeys: () => api.get('/developer/keys'),
   revokeKey: (id: string) => api.delete(`/developer/keys/${id}`),
   getUsageStats: () => api.get('/developer/usage/stats'),
+};
+
+export const billingApi = {
+  getStatus: () => api.get('/billing/status'),
+  createCheckoutSession: (tier: 'pro' | 'enterprise') => api.post('/billing/checkout-session', { tier }),
+  createPortalSession: () => api.post('/billing/portal-session'),
+  mockUpgrade: (tier: 'free' | 'pro' | 'enterprise') => api.post('/billing/mock-upgrade', { tier }),
 };
 

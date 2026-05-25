@@ -4,6 +4,7 @@ import { Readable } from 'stream';
 import csvParser from 'csv-parser';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { checkBulkUploadAccess, getIssuerSubscriptionStatus } from '../middleware/subscription';
 import { uploadToIPFS } from '../services/ipfs';
 import { bulkQueue } from '../services/bulkQueue';
 import { processBulkIssuanceJob } from '../services/bulkWorker';
@@ -31,6 +32,7 @@ function parseCSV(buffer: Buffer): Promise<any[]> {
 router.post(
   '/upload',
   authMiddleware,
+  checkBulkUploadAccess,
   upload.single('csv'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -81,6 +83,22 @@ router.post(
 
       if (rows.length === 0) {
         res.status(400).json({ error: 'CSV file is empty' });
+        return;
+      }
+
+      // Check remaining monthly credential quota
+      const subStatus = await getIssuerSubscriptionStatus(issuer.id);
+      if (subStatus.totalUsed + rows.length > subStatus.limits.maxCredentialsPerMonth) {
+        res.status(402).json({
+          error: 'Subscription limit exceeded',
+          message: `Your current tier (${subStatus.limits.name}) allows up to ${subStatus.limits.maxCredentialsPerMonth} credentials per month. This bulk upload requires ${rows.length} credentials, but you have only ${subStatus.remaining} remaining. Please upgrade your subscription.`,
+          limits: subStatus.limits,
+          usage: {
+            issued: subStatus.totalUsed,
+            requested: rows.length,
+            max: subStatus.limits.maxCredentialsPerMonth,
+          },
+        });
         return;
       }
 
