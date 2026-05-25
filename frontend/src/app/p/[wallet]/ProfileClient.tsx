@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Share2, Loader2, ShieldAlert, Cpu, CheckCircle2, Activity } from 'lucide-react';
+import { ArrowLeft, Share2, Loader2, ShieldAlert, Cpu, CheckCircle2, Activity, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { profileApi } from '../../../lib/api';
 import StellarIDCard from '../../../components/profile/StellarIDCard';
@@ -98,6 +98,21 @@ export default function ProfileClient({ wallet }: ProfileClientProps) {
           {/* Additional details list */}
           <div className="lg:col-span-5 space-y-6 w-full max-w-[640px] mx-auto lg:mx-0">
             
+            {/* AI Developer Bio */}
+            {cardData.ai_summary && (
+              <div className="rounded-3xl border border-white/[0.06] bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 p-6 backdrop-blur-md relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
+                <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-muted mb-3 flex items-center gap-2 relative z-10">
+                  <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                  <span>AI Developer Bio</span>
+                </h3>
+                <p className="text-xs text-foreground leading-relaxed relative z-10 font-sans">
+                  {cardData.ai_summary}
+                </p>
+              </div>
+            )}
+
             {/* Credentials timeline list */}
             <div className="rounded-3xl border border-white/[0.06] bg-white/[0.01] p-6 backdrop-blur-md">
               <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-muted mb-4 flex items-center gap-2">

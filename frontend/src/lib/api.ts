@@ -92,6 +92,7 @@ export const profileApi = {
   getCardData: (wallet: string) => api.get(`/profile/${wallet}/card-data`),
   getCredentials: (wallet: string) => api.get(`/profile/${wallet}/credentials`),
   getShareUrls: (wallet: string) => api.get(`/profile/${wallet}/share-url`),
+  generateBio: () => api.post('/profile/generate-bio'),
 };
 
 export const reputationApi = {

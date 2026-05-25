@@ -36,7 +36,7 @@ if (process.env.NODE_ENV === 'test') {
     },
   });
 
-  bulkQueue.on('error', (err) => {
+  bulkQueue.on('error', (err: any) => {
     console.warn('⚠️ BullMQ Queue: Redis connection error (using in-memory fallback):', err.message);
   });
 

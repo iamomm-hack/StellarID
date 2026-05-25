@@ -1,30 +1,127 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useWallet } from '../../hooks/useWallet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Loader2, ShieldCheck, ChevronDown, Zap, Wifi, Activity, Lock } from 'lucide-react';
+import {
+  LogOut, Loader2, ShieldCheck, ChevronDown, Zap, Wifi,
+  Activity, Lock, Sparkles, Github, Linkedin, Copy, Check, User
+} from 'lucide-react';
+import { profileApi } from '../../lib/api';
 
 export default function ConnectWallet() {
   const { connect, disconnect, loading, error, address, isConnected } = useWallet();
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Profile data states
+  const [displayName, setDisplayName] = useState<string>('Builder');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [githubConnected, setGithubConnected] = useState<boolean>(false);
+  const [linkedinConnected, setLinkedinConnected] = useState<boolean>(false);
+  const [isGeneratingBio, setIsGeneratingBio] = useState<boolean>(false);
+  const [bioError, setBioError] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const truncateAddress = (addr: string) =>
     `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 
+  const fetchProfileData = useCallback(async () => {
+    if (!address) return;
+    try {
+      const cardRes = await profileApi.getCardData(address);
+      if (cardRes.data) {
+        setDisplayName(cardRes.data.display_name || 'Builder');
+        setAvatarUrl(cardRes.data.avatar_url || null);
+        setAiSummary(cardRes.data.ai_summary || null);
+        setGithubConnected(cardRes.data.display_name !== 'Builder');
+      }
+
+      const credsRes = await profileApi.getCredentials(address);
+      if (Array.isArray(credsRes.data)) {
+        const hasLinkedin = credsRes.data.some((c: any) =>
+          c.credential_type?.toLowerCase().includes('linkedin')
+        );
+        setLinkedinConnected(hasLinkedin);
+      }
+    } catch (err) {
+      console.error('Failed to fetch wallet dropdown profile data:', err);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchProfileData();
+    }
+  }, [isConnected, address, fetchProfileData]);
+
+  // Re-fetch when dropdown opens to guarantee up-to-date info
+  useEffect(() => {
+    if (showDropdown && isConnected && address) {
+      fetchProfileData();
+    }
+  }, [showDropdown, isConnected, address, fetchProfileData]);
+
+  const handleGenerateBio = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsGeneratingBio(true);
+    setBioError(null);
+    try {
+      const res = await profileApi.generateBio();
+      if (res.data && res.data.bio) {
+        setAiSummary(res.data.bio);
+      }
+    } catch (err: any) {
+      console.error('Failed to generate bio in header:', err);
+      setBioError(err.response?.data?.error || 'Failed to generate bio');
+    } finally {
+      setIsGeneratingBio(false);
+    }
+  };
+
+  const handleCopyAddress = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
   // --- CONNECTED STATE ---
   if (isConnected && address) {
     return (
-      <div className="relative z-[100]" onMouseLeave={() => setShowDropdown(false)}>
+      <div ref={dropdownRef} className="relative z-[100]">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
           className="group flex items-center gap-3 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] hover:border-accent-indigo/30 transition-all duration-300"
         >
-          <div className="relative">
+          {avatarUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className="w-4 h-4 rounded-full border border-white/[0.1] object-cover"
+            />
+          ) : (
             <ShieldCheck className="w-3.5 h-3.5 text-accent-indigo" />
-          </div>
+          )}
           <span className="text-[11px] font-bold text-foreground tracking-wider font-mono">
-            {truncateAddress(address)}
+            {displayName !== 'Builder' ? displayName : truncateAddress(address)}
           </span>
           <ChevronDown className={`w-3 h-3 text-muted transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`} />
         </button>
@@ -35,18 +132,119 @@ export default function ConnectWallet() {
               initial={{ opacity: 0, y: 8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.96 }}
-              transition={{ duration: 0.25, ease: [.23, 1, .32, 1] }}
-              className="absolute right-0 mt-3 w-72 rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden"
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+              className="absolute right-0 mt-3 w-80 rounded-2xl border border-white/[0.06] shadow-2xl overflow-hidden"
               style={{ background: 'var(--surface)' }}
             >
-              {/* Address */}
-              <div className="px-5 py-4 border-b border-white/[0.06]">
-                <p className="text-[10px] font-mono text-muted mb-2 uppercase tracking-wider">Connected Wallet</p>
-                <p className="text-[11px] font-mono text-foreground/70 break-all leading-relaxed">{address}</p>
+              {/* Profile Header */}
+              <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {avatarUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-5 h-5 text-muted" />
+                  )}
+                </div>
+
+                <div className="flex-grow min-w-0">
+                  <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[10px] font-mono text-muted truncate max-w-[120px]">
+                      {truncateAddress(address)}
+                    </span>
+                    <button
+                      onClick={handleCopyAddress}
+                      className="p-1 rounded hover:bg-white/[0.05] transition-colors text-muted hover:text-white"
+                    >
+                      {isCopied ? (
+                        <Check className="w-3 h-3 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI developer Bio */}
+              <div className="px-5 py-4 border-b border-white/[0.06] space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                    <span className="text-[10px] font-mono text-muted uppercase tracking-wider">AI Developer Bio</span>
+                  </div>
+                  <button
+                    onClick={handleGenerateBio}
+                    disabled={isGeneratingBio}
+                    className="text-[9px] font-mono text-accent-indigo hover:text-white transition-colors flex items-center gap-1 bg-white/[0.03] hover:bg-white/[0.06] px-2 py-1 rounded-md border border-white/[0.06] disabled:opacity-50"
+                  >
+                    {isGeneratingBio ? (
+                      <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                    ) : aiSummary ? (
+                      'Regenerate'
+                    ) : (
+                      'Generate'
+                    )}
+                  </button>
+                </div>
+                {aiSummary ? (
+                  <p className="text-[10px] text-foreground/80 leading-relaxed font-sans max-h-24 overflow-y-auto pr-1 select-text">
+                    {aiSummary}
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-muted/50 italic leading-relaxed">
+                    No bio generated yet. Click generate to build your AI profile.
+                  </p>
+                )}
+                {bioError && (
+                  <p className="text-[9px] text-red-400 font-mono">{bioError}</p>
+                )}
+              </div>
+
+              {/* Connections */}
+              <div className="px-5 py-4 border-b border-white/[0.06] space-y-3">
+                <p className="text-[10px] font-mono text-muted uppercase tracking-wider">Social Integrations</p>
+                
+                {/* GitHub Connection */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Github className="w-4 h-4 text-muted" />
+                    <span className="text-[11px] font-medium text-foreground">GitHub Identity</span>
+                  </div>
+                  {githubConnected ? (
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Connected</span>
+                  ) : (
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/github-issuer/auth?stellarAddress=${address}`}
+                      className="text-[10px] font-mono text-accent-indigo hover:text-white transition-colors underline"
+                    >
+                      Connect
+                    </a>
+                  )}
+                </div>
+
+                {/* LinkedIn Connection */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-muted" />
+                    <span className="text-[11px] font-medium text-foreground">LinkedIn Profile</span>
+                  </div>
+                  {linkedinConnected ? (
+                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Connected</span>
+                  ) : (
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1'}/linkedin-issuer/auth?stellarAddress=${address}`}
+                      className="text-[10px] font-mono text-accent-indigo hover:text-white transition-colors underline"
+                    >
+                      Connect
+                    </a>
+                  )}
+                </div>
               </div>
 
               {/* Stats */}
-              <div className="p-5 space-y-3">
+              <div className="p-5 space-y-3 border-b border-white/[0.06]">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <Wifi className="w-3 h-3 text-muted" />
@@ -66,7 +264,7 @@ export default function ConnectWallet() {
               {/* Disconnect */}
               <button
                 onClick={() => { disconnect(); setShowDropdown(false); }}
-                className="w-full flex items-center justify-between px-5 py-3.5 border-t border-white/[0.06] hover:bg-red-500/5 transition-colors group"
+                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-red-500/5 transition-colors group"
               >
                 <div className="flex items-center gap-2">
                   <LogOut className="w-3.5 h-3.5 text-red-400 group-hover:-translate-x-0.5 transition-transform" />
@@ -99,7 +297,7 @@ export default function ConnectWallet() {
       {/* Error */}
       <AnimatePresence>
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}

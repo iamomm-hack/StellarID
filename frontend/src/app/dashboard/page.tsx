@@ -19,9 +19,9 @@ import ConnectWallet from '../../components/wallet/ConnectWallet';
 
 // Icons
 import {
-  Shield, Plus, Github, Linkedin, Award, CheckCircle2,
-  Loader2, AlertCircle, Zap, Cpu, Activity, Fingerprint,
-  Lock, ArrowUpRight, Terminal, Globe, HardDrive, Upload
+  Shield, Plus, Award, CheckCircle2,
+  AlertCircle, Zap, Activity, Fingerprint,
+  Lock, Terminal, Globe, HardDrive, Upload
 } from 'lucide-react';
 
 
@@ -44,7 +44,7 @@ function DashboardContent() {
   const [reputationScore, setReputationScore] = useState<number | null>(null);
   const [reputationTier, setReputationTier] = useState<string>('Verified');
 
-  // Fetch reputation
+  // Fetch reputation score and tier
   useEffect(() => {
     if (isConnected && address) {
       reputationApi.getReputation(address)
@@ -127,18 +127,6 @@ function DashboardContent() {
             >
               <Shield className="w-3.5 h-3.5 text-accent-indigo" /> Issuer Portal
             </Link>
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL}/github-issuer/auth?stellarAddress=${address}`}
-              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2"
-            >
-              <Github className="w-3.5 h-3.5" /> GitHub
-            </a>
-            <a
-              href={`${process.env.NEXT_PUBLIC_API_URL}/linkedin-issuer/auth?stellarAddress=${address}`}
-              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2"
-            >
-              <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-            </a>
             <Link
               href="/dashboard/bulk-issue"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
@@ -174,6 +162,7 @@ function DashboardContent() {
           </Link>
           <MetricCard label="Latency" value="24ms" status="Stable" color="#6366f1" />
         </motion.div>
+ 
 
         {/* --- ALERTS --- */}
         <AnimatePresence>
@@ -187,43 +176,15 @@ function DashboardContent() {
           )}
         </AnimatePresence>
 
-        <div className="grid lg:grid-cols-12 gap-6 mb-16">
+        <div className="mb-16">
           {/* Main Proving Unit */}
-          <motion.div variants={fadeUp} custom={2} className="lg:col-span-8">
+          <motion.div variants={fadeUp} custom={2} className="w-full">
             <div className="flex items-center gap-3 mb-5">
               <Terminal className="w-4 h-4 text-accent-indigo" />
               <h2 className="text-lg font-bold">Identity Prover</h2>
             </div>
             <div className="protocol-panel p-1 overflow-hidden">
               <LiveDemo />
-            </div>
-          </motion.div>
-
-          {/* Integrations Panel */}
-          <motion.div variants={fadeUp} custom={3} className="lg:col-span-4">
-            <div className="flex items-center gap-3 mb-5">
-              <Cpu className="w-4 h-4 text-muted" />
-              <h2 className="text-lg font-bold text-muted">Integrations</h2>
-            </div>
-            <div className="protocol-panel divide-y divide-white/[0.06] overflow-hidden">
-              <HubItem
-                icon={Github}
-                title="Developer Identity"
-                desc="Verify repo ownership & commits"
-                href={`${process.env.NEXT_PUBLIC_API_URL}/github-issuer/auth?stellarAddress=${address}`}
-              />
-              <HubItem
-                icon={Linkedin}
-                title="Professional Profile"
-                desc="Career verification status"
-                href={`${process.env.NEXT_PUBLIC_API_URL}/linkedin-issuer/auth?stellarAddress=${address}`}
-              />
-              <HubItem
-                icon={Shield}
-                title="Protocol API"
-                desc="Developer documentation"
-                href="/docs"
-              />
             </div>
           </motion.div>
         </div>
@@ -300,21 +261,6 @@ function MetricCard({ label, value, status, color }: any) {
         <span className="text-[10px] font-mono font-bold uppercase tracking-wider" style={{ color }}>{status}</span>
       </div>
     </div>
-  );
-}
-
-function HubItem({ icon: Icon, title, desc, href }: any) {
-  return (
-    <a href={href} className="group flex items-center gap-4 p-5 hover:bg-white/[0.02] transition-colors">
-      <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] group-hover:border-accent-indigo/30 transition-all">
-        <Icon className="w-4 h-4 text-muted group-hover:text-accent-indigo" />
-      </div>
-      <div className="flex-grow">
-        <h4 className="text-sm font-bold text-foreground group-hover:text-white transition-colors">{title}</h4>
-        <p className="text-[11px] text-muted mt-0.5">{desc}</p>
-      </div>
-      <ArrowUpRight className="w-4 h-4 text-muted/30 group-hover:text-accent-indigo transition-all" />
-    </a>
   );
 }
 

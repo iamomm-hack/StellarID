@@ -5,6 +5,7 @@ import { calculateAndSaveUserReputation, recordActivity } from '../utils/reputat
 import { generateCardSvg } from '../utils/cardTemplate';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { BADGE_DEFINITIONS } from '../config/badges';
+import { generateDeveloperBio } from '../services/ai';
 import sharp from 'sharp';
 import axios from 'axios';
 
@@ -37,7 +38,7 @@ router.get('/:wallet_address/card-data', async (req: Request, res: Response): Pr
 
     // Check if user exists in database
     const userRes = await query(
-      'SELECT id, created_at, github_username FROM users WHERE stellar_address = $1',
+      'SELECT id, created_at, github_username, ai_summary FROM users WHERE stellar_address = $1',
       [wallet_address]
     );
 
@@ -54,6 +55,7 @@ router.get('/:wallet_address/card-data', async (req: Request, res: Response): Pr
         badges: [],
         member_since: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         stellar_network: process.env.STELLAR_NETWORK || 'testnet',
+        ai_summary: null,
       };
       await setCache(cacheKey, JSON.stringify(defaultCard), CARD_CACHE_TTL);
       res.json(defaultCard);
@@ -108,6 +110,7 @@ router.get('/:wallet_address/card-data', async (req: Request, res: Response): Pr
       badges,
       member_since: memberSince,
       stellar_network: process.env.STELLAR_NETWORK || 'testnet',
+      ai_summary: user.ai_summary || null,
     };
 
     await setCache(cacheKey, JSON.stringify(cardData), CARD_CACHE_TTL);
@@ -394,6 +397,74 @@ router.put('/update', authMiddleware, async (req: AuthRequest, res: Response): P
   } catch (err: any) {
     console.error('Error updating profile:', err);
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+/**
+ * POST /api/v1/profile/generate-bio
+ * Generates and saves a developer bio based on credentials and reputation.
+ */
+router.post('/generate-bio', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    
+    // Fetch user details including stellar_address
+    const userRes = await query(
+      'SELECT stellar_address FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userRes.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const { stellar_address } = userRes.rows[0];
+
+    // Compute/fetch user reputation
+    const rep = await calculateAndSaveUserReputation(stellar_address);
+
+    // Fetch user credentials
+    const credsRes = await query(
+      `SELECT c.credential_type, i.name as issuer_name
+       FROM credentials c
+       JOIN issuers i ON c.issuer_id = i.id
+       WHERE c.user_id = $1 AND c.revoked = false AND c.expired = false`,
+      [userId]
+    );
+
+    // Fetch user badges
+    const badgesRes = await query(
+      `SELECT badge_id FROM user_badges WHERE wallet_address = $1`,
+      [stellar_address]
+    );
+    const badges = badgesRes.rows.map((row: any) => {
+      const def = BADGE_DEFINITIONS.find((b) => b.id === row.badge_id);
+      return def ? def.name : row.badge_id;
+    });
+
+    // Generate bio
+    const bio = await generateDeveloperBio(stellar_address, credsRes.rows, rep, badges);
+
+    // Update users table with the generated bio
+    await query(
+      'UPDATE users SET ai_summary = $1 WHERE id = $2',
+      [bio, userId]
+    );
+
+    // Record activity for profile update
+    await recordActivity(stellar_address, 'generate_bio');
+
+    // Invalidate profile caching
+    await invalidateProfileCache(stellar_address);
+
+    res.json({
+      success: true,
+      bio,
+    });
+  } catch (err: any) {
+    console.error('Error generating profile bio:', err);
+    res.status(500).json({ error: 'Failed to generate profile bio' });
   }
 });
 
