@@ -49,3 +49,8 @@ coverage/
 
 # Docker
 postgres_data/
+
+# Documentation and context files
+StellarID_Implementation_Prompts.md
+StellarID_P0_P3_Features.md
+migration_context.md

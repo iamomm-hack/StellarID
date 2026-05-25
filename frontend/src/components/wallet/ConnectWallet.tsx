@@ -31,11 +31,14 @@ export default function ConnectWallet() {
   const [displayName, setDisplayName] = useState<string>('Builder');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [typedSummary, setTypedSummary] = useState<string>('');
+  const [selectedFormat, setSelectedFormat] = useState<'linkedin' | 'twitter' | 'resume'>('linkedin');
   const [githubConnected, setGithubConnected] = useState<boolean>(false);
   const [linkedinConnected, setLinkedinConnected] = useState<boolean>(false);
   const [isGeneratingBio, setIsGeneratingBio] = useState<boolean>(false);
   const [bioError, setBioError] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const truncateAddress = (addr: string) =>
     `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -47,7 +50,9 @@ export default function ConnectWallet() {
       if (cardRes.data) {
         setDisplayName(cardRes.data.display_name || 'Builder');
         setAvatarUrl(cardRes.data.avatar_url || null);
-        setAiSummary(cardRes.data.ai_summary || null);
+        const bio = cardRes.data.ai_summary || null;
+        setAiSummary(bio);
+        setTypedSummary(bio || '');
         setGithubConnected(cardRes.data.display_name !== 'Builder');
       }
 
@@ -76,14 +81,42 @@ export default function ConnectWallet() {
     }
   }, [showDropdown, isConnected, address, fetchProfileData]);
 
-  const handleGenerateBio = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  // Cleanup typewriter timeouts
+  useEffect(() => {
+    return () => {
+      if (typewriterTimeoutRef.current) {
+        clearTimeout(typewriterTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const animateTypewriter = (text: string) => {
+    if (typewriterTimeoutRef.current) {
+      clearTimeout(typewriterTimeoutRef.current);
+    }
+    setTypedSummary('');
+    let i = 0;
+    const speed = 12; // ms per character
+    const type = () => {
+      if (i < text.length) {
+        setTypedSummary(text.slice(0, i + 1));
+        i++;
+        typewriterTimeoutRef.current = setTimeout(type, speed);
+      }
+    };
+    type();
+  };
+
+  const handleGenerateBio = async (e?: React.MouseEvent, formatOverride?: 'linkedin' | 'twitter' | 'resume') => {
+    if (e) e.stopPropagation();
+    const format = formatOverride || selectedFormat;
     setIsGeneratingBio(true);
     setBioError(null);
     try {
-      const res = await profileApi.generateBio();
+      const res = await profileApi.generateBio(format);
       if (res.data && res.data.bio) {
         setAiSummary(res.data.bio);
+        animateTypewriter(res.data.bio);
       }
     } catch (err: any) {
       console.error('Failed to generate bio in header:', err);
@@ -91,6 +124,12 @@ export default function ConnectWallet() {
     } finally {
       setIsGeneratingBio(false);
     }
+  };
+
+  const handleFormatChange = (format: 'linkedin' | 'twitter' | 'resume', e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedFormat(format);
+    handleGenerateBio(undefined, format);
   };
 
   const handleCopyAddress = (e: React.MouseEvent) => {
@@ -168,14 +207,14 @@ export default function ConnectWallet() {
               </div>
 
               {/* AI developer Bio */}
-              <div className="px-5 py-4 border-b border-white/[0.06] space-y-2">
+              <div className="px-5 py-4 border-b border-white/[0.06] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
                     <span className="text-[10px] font-mono text-muted uppercase tracking-wider">AI Developer Bio</span>
                   </div>
                   <button
-                    onClick={handleGenerateBio}
+                    onClick={(e) => handleGenerateBio(e)}
                     disabled={isGeneratingBio}
                     className="text-[9px] font-mono text-accent-indigo hover:text-white transition-colors flex items-center gap-1 bg-white/[0.03] hover:bg-white/[0.06] px-2 py-1 rounded-md border border-white/[0.06] disabled:opacity-50"
                   >
@@ -188,9 +227,28 @@ export default function ConnectWallet() {
                     )}
                   </button>
                 </div>
-                {aiSummary ? (
+
+                {/* Format Toggle Buttons */}
+                <div className="flex rounded-lg bg-white/[0.03] p-0.5 border border-white/[0.06] text-[9px] font-mono">
+                  {(['linkedin', 'twitter', 'resume'] as const).map((fmt) => (
+                    <button
+                      key={fmt}
+                      onClick={(e) => handleFormatChange(fmt, e)}
+                      disabled={isGeneratingBio}
+                      className={`flex-1 py-1 px-1.5 rounded-md text-center capitalize transition-all duration-200 ${
+                        selectedFormat === fmt
+                          ? 'bg-accent-indigo text-white font-bold shadow-md shadow-accent-indigo/25'
+                          : 'text-muted hover:text-white'
+                      } disabled:opacity-50`}
+                    >
+                      {fmt}
+                    </button>
+                  ))}
+                </div>
+
+                {typedSummary ? (
                   <p className="text-[10px] text-foreground/80 leading-relaxed font-sans max-h-24 overflow-y-auto pr-1 select-text">
-                    {aiSummary}
+                    {typedSummary}
                   </p>
                 ) : (
                   <p className="text-[10px] text-muted/50 italic leading-relaxed">

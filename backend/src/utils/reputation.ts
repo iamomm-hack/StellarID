@@ -313,14 +313,14 @@ export async function getUserStreak(walletAddress: string): Promise<{ currentStr
   try {
     const normalizedWallet = walletAddress.trim();
     const result = await query(
-      `SELECT DISTINCT activity_date::text as date_str
+      `SELECT DISTINCT activity_date
        FROM user_activity
        WHERE wallet_address = $1
        ORDER BY activity_date DESC`,
       [normalizedWallet]
     );
 
-    const dates = result.rows.map((row) => new Date(row.date_str));
+    const dates = result.rows.map((row) => new Date(row.activity_date));
     if (dates.length === 0) {
       return { currentStreak: 0, longestStreak: 0 };
     }

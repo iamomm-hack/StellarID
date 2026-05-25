@@ -443,8 +443,14 @@ router.post('/generate-bio', authMiddleware, async (req: AuthRequest, res: Respo
       return def ? def.name : row.badge_id;
     });
 
+    const { format = 'linkedin' } = req.body;
+    if (format && !['linkedin', 'twitter', 'resume'].includes(format)) {
+      res.status(400).json({ error: 'Invalid format. Must be linkedin, twitter, or resume.' });
+      return;
+    }
+
     // Generate bio
-    const bio = await generateDeveloperBio(stellar_address, credsRes.rows, rep, badges);
+    const bio = await generateDeveloperBio(stellar_address, credsRes.rows, rep, badges, format as any);
 
     // Update users table with the generated bio
     await query(
