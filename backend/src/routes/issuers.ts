@@ -59,6 +59,133 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
   }
 });
 
+// GET /me/analytics — Get issuer stats & metrics (private)
+router.get('/me/analytics', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    // 1. Fetch issuer profile using stellar_address
+    const issuerRes = await query(
+      'SELECT id, subscription_tier FROM issuers WHERE stellar_address = $1',
+      [req.user!.stellar_address]
+    );
+
+    if (issuerRes.rows.length === 0) {
+      res.status(404).json({ error: 'No issuer profile found for this wallet' });
+      return;
+    }
+
+    const issuerId = issuerRes.rows[0].id;
+    const tier = issuerRes.rows[0].subscription_tier || 'free';
+
+    // 2. Fetch credential status counts
+    const credStatsRes = await query(
+      `SELECT 
+        COUNT(*) as total,
+        COUNT(CASE WHEN revoked = true THEN 1 END) as revoked,
+        COUNT(CASE WHEN expires_at < NOW() AND expired = true THEN 1 END) as expired,
+        COUNT(CASE WHEN revoked = false AND (expires_at IS NULL OR expires_at >= NOW()) THEN 1 END) as active
+       FROM credentials 
+       WHERE issuer_id = $1`,
+      [issuerId]
+    );
+    const credStats = credStatsRes.rows[0] || { total: 0, revoked: 0, expired: 0, active: 0 };
+
+    // 3. Fetch pending vs claimed email credentials
+    const pendingStatsRes = await query(
+      `SELECT 
+        COUNT(*) as total,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
+        COUNT(CASE WHEN status = 'claimed' THEN 1 END) as claimed
+       FROM pending_credentials 
+       WHERE issuer_id = $1`,
+      [issuerId]
+    );
+    const pendingStats = pendingStatsRes.rows[0] || { total: 0, pending: 0, claimed: 0 };
+
+    // 4. Fetch daily issuance for the last 30 days
+    const dailyIssuanceRes = await query(
+      `SELECT 
+        TO_CHAR(issued_at, 'YYYY-MM-DD') as date,
+        COUNT(*) as count
+       FROM credentials
+       WHERE issuer_id = $1 AND issued_at >= NOW() - INTERVAL '30 days'
+       GROUP BY TO_CHAR(issued_at, 'YYYY-MM-DD')
+       ORDER BY date ASC`,
+      [issuerId]
+    );
+
+    // 5. Fetch bulk job summaries
+    const bulkJobsRes = await query(
+      `SELECT 
+        COUNT(*) as total_jobs,
+        COALESCE(SUM(total_recipients), 0) as total_recipients,
+        COALESCE(SUM(success_count), 0) as total_success,
+        COALESCE(SUM(failed_count), 0) as total_failed
+       FROM bulk_issuance_jobs
+       WHERE issuer_id = $1`,
+      [issuerId]
+    );
+    const bulkStats = bulkJobsRes.rows[0] || { total_jobs: 0, total_recipients: 0, total_success: 0, total_failed: 0 };
+
+    // 6. Fetch developer API usage logs over the last 7 days
+    const apiUsageRes = await query(
+      `SELECT 
+        TO_CHAR(l.created_at, 'YYYY-MM-DD') as date,
+        COUNT(*) as count,
+        ROUND(AVG(l.response_time_ms)) as avg_response_time
+       FROM api_usage_logs l
+       JOIN api_keys k ON l.api_key_id = k.id
+       WHERE k.issuer_id = $1 AND l.created_at >= NOW() - INTERVAL '7 days'
+       GROUP BY TO_CHAR(l.created_at, 'YYYY-MM-DD')
+       ORDER BY date ASC`,
+      [issuerId]
+    );
+
+    // 7. Active developer keys count
+    const apiKeysCountRes = await query(
+      `SELECT COUNT(*) as count FROM api_keys WHERE issuer_id = $1 AND revoked_at IS NULL`,
+      [issuerId]
+    );
+    const apiKeysCount = apiKeysCountRes.rows[0]?.count || 0;
+
+    res.json({
+      tier,
+      credentials: {
+        total: parseInt(credStats.total || '0'),
+        revoked: parseInt(credStats.revoked || '0'),
+        expired: parseInt(credStats.expired || '0'),
+        active: parseInt(credStats.active || '0'),
+      },
+      claiming: {
+        total: parseInt(pendingStats.total || '0'),
+        pending: parseInt(pendingStats.pending || '0'),
+        claimed: parseInt(pendingStats.claimed || '0'),
+      },
+      dailyIssuance: dailyIssuanceRes.rows.map(r => ({
+        date: r.date,
+        count: parseInt(r.count || '0')
+      })),
+      bulkJobs: {
+        totalJobs: parseInt(bulkStats.total_jobs || '0'),
+        totalRecipients: parseInt(bulkStats.total_recipients || '0'),
+        totalSuccess: parseInt(bulkStats.total_success || '0'),
+        totalFailed: parseInt(bulkStats.total_failed || '0'),
+      },
+      apiKeys: {
+        activeCount: parseInt(apiKeysCount || '0'),
+      },
+      apiUsage: apiUsageRes.rows.map(r => ({
+        date: r.date,
+        count: parseInt(r.count || '0'),
+        avgResponseTimeMs: parseInt(r.avg_response_time || '0')
+      }))
+    });
+
+  } catch (err: any) {
+    console.error('Fetch issuer analytics error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch issuer analytics' });
+  }
+});
+
 // POST /register — Register a new issuer profile (private)
 router.post('/register', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {

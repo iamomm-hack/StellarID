@@ -2,8 +2,9 @@ import { Resend } from 'resend';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resendFromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@stellarid.io';
+const useMockEmail = process.env.USE_MOCK_EMAIL === 'true';
 
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
+const resend = (resendApiKey && !useMockEmail) ? new Resend(resendApiKey) : null;
 
 /**
  * Clean, modern dark-themed HTML email template for claim invitation

@@ -43,6 +43,7 @@ export default function BillingPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [paymentToken, setPaymentToken] = useState<'xlm' | 'usdc'>('xlm');
 
   useEffect(() => {
     if (isConnected) {
@@ -119,7 +120,7 @@ export default function BillingPage() {
       }
 
       // 2. Request backend to prepare payment transaction XDR
-      const prepRes = await billingApi.prepareStellarPayment(tier, address);
+      const prepRes = await billingApi.prepareStellarPayment(tier, address, paymentToken);
       const { xdr } = prepRes.data;
 
       // 3. Prompt user to sign transaction with Freighter
@@ -367,6 +368,35 @@ export default function BillingPage() {
                 </div>
               </div>
 
+              {/* Token Selector */}
+              <div className="flex flex-col items-center justify-center mb-10">
+                <span className="text-xs font-mono text-zinc-500 mb-2.5 uppercase tracking-widest">Select Payment Token</span>
+                <div className="flex bg-gray-900 border border-white/5 rounded-xl p-1.5 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentToken('xlm')}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-xs font-semibold transition-all ${
+                      paymentToken === 'xlm'
+                        ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    🚀 XLM (Stellar Native)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentToken('usdc')}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-xs font-semibold transition-all ${
+                      paymentToken === 'usdc'
+                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    💵 USDC (Circle Stable)
+                  </button>
+                </div>
+              </div>
+
               {/* Plans Comparison Grid */}
               <h2 className="text-2xl font-bold font-display text-center mb-8">Select Your Tier</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
@@ -419,10 +449,14 @@ export default function BillingPage() {
                     
                     <div className="my-6 flex flex-col">
                       <div className="flex items-baseline">
-                        <span className="text-3xl font-bold font-mono">50 XLM</span>
+                        <span className="text-3xl font-bold font-mono">
+                          {paymentToken === 'xlm' ? '50 XLM' : '10 USDC'}
+                        </span>
                         <span className="text-xs text-muted ml-1"> / month</span>
                       </div>
-                      <span className="text-[10px] text-muted-more font-mono mt-1">(approx. $7.50 USD)</span>
+                      <span className="text-[10px] text-muted-more font-mono mt-1">
+                        {paymentToken === 'xlm' ? '(approx. $7.50 USD)' : '(1:1 USD Stablecoin)'}
+                      </span>
                     </div>
 
                     <div className="space-y-3 border-t border-white/[0.06] pt-6">
@@ -444,7 +478,11 @@ export default function BillingPage() {
                           : 'btn-stellar'
                       }`}
                     >
-                      {actionLoading === 'pro' ? 'Paying XLM...' : billing.tier === 'pro' ? 'Active Plan' : 'Pay 50 XLM'}
+                      {actionLoading === 'pro'
+                        ? `Paying ${paymentToken.toUpperCase()}...`
+                        : billing.tier === 'pro'
+                        ? 'Active Plan'
+                        : `Pay ${paymentToken === 'xlm' ? '50 XLM' : '10 USDC'}`}
                     </button>
                     {billing.mockMode && billing.tier !== 'pro' && (
                       <button 
@@ -470,10 +508,14 @@ export default function BillingPage() {
                     
                     <div className="my-6 flex flex-col">
                       <div className="flex items-baseline">
-                        <span className="text-3xl font-bold font-mono">250 XLM</span>
+                        <span className="text-3xl font-bold font-mono">
+                          {paymentToken === 'xlm' ? '250 XLM' : '50 USDC'}
+                        </span>
                         <span className="text-xs text-muted ml-1"> / month</span>
                       </div>
-                      <span className="text-[10px] text-muted-more font-mono mt-1">(approx. $37.50 USD)</span>
+                      <span className="text-[10px] text-muted-more font-mono mt-1">
+                        {paymentToken === 'xlm' ? '(approx. $37.50 USD)' : '(1:1 USD Stablecoin)'}
+                      </span>
                     </div>
 
                     <div className="space-y-3 border-t border-white/[0.06] pt-6">
@@ -495,7 +537,11 @@ export default function BillingPage() {
                           : 'btn-stellar'
                       }`}
                     >
-                      {actionLoading === 'enterprise' ? 'Paying XLM...' : billing.tier === 'enterprise' ? 'Active Plan' : 'Pay 250 XLM'}
+                      {actionLoading === 'enterprise'
+                        ? `Paying ${paymentToken.toUpperCase()}...`
+                        : billing.tier === 'enterprise'
+                        ? 'Active Plan'
+                        : `Pay ${paymentToken === 'xlm' ? '250 XLM' : '50 USDC'}`}
                     </button>
                     {billing.mockMode && billing.tier !== 'enterprise' && (
                       <button 

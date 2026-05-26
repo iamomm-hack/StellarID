@@ -25,6 +25,20 @@ const STELLAR_PRICES = {
   enterprise: '250.0000000', // 250 XLM
 };
 
+// USDC pricing configurations (in USDC)
+const USDC_PRICES = {
+  pro: '10.0000000', // 10 USDC
+  enterprise: '50.0000000', // 50 USDC
+};
+
+const isPublicNetwork = process.env.STELLAR_PASSPHRASE === 'Public Global Stellar Network ; October 2015';
+const USDC_ASSET_CODE = 'USDC';
+const USDC_ASSET_ISSUER = isPublicNetwork
+  ? 'GA5ZWOVKKQKEE52AEZBN5K4SVN6JD3VPJPOOH2T6GEZGWAMCB76UVO5U'
+  : 'GBBD47IF6LWK7P7KTUWFGVTXEFMGVEKB3F4HWOTR6SGC25XC3KV4EQRH';
+
+const USDC_ASSET = new StellarSdk.Asset(USDC_ASSET_CODE, USDC_ASSET_ISSUER);
+
 const FEE_SPONSOR_SECRET = process.env.FEE_SPONSOR_SECRET || '';
 const BILLING_DESTINATION_ADDRESS = process.env.BILLING_DESTINATION_ADDRESS ||
   (FEE_SPONSOR_SECRET ? StellarSdk.Keypair.fromSecret(FEE_SPONSOR_SECRET).publicKey() : '');
@@ -60,6 +74,9 @@ router.get('/status', authMiddleware, async (req: AuthRequest, res: Response): P
       stripeSubscriptionId: stripe_subscription_id,
       mockMode: IS_MOCK_MODE,
       stellarPrices: STELLAR_PRICES,
+      usdcPrices: USDC_PRICES,
+      usdcAssetCode: USDC_ASSET_CODE,
+      usdcAssetIssuer: USDC_ASSET_ISSUER,
       billingDestinationAddress: BILLING_DESTINATION_ADDRESS,
     });
   } catch (err: any) {
@@ -372,7 +389,7 @@ router.post(
  */
 router.post('/prepare-stellar-payment', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { tier, senderAddress } = req.body;
+    const { tier, senderAddress, paymentToken = 'xlm' } = req.body;
 
     if (!tier || !['pro', 'enterprise'].includes(tier)) {
       res.status(400).json({ error: 'Invalid subscription tier selected' });
@@ -381,6 +398,11 @@ router.post('/prepare-stellar-payment', authMiddleware, async (req: AuthRequest,
 
     if (!senderAddress || !StellarSdk.StrKey.isValidEd25519PublicKey(senderAddress)) {
       res.status(400).json({ error: 'Invalid Stellar sender address' });
+      return;
+    }
+
+    if (!['xlm', 'usdc'].includes(paymentToken)) {
+      res.status(400).json({ error: 'Invalid payment token type. Must be "xlm" or "usdc"' });
       return;
     }
 
@@ -401,7 +423,13 @@ router.post('/prepare-stellar-payment', authMiddleware, async (req: AuthRequest,
       return;
     }
 
-    const price = STELLAR_PRICES[tier as 'pro' | 'enterprise'];
+    const price = paymentToken === 'usdc'
+      ? USDC_PRICES[tier as 'pro' | 'enterprise']
+      : STELLAR_PRICES[tier as 'pro' | 'enterprise'];
+
+    const asset = paymentToken === 'usdc'
+      ? USDC_ASSET
+      : StellarSdk.Asset.native();
 
     // Build the transaction
     const tx = new StellarSdk.TransactionBuilder(account, {
@@ -411,7 +439,7 @@ router.post('/prepare-stellar-payment', authMiddleware, async (req: AuthRequest,
       .addOperation(
         StellarSdk.Operation.payment({
           destination: BILLING_DESTINATION_ADDRESS,
-          asset: StellarSdk.Asset.native(),
+          asset: asset,
           amount: price,
         })
       )
@@ -422,6 +450,7 @@ router.post('/prepare-stellar-payment', authMiddleware, async (req: AuthRequest,
     res.json({
       xdr: tx.toXDR(),
       amount: price,
+      paymentToken,
       destination: BILLING_DESTINATION_ADDRESS,
     });
   } catch (err: any) {
@@ -459,6 +488,50 @@ router.post('/submit-stellar-payment', authMiddleware, async (req: AuthRequest, 
       res.status(400).json({
         error: 'Invalid signer',
         message: 'The signing wallet address does not match your active session.'
+      });
+      return;
+    }
+
+    // Security Check: Transaction structure and destination verification
+    if (tx.operations.length === 0) {
+      res.status(400).json({ error: 'Invalid transaction: no operations found' });
+      return;
+    }
+
+    const op = tx.operations[0];
+    if (op.type !== 'payment') {
+      res.status(400).json({ error: 'Invalid transaction: first operation must be a payment' });
+      return;
+    }
+
+    const paymentOp = op as StellarSdk.Operation.Payment;
+    if (paymentOp.destination !== BILLING_DESTINATION_ADDRESS) {
+      res.status(400).json({ error: 'Invalid transaction: incorrect destination address' });
+      return;
+    }
+
+    // Verify correct asset and amount matches tier pricing
+    let isValidPayment = false;
+    const nativePrice = STELLAR_PRICES[tier as 'pro' | 'enterprise'];
+    const usdcPrice = USDC_PRICES[tier as 'pro' | 'enterprise'];
+
+    if (paymentOp.asset.isNative()) {
+      if (paymentOp.amount === nativePrice) {
+        isValidPayment = true;
+      }
+    } else if (
+      paymentOp.asset.code === USDC_ASSET_CODE &&
+      paymentOp.asset.issuer === USDC_ASSET_ISSUER
+    ) {
+      if (paymentOp.amount === usdcPrice) {
+        isValidPayment = true;
+      }
+    }
+
+    if (!isValidPayment) {
+      res.status(400).json({
+        error: 'Invalid transaction details',
+        message: 'The payment amount or asset type does not match the subscription pricing tier.'
       });
       return;
     }

@@ -59,6 +59,7 @@ export const credentialsApi = {
 export const issuersApi = {
   getAll: () => api.get('/issuers'),
   getMe: () => api.get('/issuers/me'),
+  getAnalytics: () => api.get('/issuers/me/analytics'),
   register: (data: any) => api.post('/issuers/register', data),
   requestDomainVerification: (id: string, domain: string) =>
     api.post(`/issuers/${id}/request-domain-verification`, { domain }),
@@ -118,8 +119,8 @@ export const billingApi = {
   createCheckoutSession: (tier: 'pro' | 'enterprise') => api.post('/billing/checkout-session', { tier }),
   createPortalSession: () => api.post('/billing/portal-session'),
   mockUpgrade: (tier: 'free' | 'pro' | 'enterprise') => api.post('/billing/mock-upgrade', { tier }),
-  prepareStellarPayment: (tier: 'pro' | 'enterprise', senderAddress: string) =>
-    api.post('/billing/prepare-stellar-payment', { tier, senderAddress }),
+  prepareStellarPayment: (tier: 'pro' | 'enterprise', senderAddress: string, paymentToken?: string) =>
+    api.post('/billing/prepare-stellar-payment', { tier, senderAddress, paymentToken }),
   submitStellarPayment: (signedXdr: string, tier: 'pro' | 'enterprise') =>
     api.post('/billing/submit-stellar-payment', { signedXdr, tier }),
 };

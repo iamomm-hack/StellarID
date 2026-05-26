@@ -432,6 +432,16 @@ export default function BulkIssuePage() {
                 </div>
               )}
 
+              <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 text-xs text-blue-400 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-sm">Resend Email Sandbox Mode Notice</p>
+                  <p className="text-zinc-400 leading-relaxed mt-0.5">
+                    If your Resend account is in sandbox/testing mode, emails will fail to deliver to non-verified addresses. If you are testing locally with arbitrary CSV emails, ensure <code>USE_MOCK_EMAIL=true</code> is set in the backend <code>.env</code> file.
+                  </p>
+                </div>
+              </div>
+
               {/* Form Input fields */}
               <div className="protocol-panel p-6 border border-white/10 rounded-2xl bg-gray-900 space-y-4">
                 <h2 className="text-lg font-bold mb-2">1. Define Credential Template</h2>
