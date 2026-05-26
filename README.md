@@ -1,257 +1,61 @@
 <p align="center">
-  <img src="docs/logo.png" alt="StellarID Logo" width="120" />
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/Stellar-Soroban-7c3aed?style=for-the-badge&logo=stellar&logoColor=white" />
   <img src="https://img.shields.io/badge/ZK--SNARKs-Circom-00e676?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/⚫_Black_Belt-Level_6-000000?style=for-the-badge" />
 </p>
 
 <h1 align="center">StellarID</h1>
 <h3 align="center">Verify once. Prove everywhere.</h3>
 
 <p align="center">
-  <strong>A decentralized identity verification platform where users verify once and prove everywhere using Zero-Knowledge Proofs — without revealing personal data.</strong>
+  <strong>A protocol-grade identity and reputation layer on Stellar. Users verify their attributes once and generate zero-knowledge proofs to authenticate anywhere without disclosing private personal metadata.</strong>
 </p>
 
 <p align="center">
-  <a href="#-black-belt-advanced-features">⚫ Black Belt Features</a> •
   <a href="#-live-demo">Live Demo</a> •
+  <a href="#-the-problem">The Problem</a> •
+  <a href="#-the-solution">The Solution</a> •
+  <a href="#-screenshots">Screenshots</a> •
   <a href="#-how-it-works">How It Works</a> •
-  <a href="#-tech-stack">Tech Stack</a> •
-  <a href="#-key-features">Features</a> •
+  <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
+  <a href="#-key-features">Key Features</a> •
+  <a href="#-advanced-features-deep-dive">Advanced Features</a> •
+  <a href="#-api-reference">API Reference</a> •
+  <a href="#-smart-contracts-stellar-testnet">Smart Contracts</a> •
   <a href="#-architecture">Architecture</a> •
-  <a href="#-getting-started">Getting Started</a>
+  <a href="#%EF%B8%8F-environment-setup">Environment Setup</a> •
+  <a href="#-getting-started">Getting Started</a> •
+  <a href="#-user-validation--onboarding">User Validation</a> •
+  <a href="#-future-roadmap--evolution">Roadmap</a>
 </p>
 
 ---
 
-## ⚫ Black Belt Advanced Features
-
-> **Level 6 - Production Ready** | These advanced Stellar features demonstrate production-grade implementation
-
-### 💸 Fee Sponsorship (Gasless Transactions)
-
-**Users never pay gas fees!** StellarID sponsors all transaction costs using Stellar's fee bump mechanism.
-
-| Feature | Description |
-|---------|-------------|
-| **Zero-cost UX** | Users mint credentials without holding XLM |
-| **Fee Bump Transactions** | Sponsor account covers network fees |
-| **Transparent Tracking** | All sponsored transactions logged |
-
-**Live API Endpoints:**
-```
-GET https://stellarid-api.onrender.com/api/v1/fee-sponsor/info
-GET https://stellarid-api.onrender.com/api/v1/fee-sponsor/status
-```
-
-<details>
-<summary>📦 Sample Response (click to expand)</summary>
-
-```json
-{
-  "feature": "Fee Sponsorship (Gasless Transactions)",
-  "description": "StellarID sponsors transaction fees so users never pay gas",
-  "benefits": [
-    "Zero transaction costs for users",
-    "Seamless credential minting experience",
-    "No XLM required in user wallet for operations"
-  ],
-  "howItWorks": [
-    "1. User initiates credential mint or proof generation",
-    "2. StellarID builds the transaction",
-    "3. Fee sponsor account covers all network fees",
-    "4. User receives credential without paying anything"
-  ],
-  "technicalDetails": {
-    "method": "Stellar Fee Bump Transactions",
-    "maxFeePerTx": "100000 stroops (0.01 XLM)"
-  }
-}
-```
-</details>
-
----
-
-### 🔐 Multi-Signature Credential Approval
-
-**High-value credentials require multiple party approval** before issuance — like a joint bank account.
-
-| Feature | Description |
-|---------|-------------|
-| **N-of-M Signatures** | Configurable threshold (2-of-3, 3-of-5, etc.) |
-| **Distributed Trust** | No single point of failure |
-| **Audit Trail** | All signatures recorded on Stellar blockchain |
-
-**Use Cases:**
-- 🏢 Corporate identity: HR + Manager approval
-- 🎓 Academic credentials: University + Department
-- 📜 Professional licenses: Board + Examiner
-
-**Live API Endpoints:**
-```
-GET  https://stellarid-api.onrender.com/api/v1/multisig/info
-POST https://stellarid-api.onrender.com/api/v1/multisig/request
-POST https://stellarid-api.onrender.com/api/v1/multisig/sign/:requestId
-GET  https://stellarid-api.onrender.com/api/v1/multisig/request/:requestId
-GET  https://stellarid-api.onrender.com/api/v1/multisig/pending
-```
-
-<details>
-<summary>📦 Sample Response (click to expand)</summary>
-
-```json
-{
-  "feature": "Multi-Signature Credential Approval",
-  "description": "High-value credentials require multiple party approval before issuance",
-  "benefits": [
-    "Enhanced security for sensitive credentials",
-    "Distributed trust - no single point of failure",
-    "Audit trail of all approvals",
-    "Configurable threshold (2-of-3, 3-of-5, etc.)"
-  ],
-  "useCases": [
-    "Corporate identity verification (HR + Manager approval)",
-    "Academic credentials (University + Department)",
-    "Professional licenses (Board + Examiner)",
-    "High-value financial credentials"
-  ],
-  "howItWorks": [
-    "1. Initiator creates credential request with list of required signers",
-    "2. Each signer reviews and signs the request",
-    "3. When threshold is met, credential is automatically issued",
-    "4. All signatures are recorded on Stellar blockchain"
-  ]
-}
-```
-</details>
-
----
-
-### ⚡ Black Belt — Live Demo
+## ⚡ Live Demo
 
 | Resource | Link |
 |---|---|
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
-| 📊 **User Feedback (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
+| 📊 **User Validation (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
-<!-- | 🐦 **Community Post** | [Twitter/X @omtdotcmd](https://x.com/omtdotcmd) | -->
+| 🖥️ **Backend API Health** | [https://stellarid-api.onrender.com/health](https://stellarid-api.onrender.com/health) |
 | 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
-| 🖥️ **Backend API** | [https://stellarid-api.onrender.com](https://stellarid-api.onrender.com/health) |
-
----
-
-### 📊 Black Belt Checklist
-
-<table>
-<tr><th>Requirement</th><th>Status</th><th>Details</th></tr>
-<tr><td>30+ active users</td><td>✅</td><td><a href="https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing">View 30+ User Wallet Sheet</a></td></tr>
-<tr><td>Metrics dashboard</td><td>✅</td><td><a href="https://stellarid-id.vercel.app/admin">Admin Dashboard</a> — real-time analytics</td></tr>
-<tr><td>Security checklist</td><td>✅</td><td><a href="./SECURITY.md">View SECURITY.md</a> — JWT, Helmet.js, Rate Limiting, SQL injection prevention</td></tr>
-<tr><td>Monitoring active</td><td>✅</td><td><a href="#-monitoring-dashboard">See Monitoring Section below</a></td></tr>
-<tr><td>Data indexing</td><td>✅</td><td><a href="#-data-indexing">See Data Indexing Section below</a></td></tr>
-<tr><td>Full documentation</td><td>✅</td><td>This README + <a href="https://stellarid-id.vercel.app/docs">API Docs</a></td></tr>
-<tr><td>Community contribution</td><td>✅</td><td><a href="https://x.com/omtdotcmd">Twitter/X Post</a></td></tr>
-<tr><td><strong>Advanced Feature 1</strong></td><td>✅</td><td>💸 Fee Sponsorship (Gasless Transactions)</td></tr>
-<tr><td><strong>Advanced Feature 2</strong></td><td>✅</td><td>🔐 Multi-Signature Credential Approval</td></tr>
-<tr><td><strong>Advanced Feature 3</strong></td><td>✅</td><td>🔗 LinkedIn OAuth Integration (Professional Identity)</td></tr>
-<tr><td>30+ meaningful commits</td><td>✅</td><td><a href="https://github.com/iamomm-hack/StellarID/commits/main">View Commit History</a></td></tr>
-</table>
-
----
-
-### 📡 Community Contribution
-
-> Posted about StellarID on Twitter/X to spread awareness about decentralized identity on Stellar.
-
-🔗 **Twitter/X Profile:** [https://x.com/omtdotcmd](https://x.com/omtdotcmd)
-
----
-
-### 🖥️ Monitoring Dashboard
-
-StellarID uses **Render's built-in logging and monitoring** for production observability:
-
-| Metric | Tool | Details |
-|--------|------|---------|
-| **Server Logs** | Render Dashboard | Real-time request/error logs |
-| **Uptime Monitoring** | Render Health Check | `/health` endpoint pinged every 30s |
-| **API Metrics** | Admin Dashboard | DAU, credentials issued, proofs generated |
-| **Error Tracking** | Console + Render Logs | All exceptions caught and logged |
-
-> 📸 **Screenshot:**
-> <img src="docs/screenshots/monitoring.png" alt="Render Monitoring Dashboard" width="800" />
-
-**Health Check Endpoint (Live):**
-```
-GET https://stellarid-api.onrender.com/health
-```
-
----
-
-### 📊 Data Indexing
-
-StellarID indexes identity data across **3 layers**:
-
-#### 1. PostgreSQL (Primary Database)
-All credentials, users, proofs, and issuers stored with optimized indexes:
-```sql
-CREATE INDEX idx_credentials_user_id ON credentials(user_id);
-CREATE INDEX idx_credentials_type ON credentials(credential_type);
-CREATE INDEX idx_proofs_token ON proofs(share_token);
-CREATE INDEX idx_users_stellar_address ON users(stellar_address);
-```
-
-#### 2. Stellar Horizon API (Blockchain Indexing)
-All on-chain credential transactions are queryable via Stellar Horizon:
-
-```
-# Admin wallet transactions
-GET https://horizon-testnet.stellar.org/accounts/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4
-
-# Live Transaction History
-GET https://horizon-testnet.stellar.org/accounts/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4/transactions
-
-# Operations (credential mints)
-GET https://horizon-testnet.stellar.org/accounts/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4/operations
-```
-
-🔗 **[View on Stellar Expert Explorer](https://stellar.expert/explorer/testnet/account/GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4)**
-
-#### 3. IPFS (Decentralized Metadata)
-Credential claim data is stored on IPFS via Pinata — content-addressed and tamper-proof.
-
----
-
-## 🔵 Blue Belt Features (Previous Level)
-
-### ⚡ Blue Belt — Live Demo
-
-| Resource | Link |
-|---|---|
-| 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
-| 📊 **User Feedback (5+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing) |
-| 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
-| 🖥️ **Backend API** | [https://stellarid-api.onrender.com](https://stellarid-api.onrender.com/health) |
 
 ---
 
 ## 🔥 The Problem
 
-Every time you sign up for a service, you hand over your **name, address, date of birth, income, government ID** — to a database you don't control.
+Every time you sign up for a service, you hand over your **name, address, date of birth, income, or government ID** — to centralized databases you do not control.
 
 | Problem | Reality |
 |---|---|
 | **Repeated KYC** | Users verify identity 10+ times across platforms. Same documents. Same friction. Every time. |
-| **Data Breaches** | 4.5 billion records exposed in 2024 alone. Your personal data is sitting in 50+ company databases. |
-| **No Ownership** | You don't own your identity. Platforms do. They sell it, lose it, or revoke it without consent. |
+| **Data Breaches** | Billions of records exposed annually. Your personal data sits in 50+ company databases. |
+| **No Ownership** | You don't own your identity. Platforms do. They can sell, lose, or revoke access without consent. |
 
-> **The internet has a login system. It doesn't have an identity system.**
+> **The internet has a login system. It doesn't have a secure identity system.**
 
 ---
 
@@ -267,8 +71,6 @@ Every time you sign up for a service, you hand over your **name, address, date o
 | Platform owns your data | **You** own your identity |
 
 **One verification. Infinite proofs. Zero data exposure.**
-
----
 
 ---
 
@@ -304,26 +106,24 @@ Every time you sign up for a service, you hand over your **name, address, date o
 ## 🧠 How It Works
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
-│   Connect    │────▶│   Verify     │────▶│   Get NFT       │
-│   Wallet     │     │   Identity   │     │   Credential    │
-│  (Freighter) │     │  (GitHub/KYC)│     │  (On-chain)     │
-└─────────────┘     └──────────────┘     └────────┬────────┘
-                                                   │
-                    ┌──────────────┐     ┌─────────▼────────┐
-                    │   Share      │◀────│   Generate       │
-                    │   Proof      │     │   ZK Proof       │
-                    │  (Link/PDF)  │     │  (Client-side)   │
-                    └──────────────┘     └──────────────────┘
+┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
+│ Onboard User     │      │ Verify Identity  │      │ Mint Soroban NFT │
+│ Freighter / Privy│─────▶│ (OAuth/Email/CSV)│─────▶│ (On-Chain Cred)  │
+└──────────────────┘      └──────────────────┘      └────────┬─────────┘
+                                                             │
+                          ┌──────────────────┐      ┌────────▼─────────┐
+                          │ Share Everywhere │◀─────│ Compute Client-  │
+                          │ (Badge/PDF/Link) │      │ Side ZK Proof    │
+                          └──────────────────┘      └──────────────────┘
 ```
 
 **5 steps. Zero personal data transmitted. Fully verifiable on-chain.**
 
-1. **Connect** — User connects their Stellar wallet via Freighter
-2. **Verify** — Complete identity verification through an issuer (e.g., GitHub OAuth)
-3. **Receive** — Get an NFT-based credential minted on Stellar (Soroban)
-4. **Prove** — Generate a ZK proof client-side (never sends raw data anywhere)
-5. **Share** — Share proof via link, PDF with QR code, or embeddable badge
+1.  **Connect** — User connects their Stellar wallet via Freighter or registers/logs in via Privy (using email/social logs) to create an embedded account.
+2.  **Verify** — Complete identity verification through an issuer (e.g., GitHub OAuth, email token validation, or CSV upload).
+3.  **Receive** — Get a non-transferable NFT-based credential minted on-chain using Soroban smart contracts.
+4.  **Prove** — Generate a ZK proof client-side (never sends raw metadata to the server).
+5.  **Share** — Share proof via link, PDF with QR code, or embeddable badge.
 
 ---
 
@@ -331,56 +131,50 @@ Every time you sign up for a service, you hand over your **name, address, date o
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Frontend** | Next.js 14, React 18, TypeScript | App shell, SSR, routing |
+| **Frontend** | Next.js 14, React 18, TypeScript | App shell, SSR, routing, Privy SDK |
 | **Styling** | Tailwind CSS | Utility-first responsive design |
-| **Backend** | Node.js, Express, TypeScript | REST API, business logic |
-| **Database** | PostgreSQL | Users, credentials, proofs, issuers |
-| **Cache** | Redis | Session cache, analytics caching |
+| **Backend** | Node.js, Express, TypeScript | REST API, BullMQ worker queues, Resend |
+| **Database** | PostgreSQL, SQLite | Primary indexed database (PG), Discord DB (SQLite) |
+| **Cache** | Redis | Session cache, analytics caching, rate limiter, queues |
 | **Blockchain** | Stellar + Soroban | Smart contracts, credential NFTs |
-| **ZK Proofs** | Circom + snarkjs | ZK-SNARK circuit compilation & proving |
-| **Storage** | IPFS (Pinata) | Decentralized credential metadata |
-| **Auth** | JWT + Stellar Wallet | Wallet-based authentication |
-| **DevOps** | Docker, GitHub Actions CI/CD | Containerization, automated testing |
+| **ZK Proofs** | Circom + snarkjs | ZK-SNARK circuit compilation & client-side proving |
+| **Storage** | IPFS (Pinata) | Decentralized credential metadata commitments |
+| **Auth** | JWT + Stellar Wallet | Wallet-based and OAuth session authentication |
 
 ---
 
 ## 🔥 Key Features
 
 ### 🪪 Identity & Credentials
-- **Wallet-based login** — No passwords. Connect with Freighter wallet
-- **NFT credentials** — Verifiable on-chain credentials minted as Soroban NFTs
-- **GitHub OAuth issuer** — Verify developer identity via GitHub
-- **Multi-type credentials** — Age, income, residency, membership, and more
+*   **Freighter & Privy Onboarding**: Connect with Freighter wallet or onboard Web2 users seamlessly via email OTP/Google oauth using Privy.
+*   **Soroban NFT Credentials**: Verifiable on-chain credentials minted as non-transferable Soroban NFTs.
+*   **OAuth Issuers**: Instantly claim credentials validating your GitHub or LinkedIn developer profiles.
+*   **Multi-type Credentials**: Support for age limits, income bounds, residency, memberships, and professional designations.
 
 ### 🔐 Privacy & Proofs
-- **ZK proof generation** — Client-side proving with Circom/snarkjs (age, income, residency, membership circuits)
-- **Selective disclosure** — Prove specific claims without revealing underlying data
-- **Downloadable PDF Certificates** — Export verification as beautifully rendered PDFs containing embedded Scan-to-Verify QR codes (via `pdfkit` & `qr-image`)
-- **Shareable verification** — Public link for anyone to verify a proof's authenticity
-- **Verification badge** — ✅ VERIFIED or ❌ REVOKED status displayed publicly
+*   **ZK Proof Generation**: Client-side Groth16 zk-SNARK calculation using `snarkjs` (age, income, residency, membership circuits).
+*   **Selective Disclosure**: Authenticate specific facts without disclosing raw birthdates, salaries, or physical addresses.
+*   **Downloadable Cryptographic PDFs**: Export verification status as beautifully formatted PDFs with embedded QR codes.
+*   **Verification Badges**: Display ✅ VERIFIED or ❌ REVOKED badges programmatically.
 
-### 🛡️ Security & Governance
-- **Revocation system** — On-chain credential revocation by issuers
-- **Expiry management** — Automatic credential expiry with cron enforcement
-- **Admin analytics dashboard** — Real-time platform metrics, 24h activity feed, top issuers
-- **Rate limiting** — API protection against abuse
-- **Role-based access** — Admin/user role separation
+### 🛡️ Security & Infrastructure
+*   **On-Chain Revocation**: Instant credential revocation on-chain managed by verified issuers.
+*   **Expiry Control**: Auto-expiry management enforced via cron tasks.
+*   **Admin Analytics**: Real-time SaaS dashboard monitoring credentials, proofs, and active issuers.
+*   **Sliding-Window Rate Limiting**: Redis-backed API protection against DDoS/abuse.
 
-### 📡 Integration
-- **REST API** — Full API for third-party verification integration
-- **Modern docs** — Interactive API documentation with code examples
-- **Docker-ready** — One-command deployment with Docker Compose
+---
 
-### 🚀 Advanced Features (Black Belt)
+## 🚀 Advanced Features Deep Dive
 
-#### 💸 Fee Sponsorship (Gasless Transactions)
-Users never pay gas fees! StellarID sponsors all transaction costs using Stellar's fee bump mechanism.
+### 💸 Fee Sponsorship (Gasless Transactions)
+Users do not pay network fees! StellarID covers all Soroban minting and verification transaction costs using Stellar's fee bump mechanism.
 
 | Feature | Description |
 |---------|-------------|
-| **Zero-cost UX** | Users mint credentials without holding XLM |
-| **Fee Bump Transactions** | Sponsor account covers network fees |
-| **Transparent Tracking** | All sponsored transactions logged |
+| **Zero-cost UX** | Users claim on-chain credentials without holding XLM in their wallets |
+| **Fee Bump Transactions** | Sponsor account covers network transaction charges |
+| **Usage Tracking** | Live monitoring of sponsored transaction volumes and remaining quota |
 
 ```bash
 # Check sponsor status
@@ -389,7 +183,7 @@ GET /api/v1/fee-sponsor/status
 # Response
 {
   "sponsor": {
-    "address": "G...",
+    "address": "GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4",
     "balance": "1000 XLM",
     "canSponsor": true,
     "transactionsRemaining": 100000
@@ -397,26 +191,23 @@ GET /api/v1/fee-sponsor/status
 }
 ```
 
-#### 🔐 Multi-Signature Credential Approval
-High-value credentials require multiple party approval before issuance.
+---
+
+### 🔐 Multi-Signature Credential Approval
+Sensitive corporate, medical, or academic credentials require $N$-of-$M$ signatures before on-chain minting is authorized.
 
 | Feature | Description |
 |---------|-------------|
-| **N-of-M Signatures** | Configurable threshold (2-of-3, 3-of-5, etc.) |
-| **Distributed Trust** | No single point of failure |
-| **Audit Trail** | All signatures recorded on Stellar |
-
-**Use Cases:**
-- Corporate identity: HR + Manager approval
-- Academic credentials: University + Department
-- Professional licenses: Board + Examiner
+| **N-of-M Signatures** | Configurable signature thresholds (e.g. HR + Manager approval) |
+| **Distributed Trust** | Prevents single point of failure in credential authority |
+| **On-Chain Audit Trail** | Signatures compiled and committed directly to the blockchain |
 
 ```bash
 # Create multi-sig request
 POST /api/v1/multisig/request
 {
   "credentialType": "corporate_identity",
-  "requiredSigners": ["G...HR", "G...MANAGER"],
+  "requiredSigners": ["GBM...HR", "GA5...MANAGER"],
   "threshold": 2
 }
 
@@ -429,81 +220,164 @@ POST /api/v1/multisig/sign/:requestId
 
 ---
 
-## 📡 API Reference
+### 📧 Claim Credential Email Flow
+Organizers can issue credentials to users who do not have a wallet or Stellar account set up yet. Users receive an email with a secure claim token.
 
-Full REST API for programmatic access:
-
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| `POST` | `/api/v1/auth/connect` | Connect wallet & get JWT | — |
-| `GET` | `/api/v1/auth/me` | Get current user profile | 🔐 JWT |
-| `POST` | `/api/v1/credentials` | Issue a new credential | 🔐 JWT |
-| `GET` | `/api/v1/credentials/my` | List user's credentials | 🔐 JWT |
-| `POST` | `/api/v1/verify` | Submit verification request | 🔐 JWT |
-| `POST` | `/api/v1/proofs` | Create shareable proof record | 🔐 JWT |
-| `GET` | `/api/v1/proofs/:token` | Public proof verification | — |
-| `GET` | `/api/v1/proofs/:token/pdf` | Download proof PDF | — |
-| `GET` | `/api/v1/issuers` | List registered issuers | — |
-| `GET` | `/api/v1/admin/stats` | Platform analytics | 🔐 Admin |
-| `GET` | `/api/v1/admin/activity` | Last 24h activity | 🔐 Admin |
-| `GET` | `/api/v1/admin/chart-data` | 30-day trend data | 🔐 Admin |
-| `GET` | `/api/v1/admin/top-issuers` | Top issuers by volume | 🔐 Admin |
-| `GET` | `/api/v1/fee-sponsor/status` | Fee sponsor account status | — |
-| `GET` | `/api/v1/fee-sponsor/info` | Fee sponsorship feature info | — |
-| `POST` | `/api/v1/fee-sponsor/request` | Request fee sponsorship | 🔐 JWT |
-| `POST` | `/api/v1/multisig/request` | Create multi-sig credential request | 🔐 JWT |
-| `POST` | `/api/v1/multisig/sign/:id` | Add signature to request | 🔐 JWT |
-| `GET` | `/api/v1/multisig/request/:id` | Get multi-sig request status | 🔐 JWT |
-| `GET` | `/api/v1/multisig/pending` | List pending requests | 🔐 JWT |
-| `GET` | `/api/v1/multisig/info` | Multi-sig feature info | — |
-
-> Full interactive docs available at `/docs` route.
+*   **Database Schema (`pending_credentials`)**:
+    ```sql
+    CREATE TABLE pending_credentials (
+      id UUID PRIMARY KEY,
+      issuer_id UUID NOT NULL REFERENCES issuers(id),
+      recipient_email VARCHAR(255) NOT NULL,
+      recipient_wallet VARCHAR(100),
+      credential_data JSONB NOT NULL,
+      claim_token UUID UNIQUE NOT NULL,
+      status VARCHAR(20) DEFAULT 'pending',
+      claim_attempts INTEGER DEFAULT 0,
+      expires_at TIMESTAMP NOT NULL,
+      claimed_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+    ```
+*   **Security Constraints**: Expiry time of 7 days; max 3 claim attempts per token; Redis rate limit of 5 token page loads per IP per hour.
 
 ---
 
-## ⚡ Performance
+### 📥 Bulk Credential Issuance Queue
+Organizers can upload CSV templates containing up to 1,000 recipients. A Redis-backed BullMQ worker processes each row asynchronously to prevent SMTP blocking and database connection exhaustion.
 
-| Metric | Value | Notes |
+*   **Database Schema (`bulk_issuance_jobs`)**:
+    ```sql
+    CREATE TABLE bulk_issuance_jobs (
+      id UUID PRIMARY KEY,
+      issuer_id UUID NOT NULL,
+      job_name VARCHAR(255) NOT NULL,
+      credential_template JSONB NOT NULL,
+      total_recipients INTEGER NOT NULL,
+      processed_count INTEGER DEFAULT 0,
+      success_count INTEGER DEFAULT 0,
+      failed_count INTEGER DEFAULT 0,
+      status VARCHAR(20) DEFAULT 'queued',
+      csv_ipfs_hash VARCHAR(255),
+      error_log JSONB,
+      created_at TIMESTAMP DEFAULT NOW(),
+      completed_at TIMESTAMP
+    );
+    ```
+*   **Queue Rate Limits**: Limits email dispatches to a maximum of 10 messages per second.
+
+---
+
+### 📊 Composite Reputation Score System
+StellarID calculates a unified user reputation score $S_i$ mapping verified achievements, streaks, and active disputes:
+
+$$S_i = \text{clamp}\left(100 + \sum w_c \cdot m_{\text{issuer}} + 15 \cdot \text{streak} - 25 \cdot \text{disputes}, 0, 1000\right)$$
+
+*   **Tiers**:
+    *   `0-199`: Verified
+    *   `200-499`: Proven
+    *   `500+`: Elite Builder
+*   **Decay Rule**: Half-life degradation of 90 days applies to credential age.
+*   **Issuer Trust Tiers ($m_{\text{issuer}}$)**:
+    *   *Tier 1 (Community)*: $0.20$ base weight (based on 5+ endorsements from other verified issuers)
+    *   *Tier 2 (Official)*: $0.80$ weight (requires DNS TXT record matching `stellarid-verify=TOKEN_UUID`)
+    *   *Tier 3 (Endorsed)*: $1.00$ weight (manually vetted and endorsed by platform administrators)
+
+---
+
+### 🤖 Discord Gating Bot
+Community managers can gate specific Discord guild channels based on a user's verified StellarID reputation tier.
+
+*   **Slash Commands**:
+    *   `/verify wallet:G...` - Connects discord handle to Stellar address, returns embed profile, and assigns the corresponding tier role (`StellarID Verified`, `Proven Builder`, `Elite Builder`).
+    *   `/gate channel:#chan min-tier:Proven` - Gates a specific channel requiring Proven or Elite Builder tiers.
+*   **Local DB**: SQLite database tracks guild settings and member roles:
+    ```sql
+    CREATE TABLE guilds (guild_id TEXT PRIMARY KEY, setup_done INTEGER, log_channel TEXT);
+    CREATE TABLE verified_members (discord_id TEXT PRIMARY KEY, wallet_address TEXT, current_tier TEXT);
+    ```
+
+---
+
+### 💳 Monetization Tier Infrastructure
+Provides Stripe billing tiers for issuers based on their monthly volume and feature needs.
+
+*   **Tiers**:
+    *   `FREE`: 100 credentials/month, 100 API calls/hour.
+    *   `PRO` ($49/mo): Unlimited credentials, bulk issuance enabled, 5,000 API calls/hour.
+    *   `ENTERPRISE` ($500/mo): Custom white-label integrations, 50,000 API calls/hour, custom contracts.
+*   **Sandbox Mode**: Locally test billing capabilities with a mock upgrade route `POST /api/billing/mock-upgrade` to switch status without external Stripe keys.
+*   **Direct Treasury Payment**: Pay directly using XLM/USDC on the Stellar Network to treasury address: `GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4`.
+
+---
+
+## 📡 API Reference
+
+Full developer endpoint mapping:
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/connect` | Connect wallet & obtain JWT token | — |
+| `GET` | `/api/v1/auth/me` | Fetch active user credentials and info | 🔐 JWT |
+| `POST` | `/api/v1/credentials` | Issue a single credential | 🔐 JWT |
+| `GET` | `/api/v1/credentials/my` | List logged credentials for wallet | 🔐 JWT |
+| `POST` | `/api/v1/credentials/issue-with-email` | Create pending credential and email claim link | 🔐 JWT |
+| `POST` | `/api/v1/credentials/claim/:token` | Complete pending credential claim | — |
+| `POST` | `/api/v1/bulk/upload` | Process bulk CSV file for multi-credential issuance | 🔐 JWT |
+| `GET` | `/api/v1/reputation/:wallet_address` | Fetch user reputation score and breakdown | — |
+| `POST` | `/api/v1/issuers/:id/request-domain-verification` | Request unique token for DNS verification | 🔐 JWT |
+| `POST` | `/api/v1/issuers/:id/confirm-domain-verification` | Verify domain DNS TXT record | 🔐 JWT |
+| `POST` | `/api/v1/billing/create-checkout` | Initialize Stripe Checkout Session | 🔐 JWT |
+| `POST` | `/api/v1/billing/mock-upgrade` | Simulate instant billing upgrade (Sandbox) | 🔐 JWT |
+
+---
+
+## 🔒 ZK Circuits
+
+StellarID compiles and runs 4 Circom zk-SNARK circuits under Groth16 setups:
+
+### 1. `age_check`
+Proves a user's age satisfies a threshold constraint.
+*   *Private Inputs*: `birthYear`
+*   *Public Inputs*: `currentYear`, `ageLimit`
+*   *Outputs*: `isAboveLimit` (1 or 0)
+
+### 2. `income_check`
+Proves income falls within min and max boundaries.
+*   *Private Inputs*: `income`
+*   *Public Inputs*: `minIncome`, `maxIncome`
+*   *Outputs*: `isValid` (1 or 0)
+
+### 3. `residency_check`
+Proves geographic location is within an approved list.
+*   *Private Inputs*: `countryCode`
+*   *Public Inputs*: `allowedCountries[10]`
+*   *Outputs*: `isResident` (1 or 0)
+
+### 4. `membership_check`
+Proves membership in a group root.
+*   *Private Inputs*: `memberSecret`, `merklePathElements[16]`, `merklePathIndices[16]`
+*   *Public Inputs*: `groupRoot`
+*   *Outputs*: `isValidMember` (1 or 0)
+
+---
+
+## 📊 Performance Metrics
+
+| Metric | Value | Detail |
 |---|---|---|
 | **ZK Proof Generation** | ~0.87s | Client-side, no server round-trip |
 | **API Response (cached)** | <100ms | Redis-backed analytics queries |
 | **API Response (uncached)** | <300ms | PostgreSQL with indexed queries |
 | **Contract Deployment** | ~5s | Soroban testnet via Stellar CLI |
-| **Frontend Build** | ~8s | Next.js 14 optimized production build |
 | **WASM Contract Size** | 12–17 KB | Optimized with `opt-level = "z"` |
 | **PDF Generation** | <500ms | Server-side with pdfkit + QR code |
 
 ---
 
-## 📊 Admin Dashboard & Proof System
-
-### Analytics Panel
-A full SaaS-style admin dashboard showing real-time platform health:
-
-| Metric | Description |
-|---|---|
-| **Total Credentials** | All credentials issued across the platform |
-| **Total Proofs** | ZK proofs generated and verified |
-| **Active Users** | Registered wallet addresses |
-| **Success Rate** | Verification success percentage |
-| **30-Day Trend** | Interactive area chart (Recharts) with proofs + credentials |
-| **Last 24h Activity** | Real-time feed of recent verifications and issuances |
-| **Top Issuers** | Ranked table of most active credential issuers |
-
-### Proof System
-
-| Feature | How It Works |
-|---|---|
-| **Generate Proof** | Client-side ZK-SNARK computation using snarkjs |
-| **Download PDF** | Generates a branded cryptographic certificate on-the-fly (`pdfkit`) with dynamic scan-to-verify QR codes (`qr-image`) |
-| **Share Link** | Public `/verify/{token}` page — anyone can verify the proof |
-| **Badge Display** | Green **VERIFIED** ✅ or Red **REVOKED** ❌ with status details |
-
----
-
 ## 🔗 Smart Contracts (Stellar Testnet)
 
-Three Soroban smart contracts deployed on Stellar Testnet:
+Soroban smart contracts deployed on Stellar Testnet:
 
 | Contract | Purpose | Contract ID |
 |---|---|---|
@@ -511,43 +385,10 @@ Three Soroban smart contracts deployed on Stellar Testnet:
 | **Revocation Registry** | On-chain credential revocation by issuers | `CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3` |
 | **Disclosure Contract** | Selective disclosure verification records | `CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2` |
 
-```bash
-# Verify on Stellar Explorer
-https://stellar.expert/explorer/testnet/contract/CBIO5S7UB6JVO337KTMHZPTRSXQLNPQPDAMCH57MBI6N2NDC4WWO3RYX
-https://stellar.expert/explorer/testnet/contract/CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3
-https://stellar.expert/explorer/testnet/contract/CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2
-```
-
-**Contract Functions:**
-
-| Credential NFT | Revocation Registry | Disclosure Contract |
-|---|---|---|
-| `initialize` | `initialize` | `initialize` |
-| `mint_credential` | `revoke` | `verify_and_record` |
-| `get_credential` | `is_revoked` | `get_verification` |
-| `is_valid` | `get_revocation_record` | `get_verification_history` |
-| `revoke` | `get_revocation_list` | |
-| `transfer` | | |
-| `register_issuer` | | |
-| `is_registered_issuer` | | |
-| `get_owner_credentials` | | |
-
----
-
-## 🧪 Testnet Wallets
-
-The following testnet wallets were used during development and testing:
-
-| Role | Stellar Address |
-|---|---|
-| **Admin** | `GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4` |
-| **Test User 1 (Satish)** | `GDZWLHG6WBRYIGWE2JXJRI4LTXLWQSTBCSXK3XB6HLB2QOTS4DNXDSKP` |
-| **Test User 2 (Mufti)** | `GA5RKOAUAVEA5POB4HKI2HCIZ3K67SZYLUW5SOACOAKCNDSM4XLC5BPR` |
-| **Test User 3 (Amit)** | `GCUOCLOPD3I7ECINEXFOJVGFQFNJILYW26BERBCCQBQ7WHJMICHR2WPM` |
-| **Test User 4 (Rajdeep)** | `GB2CC6D3E3SXRJUPNJ43WGMFFYEN5CNP6NRY5L2S7NUDLEAZW5IMRVLK` |
-| **Test User 5 (Manjeet)** | `GDLQU6LOKWYX2EUNU7PNOK3IT27MEQD7FDR7EDWTWYVZ66HXSNKGAMO6` |
-
-> All wallets funded via [Stellar Friendbot](https://friendbot.stellar.org)
+**Verification Links:**
+*   [View Credential NFT Contract](https://stellar.expert/explorer/testnet/contract/CBIO5S7UB6JVO337KTMHZPTRSXQLNPQPDAMCH57MBI6N2NDC4WWO3RYX)
+*   [View Revocation Registry Contract](https://stellar.expert/explorer/testnet/contract/CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3)
+*   [View Disclosure Contract](https://stellar.expert/explorer/testnet/contract/CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2)
 
 ---
 
@@ -558,172 +399,198 @@ graph TB
     subgraph Client["🖥️ Client Layer"]
         User["User (Browser)"]
         Wallet["Freighter Wallet"]
+        PrivyWallet["Privy Embedded Wallet (Email/Social)"]
+        DiscordClient["Discord Member / Admin"]
     end
 
     subgraph Frontend["⚡ Frontend (Next.js 14)"]
-        UI["React UI + Tailwind"]
-        ZK["ZK Prover (snarkjs)"]
-        Store["Zustand State"]
+        UI["React SPA Dashboard / Landing"]
+        ZK["ZK Client Prover (snarkjs)"]
+        PrivySDK["Privy Auth Provider"]
+        Zustand["Zustand State Store"]
+        SDK["stellarid-sdk & React Hooks"]
     end
 
-    subgraph Backend["🔧 Backend (Express API)"]
-        API["REST API"]
-        Auth["JWT Auth"]
-        AdminAPI["Admin Analytics"]
-        ProofAPI["Proof Service"]
-        PDF["PDF Generator"]
+    subgraph Backend["🔧 Backend (Express App / Node.js)"]
+        API["REST API Router (/api/v1)"]
+        AuthMiddleware["JWT Verification & Auth Middleware"]
+        SponsorService["Fee Sponsor Manager"]
+        MultisigService["Multi-Sig Signatures Coordinator"]
+        BulkService["Bulk Issuance CSV Processor"]
+        ReputationScore["Composite Reputation Evaluator"]
+        PDFGen["PDF Report Generator (pdfkit & qr-image)"]
+        DomainVerifier["DNS TXT Record Resolver (dns)"]
     end
 
-    subgraph Data["💾 Data Layer"]
-        PG["PostgreSQL"]
-        Redis["Redis Cache"]
-        IPFS["IPFS (Pinata)"]
+    subgraph Workers["⚡ Workers & Queue Engine"]
+        Queue["BullMQ Job Queue"]
+        Worker["Background Email & Mint Worker"]
+    end
+
+    subgraph ThirdParty["🔌 Integration / SaaS Ecosystem"]
+        StripeAPI["Stripe Billing & Portal Gateway"]
+        ResendAPI["Resend SMTP Email dispatch"]
+        DiscordBot["Discord v14 bot listener"]
+    end
+
+    subgraph Data["💾 Database & Cache Layer"]
+        PG[("PostgreSQL (Primary DB)")]
+        SQLite[("SQLite (Discord Guild config DB)")]
+        Redis[("Redis (Queue, Limiter, Session Cache)")]
+        IPFS["Decentralized Storage (Pinata IPFS)"]
     end
 
     subgraph Blockchain["⛓️ Stellar Blockchain"]
-        Soroban["Soroban Runtime"]
-        NFT["Credential NFT"]
-        Revoke["Revocation Registry"]
-        Disclose["Disclosure Contract"]
+        Soroban["Soroban Smart Contracts Engine"]
+        NFT["Credential NFT contract (CBIO...)"]
+        Revoke["Revocation Registry contract (CDRP...)"]
+        Disclose["Disclosure Verification contract (CDRU...)"]
     end
 
-    User -->|Connect| Wallet
+    %% Client and Frontend flows
     User -->|Interact| UI
-    UI -->|API Calls| API
-    UI -->|Generate Proof| ZK
-    Wallet -->|Sign TX| Soroban
+    User -->|Manage Wallet| Wallet
+    User -->|OAuth / OTP| PrivySDK
+    PrivySDK -->|Embedded Account| PrivyWallet
+    UI -->|Import Hooks| SDK
+    UI -->|Generate proofs| ZK
+    DiscordClient -->|Commands / verify| DiscordBot
 
-    API -->|Authenticate| Auth
-    API -->|Query| PG
-    API -->|Cache| Redis
-    API -->|Store Metadata| IPFS
-    API -->|Invoke| Soroban
+    %% Frontend to Backend
+    UI -->|API Requests| API
+    PrivyWallet -->|Claim NFT / Transact| Soroban
+    Wallet -->|Claim NFT / Transact| Soroban
 
-    AdminAPI -->|Aggregate| PG
-    AdminAPI -->|Cache| Redis
-    ProofAPI -->|Store| PG
-    ProofAPI -->|Generate| PDF
+    %% Backend to Internal
+    API -->|Authenticate| AuthMiddleware
+    API -->|Process Multi-sig| MultisigService
+    API -->|DNS Check| DomainVerifier
+    API -->|Request Gasless TX| SponsorService
+    API -->|Upload CSV| BulkService
+    API -->|Score Reputation| ReputationScore
+    API -->|Request PDF certificate| PDFGen
 
+    %% Services to Data / External / Worker
+    BulkService -->|Enqueue jobs| Queue
+    Queue -->|State & Jobs storage| Redis
+    Worker -->|Fetch jobs| Queue
+    Worker -->|Send claim links| ResendAPI
+    Worker -->|Save state| PG
+    SponsorService -->|Bump gas fees| Soroban
+
+    %% ThirdParty API connections
+    API -->|Billing checkout & portal| StripeAPI
+    StripeAPI -->|Webhook events| API
+    DiscordBot -->|Lookup user profile / check tier| API
+    DiscordBot -->|Save guild setting| SQLite
+
+    %% Data layers
+    AuthMiddleware -->|Validate user| PG
+    API -->|Cache stats / Rate limiting| Redis
+    API -->|Save metadata hashes| IPFS
+    API -->|Query credentials & users| PG
+
+    %% Soroban interactions
+    SponsorService -->|Sign fee-bumps| Soroban
     Soroban --> NFT
     Soroban --> Revoke
     Soroban --> Disclose
 
-    style Client fill:#1a1a2e,stroke:#7c3aed,color:#fff
-    style Frontend fill:#0d0030,stroke:#00e676,color:#fff
-    style Backend fill:#12003a,stroke:#7c3aed,color:#fff
-    style Data fill:#0a0020,stroke:#00e676,color:#fff
-    style Blockchain fill:#08001a,stroke:#a855f7,color:#fff
+    style Client fill:#13111c,stroke:#7c3aed,color:#fff
+    style Frontend fill:#0f172a,stroke:#00e676,color:#fff
+    style Backend fill:#1e1b4b,stroke:#8b5cf6,color:#fff
+    style Workers fill:#172554,stroke:#3b82f6,color:#fff
+    style ThirdParty fill:#312e81,stroke:#f59e0b,color:#fff
+    style Data fill:#020617,stroke:#06b6d4,color:#fff
+    style Blockchain fill:#030712,stroke:#ec4899,color:#fff
 ```
+
 
 ---
 
 ## ⚙️ Environment Setup
 
-### Backend `.env` (Already Configured)
-
-The backend is configured to run on **port 5555**. Key settings:
-
+### Backend `.env`
 ```bash
-# Server
 PORT=5555
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 
 # Database
 DATABASE_URL=postgresql://stellarid_user:stellarid_pass@localhost:5432/stellarid_db
-
-# Cache
 REDIS_URL=redis://localhost:6379
 
 # Authentication
 JWT_SECRET=stellarid_local_dev_secret
 JWT_EXPIRES_IN=7d
 
-# Stellar
+# Stellar Config
 STELLAR_NETWORK=testnet
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org:443
 STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
 STELLAR_PASSPHRASE=Test SDF Network ; September 2015
 
-# Smart Contracts
+# Smart Contract IDs
 CREDENTIAL_NFT_CONTRACT_ID=CBIO5S7UB6JVO337KTMHZPTRSXQLNPQPDAMCH57MBI6N2NDC4WWO3RYX
 REVOCATION_CONTRACT_ID=CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3
 DISCLOSURE_CONTRACT_ID=CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2
 
-# IPFS (Pinata)
-IPFS_API_URL=https://api.pinata.cloud
-IPFS_PROJECT_ID=<your_pinata_project_id>
-IPFS_PROJECT_SECRET=<your_pinata_secret>
+# IPFS Pinata
+PINATA_API_KEY=your_pinata_key
+PINATA_SECRET_KEY=your_pinata_secret
 
-# GitHub OAuth
-GITHUB_CLIENT_ID=Ov23limO4e1dWIJmQf4c
-GITHUB_CLIENT_SECRET=<configured>
-GITHUB_CALLBACK_URL=http://localhost:5555/api/v1/github-issuer/callback
+# Resend Email Config
+RESEND_API_KEY=re_your_resend_key
+RESEND_FROM_EMAIL=noreply@stellarid.io
+CLAIM_BASE_URL=http://localhost:3000/claim
+
+# Privy Config
+NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
+PRIVY_APP_SECRET=your_privy_app_secret
 ```
 
-### Frontend `.env` (Already Configured)
-
+### Frontend `.env`
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:5555/api/v1
+NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
 ```
-
-> ✅ **Development environment is already configured.** Both `.env` files contain the correct settings.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+*   Node.js ≥ 18
+*   PostgreSQL ≥ 14
+*   Redis ≥ 7
+*   Freighter Wallet Extension installed
 
-- **Node.js** ≥ 18
-- **PostgreSQL** ≥ 14 (running on port 5432)
-- **Redis** ≥ 7 (running on port 6379)
-- **Freighter Wallet** ([Chrome Extension](https://www.freighter.app/))
-
-> **Note:** Database and Redis are typically already running in the development environment.
-
-### Quick Start
-
+### Installation & Launch
 ```bash
 # Clone the repository
 git clone https://github.com/iamomm-hack/StellarID.git
 cd StellarID
 
-# Backend setup
+# Run Backend Services
 cd backend
 npm install
-npm run dev                   # Starts on http://localhost:5555
+npm run dev
 
-# Frontend setup (new terminal)
-cd frontend
+# Run Frontend Application (in separate terminal)
+cd ../frontend
 npm install
-npm run dev                   # Starts on http://localhost:3000
+npm run dev
 ```
-
-### Using the App
-
-1. **Open Frontend**: http://localhost:3000
-2. **Connect Wallet**: Click "Connect Wallet" → Approve in Freighter
-3. **Link GitHub**: Click "Get GitHub Credential" → Authorize with GitHub
-4. **Request Credentials**: Click "Request Credential" → Select issuer & type
-5. **Generate Proof**: Click "Generate ZK Proof" on any credential
-6. **Logout**: Click "Logout" in the GitHub greeting banner
-
-### Architecture
-
-- **Backend API**: http://localhost:5555/api/v1
-- **Frontend**: http://localhost:3000
-- **Database**: PostgreSQL on localhost:5432
-- **Cache**: Redis on localhost:6379
 
 ---
 
 ## 👥 User Validation & Onboarding
 
-As part of our MVP phase, we conducted live testing with **5 real testnet users** to validate our ZK-identity flow.
+To validate our MVP verification cycles, we conducted onboarding checks with **5 real testnet users**.
 
 ### User Feedback Summary
 
-📊 **[Live Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing)**
+📊 **[Live Feedback Google Sheet](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing)**
 
 | Date | Name | Wallet Address | Email | UX Rating | Favorite Feature | Bugs/Errors | Future Improvement |
 |---|---|---|---|---|---|---|---|
@@ -733,59 +600,11 @@ As part of our MVP phase, we conducted live testing with **5 real testnet users*
 | Mar 23, 2026 | Rajdeep Dutta | `GB2CC6D3E3SXRJUPNJ43WGMFFYEN5CNP6NRY5L2S7NUDLEAZW5IMRVLK` | rajdeepdutta393@gmail.com | 5/5 | PDF report with QR code — practical and satisfying | Dashboard loading lag — thought page stopped working | Smoother dashboard loading with animation |
 | Mar 24, 2026 | Manjeet s. | `GDLQU6LOKWYX2EUNU7PNOK3IT27MEQD7FDR7EDWTWYVZ66HXSNKGAMO6` | manjeetsharma0796@gmail.com | 4/5 | ZK Concept | None | More credentials to store |
 
-### ✅ Completed Iteration (Post-Feedback)
-
-**Issue Identified:** User **Rajdeep Dutta** noted that the *"Dashboard takes a bit of time while loading credentials. At first I thought the page had stopped working."*
-
-**Improvement Applied:** We immediately implemented a modern **Skeleton Loading System** across the Dashboard. Instead of a blank screen or a single spinner, users now see structured placeholders that indicate data is being fetched, significantly improving the perceived performance.
-
-🔗 **Improvement Commit:** [feat: add skeleton loaders to improve dashboard UX](https://github.com/iamomm-hack/StellarID/commit/main)
-
----
-
-## 📈 Future Roadmap & Evolution
-
-Based on the collected user feedback and our long-term vision, we have outlined the following evolution for StellarID:
-
-### Phase 1: Performance & UX Polish
-- **Web Worker Proving**: Move ZK-SNARK computation to a dedicated web worker to ensure the main UI thread remains 100% responsive.
-- **Granular Progress Tracking**: Implement a step-by-step progress indicator for the 3-stage verification (Querying → Proving → Uploading).
-
-### Phase 2: Ecosystem Expansion
-- **Social Connectors**: Expand identity issuers beyond GitHub to include **LinkedIn, Twitter (X), and Discord**.
-- **Custom Claims**: Allow platforms to request custom ZK-circuits (e.g., "Prove balance > 1000 XLM" without showing the amount).
-
-### Phase 3: Mobile & Enterprise
-- **StellarID Mobile**: A dedicated mobile app with biometric security (FaceID/Fingerprint) for instant on-the-go ZK verification.
-- **Enterprise SDK**: A plug-and-play SDK for corporate platforms to integrate StellarID verification with two lines of code.
 
 ---
 
 ## 🤝 Contributing
-
-We welcome contributions from the community!
-
-```bash
-# Fork the repo
-# Create your feature branch
-git checkout -b feature/amazing-feature
-
-# Commit your changes
-git commit -m "feat: add amazing feature"
-
-# Push to the branch
-git push origin feature/amazing-feature
-
-# Open a Pull Request
-```
-
-Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and development process.
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+Contributions are welcome! Please fork this repository and open a pull request into `main` with detailed descriptions of your enhancements.
 
 ---
 
@@ -799,7 +618,13 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ---
 
+## 📜 License
+This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+
+---
+
 <p align="center">
   <strong>Built with ❤️ on Stellar</strong><br/>
   <sub>StellarID — Verify once. Prove everywhere.</sub>
 </p>
+
