@@ -7,7 +7,7 @@ const CREDENTIAL_NFT_CONTRACT_ID = process.env.CREDENTIAL_NFT_CONTRACT_ID || '';
 const FEE_SPONSOR_SECRET = process.env.FEE_SPONSOR_SECRET || '';
 
 // Initialize Stellar server
-const server = new StellarSdk.Horizon.Server(STELLAR_HORIZON_URL);
+export const server = new StellarSdk.Horizon.Server(STELLAR_HORIZON_URL);
 
 // =============================================================================
 // FEE SPONSORSHIP - Gasless Transactions

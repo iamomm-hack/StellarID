@@ -1,8 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
+import * as StellarSdk from 'stellar-sdk';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { getIssuerSubscriptionStatus } from '../middleware/subscription';
+import { server } from '../services/stellar';
 
 const router = Router();
 
@@ -17,6 +19,16 @@ const TIER_PRICES = {
   enterprise: process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_mock_enterprise',
 };
 
+// Stellar pricing configurations (in XLM)
+const STELLAR_PRICES = {
+  pro: '50.0000000', // 50 XLM
+  enterprise: '250.0000000', // 250 XLM
+};
+
+const FEE_SPONSOR_SECRET = process.env.FEE_SPONSOR_SECRET || '';
+const BILLING_DESTINATION_ADDRESS = process.env.BILLING_DESTINATION_ADDRESS ||
+  (FEE_SPONSOR_SECRET ? StellarSdk.Keypair.fromSecret(FEE_SPONSOR_SECRET).publicKey() : '');
+
 const IS_MOCK_MODE = !stripe;
 
 if (IS_MOCK_MODE) {
@@ -30,7 +42,7 @@ if (IS_MOCK_MODE) {
 router.get('/status', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const issuerRes = await query(
-      'SELECT id FROM issuers WHERE stellar_address = $1',
+      'SELECT id, subscription_expires_at, stripe_subscription_id FROM issuers WHERE stellar_address = $1',
       [req.user!.stellar_address]
     );
 
@@ -39,10 +51,16 @@ router.get('/status', authMiddleware, async (req: AuthRequest, res: Response): P
       return;
     }
 
-    const status = await getIssuerSubscriptionStatus(issuerRes.rows[0].id);
+    const { id, subscription_expires_at, stripe_subscription_id } = issuerRes.rows[0];
+
+    const status = await getIssuerSubscriptionStatus(id);
     res.json({
       ...status,
+      expiresAt: subscription_expires_at,
+      stripeSubscriptionId: stripe_subscription_id,
       mockMode: IS_MOCK_MODE,
+      stellarPrices: STELLAR_PRICES,
+      billingDestinationAddress: BILLING_DESTINATION_ADDRESS,
     });
   } catch (err: any) {
     console.error('Error fetching billing status:', err.message);
@@ -347,5 +365,155 @@ router.post(
     }
   }
 );
+
+/**
+ * POST /prepare-stellar-payment
+ * Build an unsigned Stellar payment transaction for a subscription tier
+ */
+router.post('/prepare-stellar-payment', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { tier, senderAddress } = req.body;
+
+    if (!tier || !['pro', 'enterprise'].includes(tier)) {
+      res.status(400).json({ error: 'Invalid subscription tier selected' });
+      return;
+    }
+
+    if (!senderAddress || !StellarSdk.StrKey.isValidEd25519PublicKey(senderAddress)) {
+      res.status(400).json({ error: 'Invalid Stellar sender address' });
+      return;
+    }
+
+    if (!BILLING_DESTINATION_ADDRESS) {
+      res.status(500).json({ error: 'Billing destination address is not configured on the server.' });
+      return;
+    }
+
+    // Load account sequence number
+    let account;
+    try {
+      account = await server.loadAccount(senderAddress);
+    } catch (err: any) {
+      res.status(404).json({
+        error: 'Sender account not active',
+        message: 'The Stellar account must be funded and active on the network before upgrading.'
+      });
+      return;
+    }
+
+    const price = STELLAR_PRICES[tier as 'pro' | 'enterprise'];
+
+    // Build the transaction
+    const tx = new StellarSdk.TransactionBuilder(account, {
+      fee: StellarSdk.BASE_FEE,
+      networkPassphrase: process.env.STELLAR_PASSPHRASE || StellarSdk.Networks.TESTNET,
+    })
+      .addOperation(
+        StellarSdk.Operation.payment({
+          destination: BILLING_DESTINATION_ADDRESS,
+          asset: StellarSdk.Asset.native(),
+          amount: price,
+        })
+      )
+      .addMemo(StellarSdk.Memo.text(`stellarid_sub_${tier}`))
+      .setTimeout(300)
+      .build();
+
+    res.json({
+      xdr: tx.toXDR(),
+      amount: price,
+      destination: BILLING_DESTINATION_ADDRESS,
+    });
+  } catch (err: any) {
+    console.error('Error preparing Stellar payment:', err.message);
+    res.status(500).json({ error: 'Failed to prepare payment transaction' });
+  }
+});
+
+/**
+ * POST /submit-stellar-payment
+ * Submit the signed Stellar transaction and upgrade subscription
+ */
+router.post('/submit-stellar-payment', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { signedXdr, tier } = req.body;
+
+    if (!signedXdr) {
+      res.status(400).json({ error: 'Missing signed transaction XDR' });
+      return;
+    }
+
+    if (!tier || !['pro', 'enterprise'].includes(tier)) {
+      res.status(400).json({ error: 'Invalid subscription tier' });
+      return;
+    }
+
+    // Parse the transaction
+    const tx = new StellarSdk.Transaction(
+      signedXdr,
+      process.env.STELLAR_PASSPHRASE || StellarSdk.Networks.TESTNET
+    );
+
+    // Security Check: Transaction source must match the user's logged-in address
+    if (tx.source !== req.user!.stellar_address) {
+      res.status(400).json({
+        error: 'Invalid signer',
+        message: 'The signing wallet address does not match your active session.'
+      });
+      return;
+    }
+
+    // Submit transaction
+    let submissionResult;
+    try {
+      submissionResult = await server.submitTransaction(tx);
+    } catch (submitErr: any) {
+      const resultCodes = submitErr.response?.data?.extras?.result_codes;
+      console.error('Horizon submission failed:', submitErr.message, resultCodes);
+      res.status(400).json({
+        error: 'Transaction failed',
+        message: 'Failed to submit transaction to the Stellar network.',
+        details: resultCodes || submitErr.message,
+      });
+      return;
+    }
+
+    // Get the issuer
+    const issuerRes = await query(
+      'SELECT id FROM issuers WHERE stellar_address = $1',
+      [req.user!.stellar_address]
+    );
+
+    if (issuerRes.rows.length === 0) {
+      res.status(404).json({ error: 'Issuer profile not found' });
+      return;
+    }
+
+    const issuerId = issuerRes.rows[0].id;
+
+    // Direct DB update to upgrade subscription
+    await query(
+      `UPDATE issuers 
+       SET subscription_tier = $1, 
+           subscription_status = 'active',
+           stripe_subscription_id = $2,
+           stripe_customer_id = $3,
+           subscription_expires_at = NOW() + INTERVAL '30 days'
+       WHERE id = $4`,
+      [tier, `stellar_tx_${submissionResult.hash}`, req.user!.stellar_address, issuerId]
+    );
+
+    console.log(`[Stellar Billing] Upgraded Issuer ${issuerId} to ${tier} via Stellar payment: ${submissionResult.hash}`);
+
+    res.json({
+      success: true,
+      txHash: submissionResult.hash,
+      tier,
+    });
+  } catch (err: any) {
+    console.error('Error submitting Stellar payment:', err.message);
+    res.status(500).json({ error: 'Failed to complete Stellar payment subscription' });
+  }
+});
 
 export default router;

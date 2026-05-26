@@ -19,6 +19,13 @@ interface BillingStatus {
   totalUsed: number;
   remaining: number;
   mockMode: boolean;
+  expiresAt?: string;
+  stripeSubscriptionId?: string;
+  stellarPrices?: {
+    pro: string;
+    enterprise: string;
+  };
+  billingDestinationAddress?: string;
   limits: {
     name: string;
     maxCredentialsPerMonth: number;
@@ -28,7 +35,7 @@ interface BillingStatus {
 }
 
 export default function BillingPage() {
-  const { isConnected } = useWalletStore();
+  const { isConnected, address } = useWalletStore();
   const searchParams = useSearchParams();
   
   const [billing, setBilling] = useState<BillingStatus | null>(null);
@@ -93,18 +100,59 @@ export default function BillingPage() {
     setError('');
     setSuccessMsg('');
     try {
-      const res = await billingApi.createCheckoutSession(tier);
-      if (res.data.mock && res.data.url) {
-        // Mock mode redirect simulation
-        window.location.href = res.data.url;
-      } else if (res.data.url) {
-        // Real Stripe checkout redirect
-        window.location.href = res.data.url;
+      // 1. Get Freighter
+      let freighter;
+      try {
+        freighter = await import('@stellar/freighter-api');
+      } catch (importErr: any) {
+        throw new Error('Please install Freighter wallet extension.');
+      }
+
+      const walletConnected = await freighter.isConnected();
+      if (!walletConnected) {
+        throw new Error('Freighter wallet extension not connected or not installed.');
+      }
+
+      // Fetch active wallet address from state
+      if (!address) {
+        throw new Error('Please connect your wallet first.');
+      }
+
+      // 2. Request backend to prepare payment transaction XDR
+      const prepRes = await billingApi.prepareStellarPayment(tier, address);
+      const { xdr } = prepRes.data;
+
+      // 3. Prompt user to sign transaction with Freighter
+      let signedXdr: string;
+      try {
+        signedXdr = await freighter.signTransaction(xdr, {
+          network: process.env.NEXT_PUBLIC_STELLAR_NETWORK === 'public' ? 'PUBLIC' : 'TESTNET',
+        });
+      } catch (signErr: any) {
+        throw new Error(`Transaction signing rejected: ${signErr.message || signErr}`);
+      }
+
+      if (!signedXdr) {
+        throw new Error('No signature returned from Freighter wallet.');
+      }
+
+      // 4. Submit signed XDR to backend
+      const submitRes = await billingApi.submitStellarPayment(signedXdr, tier);
+      if (submitRes.data.success) {
+        setSuccessMsg(`Successfully upgraded to ${tier.toUpperCase()}! Transaction Hash: ${submitRes.data.txHash}`);
+        loadBillingStatus();
       } else {
-        throw new Error('No checkout session URL returned');
+        throw new Error('Submission succeeded but upgrade check failed.');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.data?.error || 'Subscription checkout failed to initiate');
+      console.error('Subscription error:', err);
+      setError(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Subscription payment failed to complete.'
+      );
+    } finally {
       setActionLoading(null);
     }
   }
@@ -219,7 +267,7 @@ export default function BillingPage() {
                   <div>
                     <span className="text-xs font-mono text-muted uppercase">Active Profile</span>
                     <h2 className="text-2xl font-bold font-display mt-1">{billing.issuerName}</h2>
-                    <p className="text-xs text-muted mt-1 font-mono">Stellar Address: {useWalletStore.getState().address}</p>
+                    <p className="text-xs text-muted mt-1 font-mono">Stellar Address: {address}</p>
                   </div>
                   
                   <div className="flex items-center gap-4">
@@ -229,15 +277,34 @@ export default function BillingPage() {
                         {billing.limits.name} Plan
                       </span>
                     </div>
-                    {billing.tier !== 'free' && !billing.mockMode && (
-                      <button
-                        onClick={handleManageBilling}
-                        disabled={actionLoading === 'portal'}
-                        className="btn-stellar-ghost !py-2.5 !px-5 !text-xs gap-2 flex items-center"
-                      >
-                        <CreditCard className="w-4 h-4" />
-                        {actionLoading === 'portal' ? 'Opening...' : 'Manage Billing'}
-                      </button>
+                    {billing.tier !== 'free' && (
+                      <div className="text-right border-l border-white/10 pl-4 font-mono text-xs">
+                        {billing.stripeSubscriptionId?.startsWith('stellar_tx_') ? (
+                          <>
+                            <span className="text-muted block">Payment Network</span>
+                            <span className="text-green-400">Stellar Native (XLM)</span>
+                            {billing.expiresAt && (
+                              <span className="text-[10px] text-muted block mt-1">
+                                Expires: {new Date(billing.expiresAt).toLocaleDateString()}
+                              </span>
+                            )}
+                          </>
+                        ) : billing.mockMode ? (
+                          <>
+                            <span className="text-muted block">Payment Network</span>
+                            <span className="text-violet-400 font-bold">Sandbox (Mock)</span>
+                          </>
+                        ) : (
+                          <button
+                            onClick={handleManageBilling}
+                            disabled={actionLoading === 'portal'}
+                            className="btn-stellar-ghost !py-2.5 !px-5 !text-xs gap-2 flex items-center"
+                          >
+                            <CreditCard className="w-4 h-4" />
+                            {actionLoading === 'portal' ? 'Opening...' : 'Manage Billing'}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -350,9 +417,12 @@ export default function BillingPage() {
                     </h3>
                     <p className="text-xs text-muted mt-1">Ideal for expanding networks, hackathons & schools.</p>
                     
-                    <div className="my-6">
-                      <span className="text-3xl font-bold font-mono">$49</span>
-                      <span className="text-xs text-muted"> / month</span>
+                    <div className="my-6 flex flex-col">
+                      <div className="flex items-baseline">
+                        <span className="text-3xl font-bold font-mono">50 XLM</span>
+                        <span className="text-xs text-muted ml-1"> / month</span>
+                      </div>
+                      <span className="text-[10px] text-muted-more font-mono mt-1">(approx. $7.50 USD)</span>
                     </div>
 
                     <div className="space-y-3 border-t border-white/[0.06] pt-6">
@@ -364,27 +434,27 @@ export default function BillingPage() {
                     </div>
                   </div>
 
-                  {billing.mockMode ? (
-                    <button 
-                      onClick={() => handleMockUpgradeDirectly('pro')}
-                      disabled={billing.tier === 'pro'}
-                      className="w-full mt-8 btn-stellar !py-3"
-                    >
-                      {billing.tier === 'pro' ? 'Active Plan' : 'Select Pro (Mock)'}
-                    </button>
-                  ) : (
+                  <div className="mt-8 space-y-2">
                     <button 
                       onClick={() => handleSubscribe('pro')}
                       disabled={billing.tier === 'pro' || actionLoading === 'pro'}
-                      className={`w-full mt-8 py-3 rounded-xl text-xs font-semibold transition-all ${
+                      className={`w-full py-3 rounded-xl text-xs font-semibold transition-all ${
                         billing.tier === 'pro' 
                           ? 'bg-white/5 border border-white/10 text-muted cursor-not-allowed' 
                           : 'btn-stellar'
                       }`}
                     >
-                      {actionLoading === 'pro' ? 'Initiating...' : billing.tier === 'pro' ? 'Active' : 'Upgrade to Pro'}
+                      {actionLoading === 'pro' ? 'Paying XLM...' : billing.tier === 'pro' ? 'Active Plan' : 'Pay 50 XLM'}
                     </button>
-                  )}
+                    {billing.mockMode && billing.tier !== 'pro' && (
+                      <button 
+                        onClick={() => handleMockUpgradeDirectly('pro')}
+                        className="w-full text-center text-xs py-1 hover:underline text-violet-400 font-mono"
+                      >
+                        Instant Mock Upgrade
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Plan 3: Enterprise */}
@@ -398,9 +468,12 @@ export default function BillingPage() {
                     <h3 className="text-lg font-bold font-display text-white">Enterprise</h3>
                     <p className="text-xs text-muted mt-1">For massive corporate verify setups & protocols.</p>
                     
-                    <div className="my-6">
-                      <span className="text-3xl font-bold font-mono">$299</span>
-                      <span className="text-xs text-muted"> / month</span>
+                    <div className="my-6 flex flex-col">
+                      <div className="flex items-baseline">
+                        <span className="text-3xl font-bold font-mono">250 XLM</span>
+                        <span className="text-xs text-muted ml-1"> / month</span>
+                      </div>
+                      <span className="text-[10px] text-muted-more font-mono mt-1">(approx. $37.50 USD)</span>
                     </div>
 
                     <div className="space-y-3 border-t border-white/[0.06] pt-6">
@@ -412,27 +485,27 @@ export default function BillingPage() {
                     </div>
                   </div>
 
-                  {billing.mockMode ? (
-                    <button 
-                      onClick={() => handleMockUpgradeDirectly('enterprise')}
-                      disabled={billing.tier === 'enterprise'}
-                      className="w-full mt-8 btn-stellar !py-3"
-                    >
-                      {billing.tier === 'enterprise' ? 'Active Plan' : 'Select Enterprise (Mock)'}
-                    </button>
-                  ) : (
+                  <div className="mt-8 space-y-2">
                     <button 
                       onClick={() => handleSubscribe('enterprise')}
                       disabled={billing.tier === 'enterprise' || actionLoading === 'enterprise'}
-                      className={`w-full mt-8 py-3 rounded-xl text-xs font-semibold transition-all ${
+                      className={`w-full py-3 rounded-xl text-xs font-semibold transition-all ${
                         billing.tier === 'enterprise' 
                           ? 'bg-white/5 border border-white/10 text-muted cursor-not-allowed' 
                           : 'btn-stellar'
                       }`}
                     >
-                      {actionLoading === 'enterprise' ? 'Initiating...' : billing.tier === 'enterprise' ? 'Active' : 'Upgrade to Enterprise'}
+                      {actionLoading === 'enterprise' ? 'Paying XLM...' : billing.tier === 'enterprise' ? 'Active Plan' : 'Pay 250 XLM'}
                     </button>
-                  )}
+                    {billing.mockMode && billing.tier !== 'enterprise' && (
+                      <button 
+                        onClick={() => handleMockUpgradeDirectly('enterprise')}
+                        className="w-full text-center text-xs py-1 hover:underline text-violet-400 font-mono"
+                      >
+                        Instant Mock Upgrade
+                      </button>
+                    )}
+                  </div>
                 </div>
 
               </div>

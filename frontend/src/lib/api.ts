@@ -118,5 +118,9 @@ export const billingApi = {
   createCheckoutSession: (tier: 'pro' | 'enterprise') => api.post('/billing/checkout-session', { tier }),
   createPortalSession: () => api.post('/billing/portal-session'),
   mockUpgrade: (tier: 'free' | 'pro' | 'enterprise') => api.post('/billing/mock-upgrade', { tier }),
+  prepareStellarPayment: (tier: 'pro' | 'enterprise', senderAddress: string) =>
+    api.post('/billing/prepare-stellar-payment', { tier, senderAddress }),
+  submitStellarPayment: (signedXdr: string, tier: 'pro' | 'enterprise') =>
+    api.post('/billing/submit-stellar-payment', { signedXdr, tier }),
 };
 
