@@ -53,11 +53,21 @@ const mockDbPendingStore: Record<string, PendingCredMock> = {};
 jest.mock('../../src/db', () => ({
   query: jest.fn().mockImplementation((text: string, params?: any[]) => {
     // 1. Check issuer query
-    if (text.includes('SELECT') && text.includes('issuers') && text.includes('id = $1')) {
-      if (params?.[0] === 'invalid-issuer') {
-        return { rows: [] };
+    if (text.includes('SELECT') && text.includes('issuers')) {
+      if (text.includes('id = $1')) {
+        if (params?.[0] === 'invalid-issuer') {
+          return { rows: [] };
+        }
+        return { rows: [{ id: params?.[0], name: 'Test Issuer', verified: true, subscription_tier: 'enterprise', subscription_status: 'active' }] };
       }
-      return { rows: [{ id: params?.[0], name: 'Test Issuer', verified: true }] };
+      if (text.includes('stellar_address = $1')) {
+        return { rows: [{ id: 'test-issuer-id', name: 'Test Issuer', verified: true, subscription_tier: 'enterprise', subscription_status: 'active' }] };
+      }
+    }
+
+    // Mock count queries
+    if (text.includes('COUNT(')) {
+      return { rows: [{ count: 0 }] };
     }
 
     // 2. Insert pending credentials

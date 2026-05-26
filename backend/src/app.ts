@@ -43,8 +43,7 @@ app.use(cors({
   },
   credentials: true,
 }));
-// Webhook path requires raw body for Stripe signature validation
-app.use('/api/v1/billing/webhook', express.raw({ type: 'application/json' }));
+// Body parsers
 
 app.use(express.json({ limit: '10mb' }));
 

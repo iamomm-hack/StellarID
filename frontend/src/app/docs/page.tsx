@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Shield, Fingerprint, Lock, Layers, Key, Eye,
@@ -81,9 +81,28 @@ const coreConcepts = [
 const apiEndpoints = [
   { method: 'POST', path: '/auth/connect', desc: 'Connect wallet & get JWT token', auth: false, group: 'Auth' },
   { method: 'GET',  path: '/auth/me', desc: 'Get current user profile', auth: true, group: 'Auth' },
+  { method: 'POST', path: '/developer/keys', desc: 'Generate new developer API key', auth: true, group: 'Auth' },
   { method: 'POST', path: '/credentials', desc: 'Issue a new credential', auth: true, group: 'Credentials' },
   { method: 'GET',  path: '/credentials/my', desc: 'List your credentials', auth: true, group: 'Credentials' },
   { method: 'DELETE', path: '/credentials/:id', desc: 'Delete (unlink) a credential', auth: true, group: 'Credentials' },
+  { method: 'POST', path: '/credentials/issue-with-email', desc: 'Issue credential via email (pending)', auth: true, group: 'Credentials' },
+  { method: 'GET',  path: '/credentials/claim/:token', desc: 'Verify claim invitation token', auth: false, group: 'Credentials' },
+  { method: 'POST', path: '/credentials/claim/:token', desc: 'Submit wallet and claim pending credential', auth: false, group: 'Credentials' },
+  { method: 'POST', path: '/bulk/upload', desc: 'Upload CSV to bulk issue credentials', auth: true, group: 'Bulk Issuance' },
+  { method: 'GET',  path: '/bulk/jobs/:id/status', desc: 'SSE/Polling for bulk job progress status', auth: true, group: 'Bulk Issuance' },
+  { method: 'POST', path: '/bulk/jobs/:id/retry-failed', desc: 'Retry failed rows in bulk job', auth: true, group: 'Bulk Issuance' },
+  { method: 'GET',  path: '/reputation/:wallet_address', desc: 'Get reputation score & breakdown', auth: false, group: 'Reputation' },
+  { method: 'POST', path: '/reputation/:wallet_address/recalculate', desc: 'Force recalculate reputation', auth: false, group: 'Reputation' },
+  { method: 'POST', path: '/issuers/:id/request-domain-verification', desc: 'Request DNS verification TXT token', auth: true, group: 'Issuer Verification' },
+  { method: 'POST', path: '/issuers/:id/confirm-domain-verification', desc: 'Perform DNS TXT lookup to verify', auth: true, group: 'Issuer Verification' },
+  { method: 'POST', path: '/issuers/:id/endorse', desc: 'Endorse another issuer account', auth: true, group: 'Issuer Verification' },
+  { method: 'GET',  path: '/leaderboard', desc: 'Fetch rankings filtered by city/college', auth: false, group: 'Leaderboard' },
+  { method: 'GET',  path: '/leaderboard/my-rank', desc: 'Get calling wallet leaderboard position', auth: true, group: 'Leaderboard' },
+  { method: 'POST', path: '/ai/generate-bio', desc: 'Generate developer bio using Gemini API', auth: true, group: 'AI Services' },
+  { method: 'GET',  path: '/billing/status', desc: 'Fetch subscription status & destination address', auth: true, group: 'Billing & Monetization' },
+  { method: 'POST', path: '/billing/mock-upgrade', desc: 'Directly upgrade tier (Sandbox Mock Mode)', auth: true, group: 'Billing & Monetization' },
+  { method: 'GET',  path: '/public/verify/:wallet_address', desc: 'Programmatically verify profile (B2B API)', auth: false, group: 'Public API' },
+  { method: 'POST', path: '/public/credentials/issue', desc: 'Programmatically issue pending credential (B2B API)', auth: false, group: 'Public API' },
   { method: 'POST', path: '/proofs', desc: 'Create shareable ZK proof record', auth: true, group: 'Proofs' },
   { method: 'GET',  path: '/proofs/:token', desc: 'Public proof verification', auth: false, group: 'Proofs' },
   { method: 'GET',  path: '/proofs/:token/pdf', desc: 'Download PDF certificate', auth: false, group: 'Proofs' },
@@ -179,22 +198,53 @@ const architectureLayers = [
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState('quickstart');
+  const [sdkTab, setSdkTab] = useState<'readme' | 'api'>('readme');
 
   const sidebarItems = [
     { id: 'quickstart', label: 'Quick Start', icon: Rocket },
     { id: 'concepts', label: 'Core Concepts', icon: Layers },
     { id: 'architecture', label: 'Architecture', icon: GitBranch },
+    { id: 'sdk', label: 'Developer SDK', icon: Code2 },
+    { id: 'reputation', label: 'Reputation System', icon: Shield },
+    { id: 'bulk', label: 'Bulk Issuance', icon: Layers },
     { id: 'oauth', label: 'OAuth Issuers', icon: Github },
+    { id: 'discord', label: 'Discord Bot', icon: Users },
     { id: 'advanced', label: 'Advanced Features', icon: Zap },
-    { id: 'api', label: 'API Reference', icon: Code2 },
+    { id: 'billing', label: 'Billing & Sandbox', icon: Coins },
+    { id: 'api', label: 'API Reference', icon: FileCode },
     { id: 'circuits', label: 'ZK Circuits', icon: FileCode },
     { id: 'security', label: 'Security', icon: ShieldCheck },
   ];
 
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-10% 0px -75% 0px',
+      threshold: 0,
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    const sections = document.querySelectorAll('main section[id]');
+    sections.forEach((section) => observer.observe(section));
+
+    return () => {
+      sections.forEach((section) => observer.unobserve(section));
+    };
+  }, []);
+
   const groups = [...new Set(apiEndpoints.map(e => e.group))];
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden" style={{ background: 'hsl(var(--background))' }}>
+    <div className="min-h-screen relative overflow-x-clip" style={{ background: 'hsl(var(--background))' }}>
       <div className="max-w-[1400px] mx-auto px-6 py-12">
         {/* Header */}
         <div className="mb-12">
@@ -221,8 +271,8 @@ export default function DocsPage() {
 
         <div className="flex gap-8">
           {/* Sticky Sidebar */}
-          <aside className="hidden lg:block w-56 shrink-0">
-            <nav className="sticky top-[96px] space-y-1">
+          <aside className="hidden lg:block w-56 shrink-0 self-start sticky top-[96px] max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-thin">
+            <nav className="space-y-1">
               {sidebarItems.map((item) => (
                 <button
                   key={item.id}
@@ -232,7 +282,7 @@ export default function DocsPage() {
                   }}
                   className={`w-full flex items-center gap-2.5 px-4 py-3 text-xs font-bold font-display tracking-wider rounded-xl transition-all duration-200 text-left uppercase border ${
                     activeSection === item.id
-                      ? 'border-accent-indigo/20 text-foreground bg-accent-indigo/10'
+                      ? 'border-accent-indigo text-foreground bg-accent-indigo/10 shadow-[0_0_12px_rgba(99,102,241,0.15)] font-bold'
                       : 'border-transparent text-muted hover:text-foreground hover:bg-white/[0.02]'
                   }`}
                 >
@@ -315,7 +365,7 @@ export default function DocsPage() {
               </div>
 
               <p className="text-muted text-sm leading-relaxed">
-                StellarID leverages a multi-layer design to separate zero-knowledge computations, state management, and blockchain settlement.
+                StellarID leverages a multi-layer trust architecture designed to decouple client-side zero-knowledge computations, asynchronous queue management, metadata distribution, and secure on-chain token settlement.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -332,6 +382,658 @@ export default function DocsPage() {
                     </ul>
                   </div>
                 ))}
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
+                  Claim Credential Architecture Flow (P0-A)
+                </h3>
+                <p className="text-xs text-muted leading-relaxed font-sans">
+                  This flow facilitates gasless credential onboarding for users without a pre-existing wallet. A unique encrypted token is routed to their email, serving as the bridge to connect their Freighter wallet and trigger Soroban smart contract minting.
+                </p>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
+                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
+{`+------------------+     issue-with-email     +------------------+
+|  Organizer Auth  | -----------------------> | Express Backend  |
++------------------+                          +------------------+
+                                                       |
+                                               (Store Pending DB)
+                                                       v
++------------------+       Send Link          +------------------+
+| Recipient Email  | <----------------------- |  Unique Token    |
++------------------+                          +------------------+
+         |
+    (Click Link)
+         v
++------------------+       Retrieve Data      +------------------+
+|   Claim Page     | <----------------------- |  verifyToken     |
++------------------+                          +------------------+
+         |
+ (Connect Freighter)
+         v
++------------------+       Trigger Mint       +------------------+
+|   Submit Claim   | -----------------------> | Soroban Contract |
++------------------+                          +------------------+
+                                                       |
+                                               (Mint NFT & Settle)
+                                                       v
++------------------+     Trigger Notification +------------------+
+| Confirmation Mail| <----------------------- | Senders Registry |
++------------------+                          +------------------+`}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
+                  Bulk Credential Issuance Queue Flow (P0-C)
+                </h3>
+                <p className="text-xs text-muted leading-relaxed font-sans">
+                  To prevent hitting API bottlenecks and Resend SMTP limits, bulk issuances of up to 1000 items are queued using Redis and processed asynchronously by BullMQ background workers.
+                </p>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
+                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
+{`[CSV File Uploaded] 
+        |
+        v
+[Express API Gateway]  ---> [Initial Validation] (Headers, Columns, Size)
+        |
+        +-----(Generate IPFS Audit Metadata)-----> [Pinata IPFS]
+        |
+        v
+[Push Job to Redis Queue] (BullMQ)
+        |
+        v
+[Asynchronous Background Workers] <--- (Processes 1 row at a time)
+        |
+        +-----(Check Resend rate limit: max 10/sec)-----> [Execute Dispatch]
+        |
+        v
+[Live SSE Status Endpoint] (Clients poll for real-time progress percentages)
+        |
+        v
+[Completion & Stepper Finish] (Download failed rows list if any exist)`}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
+                  Non-Crypto Onboarding (Privy) Flow (P2-B)
+                </h3>
+                <p className="text-xs text-muted leading-relaxed font-sans">
+                  For users without Freighter wallets, StellarID leverages Privy to enable email/social logins. On registration, Privy creates a secure, embedded wallet on behalf of the user, which is mapped directly to their user ID in the database, allowing seamless credential claiming.
+                </p>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
+                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
+{`+------------------+         Login / OTP       +---------------------+
+| Non-Crypto User  | ------------------------> | Privy Auth Provider |
++------------------+                           +---------------------+
+         |                                                |
+         |                                       (Generate Embedded)
+         |                                       (Stellar Keypair  )
+         v                                                v
++------------------+     JWT / Session Token   +---------------------+
+|   StellarID App  | <------------------------ | Privy Client SDK    |
++------------------+                           +---------------------+
+         |
+  (Register User)
+         v
++------------------+     Link privy_user_id    +---------------------+
+| Express Backend  | ------------------------> | PostgreSQL Database |
++------------------+                           +---------------------+`}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
+                  Stripe Subscription Billing & Webhook Flow (P3-C)
+                </h3>
+                <p className="text-xs text-muted leading-relaxed font-sans">
+                  The API monetization layer supports tiered limits (Free, Pro, Enterprise). Tiers can be upgraded programmatically via Stripe Checkout. Webhook payloads notify the backend of lifecycle status updates, updating user limits immediately.
+                </p>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
+                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
+{`+------------------+     Initiate Purchase    +----------------------+
+|   Developer UI   | -----------------------> | Stripe Checkout Session |
++------------------+                          +----------------------+
+                                                         |
+                                                  (Successful Pay)
+                                                         v
++------------------+     Stripe Event Hook    +----------------------+
+|  Express Backend | <----------------------- |    Stripe Webhook    |
+| /api/v1/webhooks |                          | (signature verified) |
++------------------+                          +----------------------+
+         |
+ (Parse Payload)
+         v
++------------------+      Update Limits       +----------------------+
+|    PostgreSQL    | -----------------------> | Redis API-Key Cache  |
+|  (User Profile)  |                          |   (limits updated)   |
++------------------+                          +----------------------+`}
+                  </pre>
+                </div>
+              </div>
+            </section>
+
+            {/* === DEVELOPER SDK === */}
+            <section id="sdk" className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+                <Code2 className="w-5 h-5 text-accent-indigo" />
+                <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
+                  Developer SDK
+                </h2>
+              </div>
+
+              <p className="text-muted text-sm leading-relaxed">
+                StellarID provides a high-level developer toolkit to interact programmatically with our reputation engine and credentials. 
+                Below is the official documentation for the <code className="text-accent-indigo font-mono">stellarid-sdk</code> NPM package.
+              </p>
+
+              {/* NPM Package Mock Registry UI */}
+              <div className="w-full rounded-xl overflow-hidden border border-white/[0.06] bg-black/40">
+                {/* Header */}
+                <div className="bg-white/[0.02] border-b border-white/[0.06] p-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h3 className="text-xl font-bold font-mono text-foreground tracking-tight">stellarid-sdk</h3>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-indigo-500/10 text-accent-indigo border border-indigo-500/20">
+                          TS
+                        </span>
+                        <span className="text-xs text-muted">1.0.0 • Public • Published 2 days ago</span>
+                      </div>
+                      <p className="text-xs text-muted mt-2 max-w-xl font-sans">
+                        The official JavaScript/TypeScript SDK for StellarID — the protocol-grade identity and reputation layer on Stellar.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b border-white/[0.06] bg-black/20">
+                  <button
+                    onClick={() => setSdkTab('readme')}
+                    className={`px-6 py-3 text-xs font-bold font-display uppercase tracking-wider border-b-2 transition-all ${
+                      sdkTab === 'readme'
+                        ? 'border-accent-indigo text-foreground bg-white/[0.02]'
+                        : 'border-transparent text-muted hover:text-foreground hover:bg-white/[0.01]'
+                    }`}
+                  >
+                    Readme
+                  </button>
+                  <button
+                    onClick={() => setSdkTab('api')}
+                    className={`px-6 py-3 text-xs font-bold font-display uppercase tracking-wider border-b-2 transition-all ${
+                      sdkTab === 'api'
+                        ? 'border-accent-indigo text-foreground bg-white/[0.02]'
+                        : 'border-transparent text-muted hover:text-foreground hover:bg-white/[0.01]'
+                    }`}
+                  >
+                    API Reference
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-6 bg-black/10 flex flex-col lg:flex-row gap-8">
+                  {/* Main Tab Content */}
+                  <div className="flex-1 min-w-0 space-y-8">
+                    {sdkTab === 'readme' ? (
+                      <div className="space-y-6 text-sm text-muted leading-relaxed font-sans">
+                        <div>
+                          <h4 className="text-base font-bold text-foreground mb-2">StellarID JavaScript SDK</h4>
+                          <p>
+                            Easily integrate user credential verification, reputation score lookups, on-chain credential issuance, and embeddable trust badges into your Web3 applications.
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          <h5 className="font-bold text-foreground font-display uppercase tracking-wider text-xs">Installation</h5>
+                          <p>Install the package via npm, yarn, or pnpm:</p>
+                          <CodeBlock code="npm install stellarid-sdk" lang="bash" />
+                          <div className="text-xs text-muted font-mono bg-white/[0.01] p-3 rounded-lg border border-white/[0.04] space-y-1">
+                            <div># or</div>
+                            <div>yarn add stellarid-sdk</div>
+                            <div># or</div>
+                            <div>pnpm add stellarid-sdk</div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-6">
+                          <h5 className="font-bold text-foreground font-display uppercase tracking-wider text-xs border-b border-white/[0.06] pb-2">Quick Start</h5>
+
+                          <div className="space-y-3">
+                            <h6 className="font-bold text-foreground text-xs">1. Initialize the Client</h6>
+                            <p>Obtain your Developer API Key from the StellarID Dashboard and instantiate the client:</p>
+                            <CodeBlock
+                              lang="typescript"
+                              code={`import { StellarID } from 'stellarid-sdk';
+
+const stellarId = new StellarID({
+  apiKey: 'your-developer-api-key',
+  // Optional: Custom base URL (e.g. for local testing)
+  // baseURL: 'http://localhost:5555/api/v1' 
+});`}
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <h6 className="font-bold text-foreground text-xs">2. Verify a User's Reputation Score & Credentials</h6>
+                            <p>Retrieve verified credentials and computed reputation levels for any Stellar wallet address:</p>
+                            <CodeBlock
+                              lang="typescript"
+                              code={`async function checkUserReputation(walletAddress: string) {
+  try {
+    const profile = await stellarId.verifyWallet(walletAddress);
+    
+    console.log(\`Score: \${profile.reputation_score}\`);
+    console.log(\`Tier: \${profile.tier}\`);
+    console.log(\`Is Verified: \${profile.verified}\`);
+    
+    // List user credentials
+    profile.credentials.forEach(cred => {
+      console.log(\`- \${cred.name} (\${cred.status}) issued by \${cred.issuer_name}\`);
+    });
+  } catch (error) {
+    console.error('Verification failed:', error.message);
+  }
+}
+
+checkUserReputation('GA2C7...55');`}
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <h6 className="font-bold text-foreground text-xs">3. Generate and Embed a Trust Badge</h6>
+                            <p>Retrieve the ready-to-use iframe HTML code to render a gorgeous, glassmorphic trust badge on your website:</p>
+                            <CodeBlock
+                              lang="typescript"
+                              code={`async function renderUserBadge(walletAddress: string) {
+  const badge = await stellarId.getBadge({
+    walletAddress,
+    style: 'dark', // 'light' | 'dark'
+    size: 'md',     // 'sm' | 'md' | 'lg'
+  });
+
+  console.log('Insert this HTML to display the badge:');
+  console.log(badge.html);
+  
+  // Or get the direct URL to use as you wish:
+  console.log('Iframe URL:', badge.iframe_url);
+}`}
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <h6 className="font-bold text-foreground text-xs">4. Issue a New Credential</h6>
+                            <p>Programmatically issue credentials to builders. This inserts a pending credential and emails the recipient a secure link to claim it:</p>
+                            <CodeBlock
+                              lang="typescript"
+                              code={`async function sendDeveloperCredential(recipientEmail: string, walletAddress?: string) {
+  const result = await stellarId.issueCredential({
+    recipientEmail,
+    recipientWallet: walletAddress, // Optional
+    credential: {
+      name: 'github_developer',
+      description: 'Verified GitHub Contributor',
+      metadata: {
+        repositoriesContributionCount: 15,
+        languages: ['Rust', 'TypeScript']
+      },
+      expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
+    }
+  });
+
+  console.log(\`Credential Pending! Claim URL: \${result.claim_url}\`);
+}`}
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <h6 className="font-bold text-foreground text-xs">React Integration Pattern</h6>
+                            <p>You can build a reactive hook or component to fetch reputation dynamically:</p>
+                            <CodeBlock
+                              lang="typescript"
+                              code={`import React, { useState, useEffect } from 'react';
+import { StellarID, VerifyWalletResponse } from 'stellarid-sdk';
+
+const stellarIdClient = new StellarID({ apiKey: process.env.NEXT_PUBLIC_STELLARID_KEY! });
+
+export function UserReputationWidget({ walletAddress }: { walletAddress: string }) {
+  const [data, setData] = useState<VerifyWalletResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    stellarIdClient.verifyWallet(walletAddress)
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, [walletAddress]);
+
+  if (loading) return <div>Loading reputation...</div>;
+  if (!data) return <div>Unverified User</div>;
+
+  return (
+    <div className="reputation-card">
+      <h4>Reputation: {data.reputation_score}</h4>
+      <span className="tier-tag">{data.tier}</span>
+    </div>
+  );
+}`}
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <h6 className="font-bold text-foreground text-xs">React Hooks Package (`stellarid-react`)</h6>
+                            <p>For Next.js and React developers, we provide pre-built custom hooks that handle caching, error boundaries, and state mapping automatically:</p>
+                            <CodeBlock
+                              lang="typescript"
+                              code={`import { useStellarIDProfile, useVerifyCredential } from 'stellarid-react';
+
+export function ProfileDashboard({ walletAddress }: { walletAddress: string }) {
+  const { profile, loading, error, refetch } = useStellarIDProfile(walletAddress);
+  
+  if (loading) return <div>Fetching credentials from IPFS...</div>;
+  if (error) return <div>Failed to verify: {error.message}</div>;
+
+  return (
+    <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800">
+      <h3 className="text-lg font-bold">Reputation: {profile?.reputation_score} ({profile?.tier})</h3>
+      <p className="text-xs text-slate-400 mt-1">Stellar Address: {walletAddress}</p>
+      
+      <div className="mt-4 space-y-2">
+        {profile?.credentials.map(cred => (
+          <div key={cred.id} className="flex justify-between text-xs py-1 border-b border-slate-800">
+            <span>{cred.name}</span>
+            <span className="font-mono text-emerald-400">STATUS_MINTED</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}`}
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <h6 className="font-bold text-foreground text-xs">Build Bundling Configuration (`tsup`)</h6>
+                            <p>The SDK compiles dual formats (CommonJS and ESM) with strict type outputs using tsup. Here is our setup for standard integrations:</p>
+                            <CodeBlock
+                              lang="typescript"
+                              code={`// tsup.config.ts
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['cjs', 'esm'],
+  dts: true,
+  clean: true,
+  minify: true,
+  sourcemap: true,
+  external: ['stellar-sdk', '@privy-io/react-auth'],
+});`}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="border-t border-white/[0.06] pt-4 flex justify-between text-xs text-muted font-sans">
+                          <span>License: MIT License. Copyright (c) 2026 StellarID.</span>
+                          <span className="font-mono text-accent-indigo">Keywords: stellar, identity, sdk, zk-proof, verification</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-6 font-sans">
+                        <h4 className="text-base font-bold text-foreground">SDK API Reference</h4>
+                        <div className="overflow-x-auto border border-white/[0.06] rounded-xl">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <thead>
+                              <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                                <th className="p-3 font-semibold text-foreground">Method</th>
+                                <th className="p-3 font-semibold text-foreground">Parameters</th>
+                                <th className="p-3 font-semibold text-foreground">Return Type</th>
+                                <th className="p-3 font-semibold text-foreground">Required API Permission</th>
+                                <th className="p-3 font-semibold text-foreground">Description</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/[0.04]">
+                              <tr>
+                                <td className="p-3 font-mono text-accent-indigo font-semibold">verifyWallet(walletAddress)</td>
+                                <td className="p-3 font-mono text-muted">walletAddress: string</td>
+                                <td className="p-3 font-mono text-muted">Promise&lt;VerifyWalletResponse&gt;</td>
+                                <td className="p-3"><span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-yellow-500/10 text-yellow-400">verify</span></td>
+                                <td className="p-3 text-muted">Fetches a wallet's full reputation score, credentials list, and tier.</td>
+                              </tr>
+                              <tr>
+                                <td className="p-3 font-mono text-accent-indigo font-semibold">getBadge(params)</td>
+                                <td className="p-3 font-mono text-muted">{"{ walletAddress, style?, size? }"}</td>
+                                <td className="p-3 font-mono text-muted">Promise&lt;GetBadgeResponse&gt;</td>
+                                <td className="p-3 flex flex-wrap gap-1"><span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-yellow-500/10 text-yellow-400">verify</span> <span className="text-muted">or</span> <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-400">read_profile</span></td>
+                                <td className="p-3 text-muted">Generates iframe embedding HTML & source URL to show a micro-badge.</td>
+                              </tr>
+                              <tr>
+                                <td className="p-3 font-mono text-accent-indigo font-semibold">issueCredential(params)</td>
+                                <td className="p-3 font-mono text-muted">{"{ recipientEmail, recipientWallet?, credential }"}</td>
+                                <td className="p-3 font-mono text-muted">Promise&lt;IssueCredentialResponse&gt;</td>
+                                <td className="p-3"><span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-red-500/10 text-red-400">issue</span></td>
+                                <td className="p-3 text-muted">Creates a pending credential and triggers a verification email.</td>
+                              </tr>
+                              <tr>
+                                <td className="p-3 font-mono text-accent-indigo font-semibold">getCredential(credentialId)</td>
+                                <td className="p-3 font-mono text-muted">credentialId: string</td>
+                                <td className="p-3 font-mono text-muted">Promise&lt;GetCredentialResponse&gt;</td>
+                                <td className="p-3"><span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-500/10 text-blue-400">read_profile</span></td>
+                                <td className="p-3 text-muted">Retrieves specific details of an existing, verified credential.</td>
+                              </tr>
+                              <tr>
+                                <td className="p-3 font-mono text-accent-indigo font-semibold">getProof(credentialId)</td>
+                                <td className="p-3 font-mono text-muted">credentialId: string</td>
+                                <td className="p-3 font-mono text-muted">Promise&lt;GetProofResponse&gt;</td>
+                                <td className="p-3"><span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-yellow-500/10 text-yellow-400">verify</span></td>
+                                <td className="p-3 text-muted">Retrieves details about a verified zero-knowledge proof for a credential.</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sidebar Stats */}
+                  <div className="w-full lg:w-64 shrink-0 space-y-6 lg:border-l lg:border-white/[0.06] lg:pl-8 font-sans">
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-display uppercase tracking-widest text-muted font-bold block">Install</span>
+                      <div className="relative border border-white/[0.06] rounded-lg overflow-hidden bg-black/30 p-3 pr-10 font-mono text-xs text-foreground">
+                        npm i stellarid-sdk
+                        <button
+                          onClick={() => navigator.clipboard.writeText('npm i stellarid-sdk')}
+                          className="absolute right-2 top-2.5 p-1 rounded hover:bg-white/[0.04] text-muted hover:text-foreground transition-colors"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 text-xs">
+                      <div className="flex justify-between border-b border-white/[0.04] pb-2">
+                        <span className="text-muted">Weekly Downloads</span>
+                        <span className="font-bold text-foreground font-mono">144</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/[0.04] pb-2">
+                        <span className="text-muted">Version</span>
+                        <span className="font-bold text-foreground font-mono">1.0.0</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/[0.04] pb-2">
+                        <span className="text-muted">License</span>
+                        <span className="font-bold text-foreground font-mono">MIT</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/[0.04] pb-2">
+                        <span className="text-muted">Last publish</span>
+                        <span className="font-bold text-foreground font-mono">2 days ago</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-muted">Collaborators</span>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="w-4 h-4 rounded-full bg-accent-indigo text-[10px] text-black font-bold flex items-center justify-center font-mono">O</span>
+                          <span className="font-mono text-foreground">omkumarx</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* === REPUTATION SYSTEM === */}
+            <section id="reputation" className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+                <Shield className="w-5 h-5 text-accent-indigo" />
+                <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
+                  Reputation System
+                </h2>
+              </div>
+
+              <p className="text-muted text-sm leading-relaxed">
+                StellarID calculates a composite credibility score (0 - 1000) for each profile based on on-chain credentials, issuer trust levels, and temporal recency.
+              </p>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">Scoring Formula</h3>
+                <p className="text-xs text-muted leading-relaxed">
+                  Each claimed credential increases the score. Credentials decay gracefully over time to ensure active builders remain at the top.
+                </p>
+                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] font-mono text-xs text-accent-indigo text-center">
+                  Score = (Base Points [10] + Recency Bonus [0-5]) × Issuer Multiplier × 100
+                </div>
+                <ul className="space-y-2 text-xs text-muted list-disc list-inside">
+                  <li><span className="text-foreground font-bold">Recency Bonus:</span> Starts at +5 points and decays by 1 point every 3 months after issuance.</li>
+                  <li><span className="text-foreground font-bold">Issuer Multiplier:</span> Scaled from 0.1 to 1.0 based on the issuer's verification tier and history.</li>
+                </ul>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="protocol-panel p-6">
+                  <h3 className="font-bold text-sm border-b border-white/[0.04] pb-3 mb-4 font-display uppercase tracking-wider text-foreground">Reputation Tiers</h3>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'Verified Builder', range: '0 - 199', color: 'text-gray-400 bg-gray-800/40 border-gray-800' },
+                      { name: 'Proven Builder', range: '200 - 499', color: 'text-blue-400 bg-blue-900/20 border-blue-900/40' },
+                      { name: 'Elite Builder', range: '500+ / 1000', color: 'text-violet-400 bg-violet-900/20 border-violet-900/40' },
+                    ].map(tier => (
+                      <div key={tier.name} className={`flex items-center justify-between p-3 rounded-xl border ${tier.color}`}>
+                        <span className="text-xs font-bold font-display uppercase tracking-wider">{tier.name}</span>
+                        <span className="text-xs font-mono">{tier.range}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="protocol-panel p-6">
+                  <h3 className="font-bold text-sm border-b border-white/[0.04] pb-3 mb-4 font-display uppercase tracking-wider text-foreground">Extra Profile Bonuses</h3>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'GitHub Connected', bonus: '+50 pts', desc: 'Verify ownership of a GitHub account via OAuth.' },
+                      { name: 'Official Issuer Boost', bonus: '+20 pts', desc: 'Earn a credential issued by an officially verified entity.' },
+                      { name: 'Diversity Bonus', bonus: '+100 pts', desc: 'Hold credentials from 5 or more unique issuers.' },
+                      { name: 'Active Streak', bonus: '+25 pts', desc: 'Claim at least one verified credential within the last 30 days.' },
+                    ].map(bonus => (
+                      <div key={bonus.name} className="flex items-start justify-between gap-3 text-xs">
+                        <div>
+                          <p className="font-bold text-foreground font-display uppercase tracking-wider text-[11px]">{bonus.name}</p>
+                          <p className="text-[10px] text-muted mt-0.5">{bonus.desc}</p>
+                        </div>
+                        <span className="text-xs font-mono text-accent-indigo font-bold">{bonus.bonus}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">StellarID Cards & Social Sharing (P0-B)</h3>
+                <p className="text-xs text-muted leading-relaxed">
+                  Every user gets a public profile page at <code className="text-accent-indigo font-mono bg-white/[0.02] px-1 py-0.5 rounded">/p/[walletAddress]</code> containing an interactive, glassmorphic reputation card.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted">
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px] mb-2">Dynamic Canvas Card Renderer</h4>
+                    <p className="leading-relaxed">The frontend renders the card in HTML/CSS with premium hover gradients, then dynamically draws the card to an HTML5 canvas for direct PNG download. It matches the user's reputation tier background colors.</p>
+                  </div>
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px] mb-2">Edge-Generated Social OG Images</h4>
+                    <p className="leading-relaxed">To ensure rich previews when profiles are shared on X or LinkedIn, an Edge Function API utilizes <code className="font-mono text-accent-purple">@vercel/og</code> to generate dynamic SVG/PNG images with real-time score statistics directly from database records.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">Gamified Badges & Streaks (P2-C)</h3>
+                <p className="text-xs text-muted leading-relaxed">
+                  StellarID uses daily streaks and verifiable badges to incentivize active participation and community contributions.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px] mb-2">Consecutive Streaks</h4>
+                    <p className="text-[11px] text-muted leading-relaxed">Users increase their daily streak by submitting proof verifications. If 24 hours elapse since the last activity, the streak resets to 0 (evaluated at midnight UTC).</p>
+                  </div>
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px] mb-2">Redis Sorted Sets</h4>
+                    <p className="text-[11px] text-muted leading-relaxed">Reputation and streak rankings are stored in Redis sorted sets. This allows fast, low-latency leaderboard lookups, supporting filter tags such as global, city, or university rankings.</p>
+                  </div>
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px] mb-2">Badge Library</h4>
+                    <ul className="text-[10px] text-muted list-disc list-inside space-y-1">
+                      <li><span className="font-bold text-foreground">First Step:</span> Earned on first credential claim.</li>
+                      <li><span className="font-bold text-foreground">Collector:</span> Own 5+ unique credentials.</li>
+                      <li><span className="font-bold text-foreground">Elite Builder:</span> Score passes 500.</li>
+                      <li><span className="font-bold text-foreground">Consistent:</span> Maintain a 7-day streak.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* === BULK ISSUANCE === */}
+            <section id="bulk" className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+                <Layers className="w-5 h-5 text-accent-indigo" />
+                <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
+                  Bulk Issuance Architecture
+                </h2>
+              </div>
+
+              <p className="text-muted text-sm leading-relaxed">
+                StellarID supports large-scale credential distribution for hackathons and organizations. By utilizing asynchronous queues, the system processes up to 1,000 recipients asynchronously without overloading the network or API limits.
+              </p>
+
+              <div className="protocol-panel p-6">
+                <h3 className="font-bold text-sm border-b border-white/[0.04] pb-3 mb-4 font-display uppercase tracking-wider text-foreground">Background Queue Flow</h3>
+                
+                <div className="relative border-l-2 border-accent-indigo/20 ml-3 pl-6 space-y-6 text-xs text-muted">
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 flex items-center justify-center w-4 h-4 rounded-full bg-accent-indigo text-[10px] text-black font-bold font-mono">1</span>
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px]">CSV Upload & Validation</h4>
+                    <p className="mt-1">The issuer uploads a recipient CSV (validated for email formats and wallet prefixes) and pushes the raw sheet audit backup to IPFS.</p>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 flex items-center justify-center w-4 h-4 rounded-full bg-accent-indigo text-[10px] text-black font-bold font-mono">2</span>
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px]">BullMQ Asynchronous Enqueueing</h4>
+                    <p className="mt-1">A Redis-backed BullMQ worker picks up the job. It processes rows at a rate-limit of 10 emails/second to comply with third-party service bounds.</p>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 flex items-center justify-center w-4 h-4 rounded-full bg-accent-indigo text-[10px] text-black font-bold font-mono">3</span>
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px]">Token Generation & Delivery</h4>
+                    <p className="mt-1">A secure, unique UUID claim token is generated for each row. A customizable HTML invite email is dispatched via Resend.</p>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute -left-[31px] top-0 flex items-center justify-center w-4 h-4 rounded-full bg-accent-indigo text-[10px] text-black font-bold font-mono">4</span>
+                    <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px]">SSE Real-Time Stepper Updates</h4>
+                    <p className="mt-1">The frontend uses Server-Sent Events (SSE) to subscribe to real-time status streams (showing processed, success, and failure counts).</p>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -408,6 +1110,109 @@ export default function DocsPage() {
   "verified_at": "2026-03-30T00:00:00Z"
 }`}
               />
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">Issuer Verification Tiers & DNS Validation (P1-B)</h3>
+                <p className="text-xs text-muted leading-relaxed">
+                  Organizations acting as credential issuers must undergo domain validation to establish trust. Issuers are partitioned into three distinct tiers:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <span className="text-[10px] font-mono text-zinc-400 font-bold uppercase tracking-wider block mb-1">Tier 1: Community</span>
+                    <p className="text-muted leading-relaxed">Self-registered issuers. Credentials have a default multiplier weight of <code className="font-mono text-accent-indigo">0.2</code>. Best for hackathon projects and niche apps.</p>
+                  </div>
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <span className="text-[10px] font-mono text-yellow-400 font-bold uppercase tracking-wider block mb-1">Tier 2: Official</span>
+                    <p className="text-muted leading-relaxed">Verified domains. Credentials have a multiplier weight of <code className="font-mono text-accent-indigo">0.8</code>. Requires adding a DNS TXT record check at host root.</p>
+                  </div>
+                  <div className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                    <span className="text-[10px] font-mono text-violet-400 font-bold uppercase tracking-wider block mb-1">Tier 3: Endorsed</span>
+                    <p className="text-muted leading-relaxed">Manually vetted or delegated by other Top-Tier issuers. Credentials have a multiplier weight of <code className="font-mono text-accent-indigo">1.0</code>.</p>
+                  </div>
+                </div>
+                <div className="space-y-2 mt-4 text-xs text-muted">
+                  <h4 className="font-bold text-foreground font-display uppercase tracking-wider text-[11px]">DNS TXT Verification Protocol</h4>
+                  <p className="leading-relaxed">To claim Official domain ownership, issuers must add a TXT record to their domain DNS configuration:</p>
+                  <div className="p-3 bg-black/40 border border-white/[0.06] rounded-xl font-mono text-[10px] leading-relaxed">
+                    Type: TXT <br />
+                    Host: @ <br />
+                    Value: stellarid-verify=TOKEN_UUID_VALUE
+                  </div>
+                  <p className="leading-relaxed">The backend verifies this record programmatically using secure DNS-over-HTTPS queries to check for matching token states prior to domain approval.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* === DISCORD BOT === */}
+            <section id="discord" className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+                <Users className="w-5 h-5 text-accent-indigo" />
+                <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
+                  Discord Bot Integration
+                </h2>
+              </div>
+
+              <p className="text-muted text-sm leading-relaxed">
+                Automate developer community gating using our custom Discord bot. Link your wallet, prove your credentials, and automatically unlock server channels based on your reputation score and tier.
+              </p>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">Supported Discord Slash Commands</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { cmd: '/verify', desc: 'Generates a secure wallet-linking gateway link valid for 10 minutes.' },
+                    { cmd: '/profile', desc: 'Displays linked wallet details, active streak, earned badges, and reputation tier.' },
+                    { cmd: '/leaderboard', desc: 'Fetches the top 10 global reputation rankings from the database.' },
+                  ].map(command => (
+                    <div key={command.cmd} className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-4">
+                      <code className="text-accent-indigo font-mono font-bold text-xs">{command.cmd}</code>
+                      <p className="text-xs text-muted mt-2 leading-relaxed">{command.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6">
+                <h3 className="font-bold text-sm border-b border-white/[0.04] pb-3 mb-4 font-display uppercase tracking-wider text-foreground">Role Gating Hierarchy</h3>
+                <p className="text-xs text-muted leading-relaxed mb-4">
+                  The bot dynamically checks member reputation scores via backend webhook alerts and assigns the corresponding server role:
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { role: 'Stellar Platinum', desc: 'Assigned to Elite Builders with scores 500+', color: 'text-violet-400 bg-violet-950/20 border-violet-900/40' },
+                    { role: 'Stellar Gold', desc: 'Assigned to Proven Builders with scores 350-499', color: 'text-yellow-400 bg-yellow-950/20 border-yellow-900/40' },
+                    { role: 'Stellar Silver', desc: 'Assigned to Proven Builders with scores 200-349', color: 'text-zinc-300 bg-zinc-900/40 border-zinc-800' },
+                    { role: 'Stellar Bronze', desc: 'Assigned to Verified Builders with scores 0-199', color: 'text-amber-600 bg-amber-950/10 border-amber-900/20' },
+                  ].map(tier => (
+                    <div key={tier.role} className={`flex items-center justify-between p-3 rounded-xl border ${tier.color}`}>
+                      <span className="text-xs font-bold font-display uppercase tracking-wider">{tier.role}</span>
+                      <span className="text-[11px] text-muted">{tier.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">SQLite Discord Database Schema</h3>
+                <p className="text-xs text-muted leading-relaxed">
+                  The Discord bot runs a local SQLite server for tracking configuration states and wallet mapping. This operates independently of the main PostgreSQL database for fast local execution.
+                </p>
+                <CodeBlock lang="sql" code={`-- Guild verification settings
+CREATE TABLE IF NOT EXISTS guilds (
+  guild_id TEXT PRIMARY KEY,
+  required_tier TEXT DEFAULT 'Proven Builder',
+  role_id TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Linked user mappings
+CREATE TABLE IF NOT EXISTS verified_members (
+  discord_id TEXT PRIMARY KEY,
+  stellar_address TEXT UNIQUE NOT NULL,
+  reputation_score INTEGER NOT NULL,
+  last_sync_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`} />
+              </div>
             </section>
 
             {/* === ADVANCED FEATURES === */}
@@ -474,6 +1279,119 @@ Authorization: Bearer YOUR_JWT
   "requiredSigners": ["G...HR", "G...MANAGER"],
   "threshold": 2
 }`} />
+              </div>
+
+              {/* AI Developer Bio Generator */}
+              <div className="protocol-panel p-6">
+                <div className="flex items-center justify-between border-b border-white/[0.04] pb-3 mb-4">
+                  <span className="font-display text-xs font-bold text-foreground">AI Developer Bio (Gemini)</span>
+                  <span className="text-[9px] font-mono text-accent-indigo uppercase font-bold">Active</span>
+                </div>
+                <p className="text-xs text-muted leading-relaxed mb-4">
+                  Generates an optimized professional profile bio using Google Gemini AI, leveraging the user's verified credentials, Github linked data, and reputation tiers.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {[
+                    { style: 'LinkedIn', desc: 'A professional, high-signal resume summary (2-3 sentences).' },
+                    { style: 'Twitter', desc: 'A concise, punchy builder bio under the 160-character limit.' },
+                    { style: 'Resume', desc: 'A comprehensive, detailed background profile statement.' },
+                  ].map(styleObj => (
+                    <div key={styleObj.style} className="bg-white/[0.01] border border-white/[0.04] rounded-xl p-3">
+                      <p className="text-xs font-bold font-display text-accent-indigo">{styleObj.style}</p>
+                      <p className="text-[10px] text-muted mt-1 leading-relaxed">{styleObj.desc}</p>
+                    </div>
+                  ))}
+                </div>
+                <CodeBlock lang="json" code={`// POST /api/v1/ai/generate-bio
+Authorization: Bearer YOUR_JWT
+{
+  "style": "linkedin" // "linkedin" | "twitter" | "resume"
+}
+
+// Response
+{
+  "bio": "Stellar Soroban developer with an Elite reputation rating. Proven track record of deploying verified smart contracts and contributing to open-source ecosystems."
+}`} />
+              </div>
+            </section>
+
+            {/* === BILLING & SANDBOX === */}
+            <section id="billing" className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+                <Coins className="w-5 h-5 text-accent-indigo" />
+                <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
+                  Billing & Sandbox Mode
+                </h2>
+              </div>
+
+              <p className="text-muted text-sm leading-relaxed">
+                StellarID features a wallet-integrated subscription billing mechanism utilizing Stellar XLM/USDC payments. For testing and development environment safety, the platform operates in Sandbox Mock Mode.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="protocol-panel p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-sm border-b border-white/[0.04] pb-3 mb-4 font-display uppercase tracking-wider text-foreground">Sandbox Mock Mode</h3>
+                    <p className="text-xs text-muted leading-relaxed mb-4">
+                      When Stripe is disabled, <code className="font-mono text-accent-indigo">IS_MOCK_MODE</code> is activated. In this state, issuers can trigger instant, zero-cost upgrades directly from the billing dashboard to mock specific API limit tiers.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-center">
+                    <span className="text-[10px] font-mono text-accent-indigo font-bold uppercase tracking-wider">Status: Mock Mode Active</span>
+                  </div>
+                </div>
+
+                <div className="protocol-panel p-6">
+                  <h3 className="font-bold text-sm border-b border-white/[0.04] pb-3 mb-4 font-display uppercase tracking-wider text-foreground">Payment Settlement</h3>
+                  <p className="text-xs text-muted leading-relaxed mb-4">
+                    In production networks, billing payments are settled directly on-chain using Freighter wallets. Transactions are sent to the platform's primary treasury billing address:
+                  </p>
+                  <div className="p-3 bg-black/40 border border-white/[0.06] rounded-xl font-mono text-[10px] break-all select-all text-muted relative mb-2">
+                    GBMQJ3G5LDWODZKUUQWGGT6NIKMM7KL5NLHVIG53WLNLWB27Z4AKH3F4
+                  </div>
+                  <p className="text-[10px] text-muted/80 leading-relaxed font-sans">
+                    Supports on-chain payment matching via transaction hashes synced automatically with Soroban contract events.
+                  </p>
+                </div>
+              </div>
+
+              <div className="protocol-panel p-6 space-y-4">
+                <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">Stripe Products & API Limits Mapping</h3>
+                <p className="text-xs text-muted leading-relaxed">
+                  Stripe Checkout maps product IDs directly to subscription tier limits. Webhook payloads verify signatures and update limits in real time.
+                </p>
+                <div className="overflow-x-auto border border-white/[0.06] rounded-xl">
+                  <table className="w-full text-left border-collapse text-xs text-muted">
+                    <thead>
+                      <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                        <th className="p-3 font-semibold text-foreground">Subscription Tier</th>
+                        <th className="p-3 font-semibold text-foreground">Stripe Product ID</th>
+                        <th className="p-3 font-semibold text-foreground">API Rate Limit</th>
+                        <th className="p-3 font-semibold text-foreground">Daily Request Quota</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.04] font-mono">
+                      <tr>
+                        <td className="p-3 font-bold text-foreground">Free Tier</td>
+                        <td className="p-3">prod_free_default</td>
+                        <td className="p-3">2 requests / sec</td>
+                        <td className="p-3">100 requests</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-bold text-yellow-400">Developer Pro</td>
+                        <td className="p-3 text-yellow-400">prod_dev_pro_999</td>
+                        <td className="p-3">15 requests / sec</td>
+                        <td className="p-3">10,000 requests</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-bold text-violet-400">Enterprise</td>
+                        <td className="p-3 text-violet-400">prod_enterprise_unlim</td>
+                        <td className="p-3">100 requests / sec</td>
+                        <td className="p-3">Unlimited</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </section>
 
@@ -559,20 +1477,52 @@ Authorization: Bearer YOUR_JWT
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
-                  { name: 'age_check', desc: 'Proves birthYear <= threshold threshold without disclosing age details.', inputs: 'birthYear, currentYear, threshold' },
-                  { name: 'income_check', desc: 'Proves salary range boundary assertions without revealing precise amount.', inputs: 'income, minIncome, maxIncome' },
-                  { name: 'residency_check', desc: 'Proves geographic location compliance with zero metadata leaks.', inputs: 'countryCode, allowedCountries[]' },
-                  { name: 'membership_check', desc: 'Proves secret membership in a Merkle tree without revealing leaf index.', inputs: 'memberSecret, merkleProof, groupRoot' },
+                  {
+                    name: 'age_check',
+                    desc: 'Proves birthYear <= threshold threshold without disclosing age details.',
+                    privateInputs: 'birthYear',
+                    publicInputs: 'currentYear, ageLimit',
+                    outputs: 'isAboveLimit (1 if currentYear - birthYear >= ageLimit, else 0)'
+                  },
+                  {
+                    name: 'income_check',
+                    desc: 'Proves salary range boundary assertions without revealing precise amount.',
+                    privateInputs: 'income',
+                    publicInputs: 'minIncome, maxIncome',
+                    outputs: 'isValid (1 if income is between minIncome and maxIncome, else 0)'
+                  },
+                  {
+                    name: 'residency_check',
+                    desc: 'Proves geographic location compliance with zero metadata leaks.',
+                    privateInputs: 'countryCode',
+                    publicInputs: 'allowedCountries[10]',
+                    outputs: 'isResident (1 if countryCode matches one of the allowedCountries, else 0)'
+                  },
+                  {
+                    name: 'membership_check',
+                    desc: 'Proves secret membership in a Merkle tree without revealing leaf index.',
+                    privateInputs: 'memberSecret, merklePathElements[16], merklePathIndices[16]',
+                    publicInputs: 'groupRoot',
+                    outputs: 'isValidMember (1 if calculated Merkle root matches groupRoot, else 0)'
+                  },
                 ].map((circuit) => (
-                  <div key={circuit.name} className="protocol-panel p-6">
-                    <div className="flex items-center justify-between border-b border-white/[0.04] pb-3 mb-4">
+                  <div key={circuit.name} className="protocol-panel p-6 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/[0.04] pb-3 mb-2">
                       <span className="font-mono text-xs text-foreground font-bold">{circuit.name}</span>
-                      <span className="text-[9px] font-mono text-accent-indigo uppercase font-bold">Circom</span>
+                      <span className="text-[9px] font-mono text-accent-indigo uppercase font-bold">Circom Circuit</span>
                     </div>
-                    <p className="text-xs text-muted mb-4">{circuit.desc}</p>
-                    <p className="text-[10px] text-muted/80 font-mono">
-                      <span className="text-foreground font-bold">Inputs:</span> {circuit.inputs}
-                    </p>
+                    <p className="text-xs text-muted leading-relaxed">{circuit.desc}</p>
+                    <div className="space-y-1 text-[10px] text-muted/80 font-mono">
+                      <div>
+                        <span className="text-foreground font-bold">Private Inputs:</span> {circuit.privateInputs}
+                      </div>
+                      <div>
+                        <span className="text-foreground font-bold">Public Inputs:</span> {circuit.publicInputs}
+                      </div>
+                      <div>
+                        <span className="text-foreground font-bold">Outputs:</span> {circuit.outputs}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
