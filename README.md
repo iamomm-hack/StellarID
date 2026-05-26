@@ -117,6 +117,54 @@ Every time you sign up for a service, you hand over your **name, address, date o
                           └──────────────────┘      └──────────────────┘
 ```
 
+### 🎨 Excalidraw Flowchart (System Sequence)
+
+```
+        ┌────────────────────────────────────────────────────────┐
+        │                 Onboarding & Auth                      │
+        │  [Privy OAuth (Email/Social)] OR [Freighter Wallet]    │
+        └──────────────────────────┬─────────────────────────────┘
+                                   │
+                                   ▼
+        ┌────────────────────────────────────────────────────────┐
+        │            Issuer Identity Verification                │
+        │  - GitHub OAuth (Dev Verification)                    │
+        │  - Email token validation                              │
+        │  - CSV Bulk recipient queue upload (BullMQ/Redis)      │
+        └──────────────────────────┬─────────────────────────────┘
+                                   │
+                                   ▼
+        ┌────────────────────────────────────────────────────────┐
+        │             Metadata IPFS & Minting                    │
+        │  - Hash raw attributes to IPFS metadata (Pinata)       │
+        │  - Mint Non-Transferable Soroban NFT (Sponsor covered) │
+        └──────────────────────────┬─────────────────────────────┘
+                                   │
+                                   ▼
+        ┌────────────────────────────────────────────────────────┐
+        │             Client-Side ZK-SNARK Prover                │
+        │  - User requests credential check (e.g. Age > 18)      │
+        │  - snarkjs computes Groth16 Proof using local WASM     │
+        │  - Raw credentials NEVER leave client's browser        │
+        └──────────────────────────┬─────────────────────────────┘
+                                   │
+                                   ▼
+        ┌────────────────────────────────────────────────────────┐
+        │          Decentralized Selective Disclosure            │
+        │  - Submit Proof to Soroban Disclosure Contract        │
+        │  - Verify on-chain cryptographic validity             │
+        └──────────────────────────┬─────────────────────────────┘
+                                   │
+                                   ▼
+        ┌────────────────────────────────────────────────────────┐
+        │              Share & Integrate Credentials             │
+        │  - Interactive verification status link               │
+        │  - Export signature-embedded PDF with QR Code          │
+        │  - B2B API / Discord Bot server gating verification    │
+        └────────────────────────────────────────────────────────┘
+```
+
+
 **5 steps. Zero personal data transmitted. Fully verifiable on-chain.**
 
 1.  **Connect** — User connects their Stellar wallet via Freighter or registers/logs in via Privy (using email/social logs) to create an embedded account.
@@ -505,8 +553,79 @@ graph TB
     style Blockchain fill:#030712,stroke:#ec4899,color:#fff
 ```
 
+### 🏗️ Architectural Core Layers
+StellarID is built upon a highly modular, multi-tier system architecture:
+
+1. **Client-Side ZK Prover (Next.js 14)**: Executes Groth16 ZK-SNARK computations inside the client's browser utilizing `snarkjs` and custom compiled WASM circuit models. This guarantees that raw personal details (such as actual age, exact income, or full residential addresses) never cross the network boundaries.
+2. **REST API Interface & Middleware (Node.js + Express)**: Provides structured API routes protected by sliding-window rate-limiting and robust security layers (JWT authentication, inputs verification, and SQL-injection prevention).
+3. **Queue & Background Execution Engine (BullMQ + Redis)**: Handles intensive, asynchronous operations (such as compiling bulk CSV recipient imports, queuing credential claims, and sending transactional SMTP emails) to keep HTTP response times sub-100ms.
+4. **On-Chain Soroban Engine**: A collection of Rust-based smart contracts deployed to the Stellar Testnet. They maintain decentralized state control over credential NFT ownership, direct revocation registries, and selective-disclosure logs.
+5. **Fee Sponsorship Gateway**: Leverages Stellar's native Fee Bump transaction mechanism to sponsor gas/execution costs, creating a gasless and zero-friction onboarding flow for Web2 users.
+6. **B2B Integration Layer**: Exposes an advanced, tree-shakeable npm package (`stellarid-sdk`) and a custom Discord Bot allowing community managers to gate channels or look up profiles with zero overhead.
 
 ---
+
+## 📂 File Explorer Structure
+
+```
+StellarID/
+├── backend/                  # Express + TypeScript REST API
+│   ├── src/
+│   │   ├── config/           # Application-wide configurations (badges, database client, rate limiters)
+│   │   ├── db/               # PostgreSQL schema models & migration scripts
+│   │   ├── jobs/             # BullMQ background worker setups (Bulk issuance & claim mail queues)
+│   │   ├── middleware/       # JWT parsing, monetization tier check, and API rate-limiting middlewares
+│   │   ├── routes/           # REST endpoints (auth, credentials, billing portal, domain verification)
+│   │   ├── services/         # Integrations (Stellar Soroban contract executor, Stripe, Resend SMTP client)
+│   │   ├── types/            # App-wide TS interfaces & database entity types
+│   │   └── utils/            # Helper utility modules (sliding-window rate calculation, JWT generators)
+│   ├── tests/                # Full test suites for integration endpoints & reputation logic
+│   ├── package.json          # Node dependencies list
+│   └── tsconfig.json         # TS compilation configs
+│
+├── frontend/                 # Next.js 14 Web Application
+│   ├── src/
+│   │   ├── app/              # Next.js App Router paths (landing page, dashboard, admin panel, claims)
+│   │   ├── components/       # Interface components (wallet button, identity cards, skeleton placeholders)
+│   │   ├── hooks/            # Custom hooks wrapping Privy authentication & state checks
+│   │   ├── lib/              # API wrapper client & client-side snarkjs proof engines
+│   │   ├── store/            # Unified state management layer using Zustand
+│   │   └── types/            # Frontend specific TypeScript interfaces
+│   ├── public/               # Static assets & circuit proving keys (.zkey / .wasm files)
+│   ├── package.json          # Next.js workspace configurations
+│   └── tsconfig.json         # Front-end compiler rules
+│
+├── stellarid-sdk/            # B2B Integration SDK (npm library)
+│   ├── src/
+│   │   ├── client.ts         # Main client class containing verification, issuance, and ZK methods
+│   │   ├── types.ts          # Core typings shared with developers
+│   │   └── index.ts          # ESM & CommonJS entry exports via tsup bundle compilation
+│   ├── tests/                # SDK client integration test suite
+│   └── package.json          # SDK build settings
+│
+├── discord-bot/              # discord.js v14 Guild Gating bot
+│   ├── src/
+│   │   ├── commands/         # Bot commands (/verify, /gate, /leaderboard)
+│   │   └── index.ts          # Bot listener, SQLite member tracking, and role assignment logic
+│   └── package.json          # Discord dependencies
+│
+├── zk-circuits/              # Circom Circuits & compilation scripts
+│   ├── age_check.circom      # Proves age threshold without revealing year of birth
+│   ├── income_check.circom   # Proves income range boundaries
+│   ├── residency_check.circom# Proves allowed country residency
+│   ├── membership_check.circom# Proves Merkle tree membership inclusion
+│   └── compile.js            # Node script compiling circuits to WASM and building ZKeys
+│
+├── contracts/                # Soroban Rust Smart Contracts
+│   ├── src/                  # Smart contracts source files (NFT, Revocation Registry, Disclosure)
+│   └── Cargo.toml            # Soroban compiler settings
+│
+├── docker-compose.yml        # Orchestration template for PG, Redis, backend and frontend containers
+└── README.md                 # Complete project guide and documentation
+```
+
+---
+
 
 ## ⚙️ Environment Setup
 
