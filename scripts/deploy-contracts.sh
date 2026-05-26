@@ -8,7 +8,7 @@ fi
 
 echo ""
 echo "=== Deploying credential_nft ==="
-soroban contract deploy \
+stellar contract deploy \
   --wasm contracts/credential_nft/target/wasm32-unknown-unknown/release/credential_nft.wasm \
   --source "$STELLAR_SECRET_KEY" \
   --network testnet \
@@ -16,7 +16,7 @@ soroban contract deploy \
 
 echo ""
 echo "=== Deploying revocation_registry ==="
-soroban contract deploy \
+stellar contract deploy \
   --wasm contracts/revocation_registry/target/wasm32-unknown-unknown/release/revocation_registry.wasm \
   --source "$STELLAR_SECRET_KEY" \
   --network testnet \
@@ -24,7 +24,7 @@ soroban contract deploy \
 
 echo ""
 echo "=== Deploying disclosure_contract ==="
-soroban contract deploy \
+stellar contract deploy \
   --wasm contracts/disclosure_contract/target/wasm32-unknown-unknown/release/disclosure_contract.wasm \
   --source "$STELLAR_SECRET_KEY" \
   --network testnet \

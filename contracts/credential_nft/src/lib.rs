@@ -32,23 +32,43 @@ pub struct CredentialNFT;
 
 #[contractimpl]
 impl CredentialNFT {
+    fn extend_ttl(env: &Env, key: &DataKey) {
+        env.storage().persistent().extend_ttl(key, 50_000, 500_000);
+    }
+
     pub fn initialize(env: Env, admin: Address) {
+        if env.storage().persistent().has(&DataKey::Admin) {
+            panic!("Already initialized");
+        }
         admin.require_auth();
         env.storage().persistent().set(&DataKey::Admin, &admin);
         env.storage().persistent().set(&DataKey::NextId, &0u64);
+
+        Self::extend_ttl(&env, &DataKey::Admin);
+        Self::extend_ttl(&env, &DataKey::NextId);
     }
 
     pub fn register_issuer(env: Env, issuer: Address) {
-        let admin: Address = env.storage().persistent().get(&DataKey::Admin).unwrap();
+        let admin_key = DataKey::Admin;
+        let admin: Address = env.storage().persistent().get(&admin_key).unwrap();
         admin.require_auth();
-        env.storage().persistent().set(&DataKey::RegisteredIssuer(issuer), &true);
+        Self::extend_ttl(&env, &admin_key);
+
+        let issuer_key = DataKey::RegisteredIssuer(issuer);
+        env.storage().persistent().set(&issuer_key, &true);
+        Self::extend_ttl(&env, &issuer_key);
     }
 
     pub fn is_registered_issuer(env: Env, issuer: Address) -> bool {
-        env.storage()
+        let issuer_key = DataKey::RegisteredIssuer(issuer);
+        let registered = env.storage()
             .persistent()
-            .get(&DataKey::RegisteredIssuer(issuer))
-            .unwrap_or(false)
+            .get(&issuer_key)
+            .unwrap_or(false);
+        if registered {
+            Self::extend_ttl(&env, &issuer_key);
+        }
+        registered
     }
 
     pub fn mint_credential(
@@ -61,20 +81,24 @@ impl CredentialNFT {
     ) -> u64 {
         issuer.require_auth();
 
+        let issuer_key = DataKey::RegisteredIssuer(issuer.clone());
         let is_registered: bool = env
             .storage()
             .persistent()
-            .get(&DataKey::RegisteredIssuer(issuer.clone()))
+            .get(&issuer_key)
             .unwrap_or(false);
         if !is_registered {
             panic!("Issuer not registered");
         }
+        Self::extend_ttl(&env, &issuer_key);
 
+        let next_id_key = DataKey::NextId;
         let id: u64 = env
             .storage()
             .persistent()
-            .get(&DataKey::NextId)
+            .get(&next_id_key)
             .unwrap_or(0);
+        Self::extend_ttl(&env, &next_id_key);
 
         let credential = Credential {
             id,
@@ -87,23 +111,28 @@ impl CredentialNFT {
             revoked: false,
         };
 
+        let cred_key = DataKey::Credential(id);
         env.storage()
             .persistent()
-            .set(&DataKey::Credential(id), &credential);
+            .set(&cred_key, &credential);
+        Self::extend_ttl(&env, &cred_key);
 
+        let owner_key = DataKey::OwnerCredentials(owner.clone());
         let mut owner_creds: Vec<u64> = env
             .storage()
             .persistent()
-            .get(&DataKey::OwnerCredentials(owner.clone()))
+            .get(&owner_key)
             .unwrap_or(Vec::new(&env));
         owner_creds.push_back(id);
         env.storage()
             .persistent()
-            .set(&DataKey::OwnerCredentials(owner), &owner_creds);
+            .set(&owner_key, &owner_creds);
+        Self::extend_ttl(&env, &owner_key);
 
         env.storage()
             .persistent()
-            .set(&DataKey::NextId, &(id + 1));
+            .set(&next_id_key, &(id + 1));
+        Self::extend_ttl(&env, &next_id_key);
 
         env.events()
             .publish((Symbol::new(&env, "credential_minted"),), id);
@@ -112,27 +141,33 @@ impl CredentialNFT {
     }
 
     pub fn get_credential(env: Env, id: u64) -> Credential {
-        env.storage()
+        let cred_key = DataKey::Credential(id);
+        let cred: Credential = env.storage()
             .persistent()
-            .get(&DataKey::Credential(id))
-            .expect("Credential not found")
+            .get(&cred_key)
+            .expect("Credential not found");
+        Self::extend_ttl(&env, &cred_key);
+        cred
     }
 
     pub fn is_valid(env: Env, id: u64) -> bool {
+        let cred_key = DataKey::Credential(id);
         let cred: Credential = env
             .storage()
             .persistent()
-            .get(&DataKey::Credential(id))
+            .get(&cred_key)
             .expect("Credential not found");
+        Self::extend_ttl(&env, &cred_key);
         !cred.revoked && env.ledger().timestamp() < cred.expires_at
     }
 
     pub fn revoke(env: Env, id: u64, issuer: Address) {
         issuer.require_auth();
+        let cred_key = DataKey::Credential(id);
         let mut cred: Credential = env
             .storage()
             .persistent()
-            .get(&DataKey::Credential(id))
+            .get(&cred_key)
             .expect("Credential not found");
         if cred.issuer != issuer {
             panic!("Only issuer can revoke");
@@ -140,41 +175,29 @@ impl CredentialNFT {
         cred.revoked = true;
         env.storage()
             .persistent()
-            .set(&DataKey::Credential(id), &cred);
+            .set(&cred_key, &cred);
+        Self::extend_ttl(&env, &cred_key);
         env.events()
             .publish((Symbol::new(&env, "credential_revoked"),), id);
     }
 
     pub fn get_owner_credentials(env: Env, owner: Address) -> Vec<u64> {
-        env.storage()
+        let owner_key = DataKey::OwnerCredentials(owner);
+        let creds: Vec<u64> = env.storage()
             .persistent()
-            .get(&DataKey::OwnerCredentials(owner))
-            .unwrap_or(Vec::new(&env))
-    }
-
-    pub fn transfer(env: Env, from: Address, to: Address, id: u64) {
-        from.require_auth();
-        let mut cred: Credential = env
-            .storage()
-            .persistent()
-            .get(&DataKey::Credential(id))
-            .expect("Credential not found");
-        if cred.owner != from {
-            panic!("Not the owner");
+            .get(&owner_key)
+            .unwrap_or(Vec::new(&env));
+        if creds.len() > 0 {
+            Self::extend_ttl(&env, &owner_key);
         }
-        cred.owner = to.clone();
-        env.storage()
-            .persistent()
-            .set(&DataKey::Credential(id), &cred);
-        env.events()
-            .publish((Symbol::new(&env, "credential_transferred"),), id);
+        creds
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use soroban_sdk::testutils::{Address as _, Ledger};
+    use soroban_sdk::testutils::Address as _;
     use soroban_sdk::Env;
 
     #[test]
@@ -182,7 +205,7 @@ mod tests {
         let env = Env::default();
         env.mock_all_auths();
 
-        let contract_id = env.register_contract(None, CredentialNFT);
+        let contract_id = env.register(CredentialNFT, ());
         let client = CredentialNFTClient::new(&env, &contract_id);
 
         let admin = Address::generate(&env);
@@ -209,7 +232,7 @@ mod tests {
         let env = Env::default();
         env.mock_all_auths();
 
-        let contract_id = env.register_contract(None, CredentialNFT);
+        let contract_id = env.register(CredentialNFT, ());
         let client = CredentialNFTClient::new(&env, &contract_id);
 
         let admin = Address::generate(&env);
@@ -236,7 +259,7 @@ mod tests {
         let env = Env::default();
         env.mock_all_auths();
 
-        let contract_id = env.register_contract(None, CredentialNFT);
+        let contract_id = env.register(CredentialNFT, ());
         let client = CredentialNFTClient::new(&env, &contract_id);
 
         let admin = Address::generate(&env);
@@ -264,34 +287,5 @@ mod tests {
 
         let creds = client.get_owner_credentials(&owner);
         assert_eq!(creds.len(), 2);
-    }
-
-    #[test]
-    fn test_transfer() {
-        let env = Env::default();
-        env.mock_all_auths();
-
-        let contract_id = env.register_contract(None, CredentialNFT);
-        let client = CredentialNFTClient::new(&env, &contract_id);
-
-        let admin = Address::generate(&env);
-        let issuer = Address::generate(&env);
-        let owner = Address::generate(&env);
-        let new_owner = Address::generate(&env);
-
-        client.initialize(&admin);
-        client.register_issuer(&issuer);
-
-        let id = client.mint_credential(
-            &owner,
-            &issuer,
-            &Symbol::new(&env, "age_verification"),
-            &String::from_str(&env, "QmTestHash123"),
-            &(env.ledger().timestamp() + 86400 * 365),
-        );
-
-        client.transfer(&owner, &new_owner, &id);
-        let cred = client.get_credential(&id);
-        assert_eq!(cred.owner, new_owner);
     }
 }

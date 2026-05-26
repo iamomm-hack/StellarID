@@ -26,9 +26,17 @@ pub struct RevocationRegistry;
 
 #[contractimpl]
 impl RevocationRegistry {
+    fn extend_ttl(env: &Env, key: &DataKey) {
+        env.storage().persistent().extend_ttl(key, 50_000, 500_000);
+    }
+
     pub fn initialize(env: Env, admin: Address) {
+        if env.storage().persistent().has(&DataKey::Admin) {
+            panic!("Already initialized");
+        }
         admin.require_auth();
         env.storage().persistent().set(&DataKey::Admin, &admin);
+        Self::extend_ttl(&env, &DataKey::Admin);
     }
 
     pub fn revoke(env: Env, credential_id: u64, issuer: Address, reason: Symbol) {
@@ -41,43 +49,58 @@ impl RevocationRegistry {
             reason,
         };
 
+        let revoked_key = DataKey::Revoked(credential_id);
         env.storage()
             .persistent()
-            .set(&DataKey::Revoked(credential_id), &record);
+            .set(&revoked_key, &record);
+        Self::extend_ttl(&env, &revoked_key);
 
         // Track per-issuer revocation list
+        let issuer_key = DataKey::IssuerRevocations(issuer.clone());
         let mut issuer_list: Vec<u64> = env
             .storage()
             .persistent()
-            .get(&DataKey::IssuerRevocations(issuer.clone()))
+            .get(&issuer_key)
             .unwrap_or(Vec::new(&env));
         issuer_list.push_back(credential_id);
         env.storage()
             .persistent()
-            .set(&DataKey::IssuerRevocations(issuer), &issuer_list);
+            .set(&issuer_key, &issuer_list);
+        Self::extend_ttl(&env, &issuer_key);
 
         env.events()
             .publish((Symbol::new(&env, "credential_revoked"),), credential_id);
     }
 
     pub fn is_revoked(env: Env, credential_id: u64) -> bool {
-        env.storage()
-            .persistent()
-            .has(&DataKey::Revoked(credential_id))
+        let revoked_key = DataKey::Revoked(credential_id);
+        let has_key = env.storage().persistent().has(&revoked_key);
+        if has_key {
+            Self::extend_ttl(&env, &revoked_key);
+        }
+        has_key
     }
 
     pub fn get_revocation_record(env: Env, credential_id: u64) -> RevocationRecord {
-        env.storage()
+        let revoked_key = DataKey::Revoked(credential_id);
+        let record: RevocationRecord = env.storage()
             .persistent()
-            .get(&DataKey::Revoked(credential_id))
-            .expect("Credential not revoked")
+            .get(&revoked_key)
+            .expect("Credential not revoked");
+        Self::extend_ttl(&env, &revoked_key);
+        record
     }
 
     pub fn get_revocation_list(env: Env, issuer: Address) -> Vec<u64> {
-        env.storage()
+        let issuer_key = DataKey::IssuerRevocations(issuer);
+        let list: Vec<u64> = env.storage()
             .persistent()
-            .get(&DataKey::IssuerRevocations(issuer))
-            .unwrap_or(Vec::new(&env))
+            .get(&issuer_key)
+            .unwrap_or(Vec::new(&env));
+        if list.len() > 0 {
+            Self::extend_ttl(&env, &issuer_key);
+        }
+        list
     }
 }
 
@@ -92,7 +115,7 @@ mod tests {
         let env = Env::default();
         env.mock_all_auths();
 
-        let contract_id = env.register_contract(None, RevocationRegistry);
+        let contract_id = env.register(RevocationRegistry, ());
         let client = RevocationRegistryClient::new(&env, &contract_id);
 
         let admin = Address::generate(&env);
@@ -110,7 +133,7 @@ mod tests {
         let env = Env::default();
         env.mock_all_auths();
 
-        let contract_id = env.register_contract(None, RevocationRegistry);
+        let contract_id = env.register(RevocationRegistry, ());
         let client = RevocationRegistryClient::new(&env, &contract_id);
 
         let admin = Address::generate(&env);
@@ -129,7 +152,7 @@ mod tests {
         let env = Env::default();
         env.mock_all_auths();
 
-        let contract_id = env.register_contract(None, RevocationRegistry);
+        let contract_id = env.register(RevocationRegistry, ());
         let client = RevocationRegistryClient::new(&env, &contract_id);
 
         let admin = Address::generate(&env);
