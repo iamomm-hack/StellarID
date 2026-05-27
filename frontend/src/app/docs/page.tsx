@@ -300,8 +300,28 @@ export default function DocsPage() {
             </nav>
           </aside>
 
-          {/* Main Content */}
+           {/* Main Content */}
           <main className="flex-1 min-w-0 space-y-16">
+            {/* Mobile Navigation Scroll */}
+            <div className="lg:hidden w-full overflow-x-auto flex gap-2 pb-3 mb-6 scrollbar-none sticky top-[72px] z-40 bg-[hsl(260,87%,3%)]/95 backdrop-blur-md py-3 border-b border-white/[0.06]">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveSection(item.id);
+                    document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold font-display tracking-wider rounded-full uppercase border transition-all duration-200 ${
+                    activeSection === item.id
+                      ? 'border-accent-indigo text-foreground bg-accent-indigo/10 shadow-[0_0_12px_rgba(99,102,241,0.15)]'
+                      : 'border-white/[0.06] text-muted bg-white/[0.02] hover:text-foreground hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <item.icon className="w-3.5 h-3.5" />
+                  {item.label}
+                </button>
+              ))}
+            </div>
 
             {/* === QUICKSTART === */}
             <section id="quickstart" className="space-y-6">

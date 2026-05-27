@@ -77,9 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     </div>
                   </Link>
 
-                  <div className="hidden lg:block">
-                    <NavLinks />
-                  </div>
+                  <NavLinks />
 
                   <div className="flex items-center gap-4">
                     <ConnectWallet />
