@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="docs/logo.png" alt="StellarID Logo" width="160" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Stellar-Soroban-7c3aed?style=for-the-badge&logo=stellar&logoColor=white" />
   <img src="https://img.shields.io/badge/ZK--SNARKs-Circom-00e676?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" />
@@ -105,64 +109,9 @@ Every time you sign up for a service, you hand over your **name, address, date o
 
 ## 🧠 How It Works
 
-```
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│ Onboard User     │      │ Verify Identity  │      │ Mint Soroban NFT │
-│ Freighter / Privy│─────▶│ (OAuth/Email/CSV)│─────▶│ (On-Chain Cred)  │
-└──────────────────┘      └──────────────────┘      └────────┬─────────┘
-                                                             │
-                          ┌──────────────────┐      ┌────────▼─────────┐
-                          │ Share Everywhere │◀─────│ Compute Client-  │
-                          │ (Badge/PDF/Link) │      │ Side ZK Proof    │
-                          └──────────────────┘      └──────────────────┘
-```
-
-### 🎨 Excalidraw Flowchart (System Sequence)
-
-```
-        ┌────────────────────────────────────────────────────────┐
-        │                 Onboarding & Auth                      │
-        │  [Privy OAuth (Email/Social)] OR [Freighter Wallet]    │
-        └──────────────────────────┬─────────────────────────────┘
-                                   │
-                                   ▼
-        ┌────────────────────────────────────────────────────────┐
-        │            Issuer Identity Verification                │
-        │  - GitHub OAuth (Dev Verification)                    │
-        │  - Email token validation                              │
-        │  - CSV Bulk recipient queue upload (BullMQ/Redis)      │
-        └──────────────────────────┬─────────────────────────────┘
-                                   │
-                                   ▼
-        ┌────────────────────────────────────────────────────────┐
-        │             Metadata IPFS & Minting                    │
-        │  - Hash raw attributes to IPFS metadata (Pinata)       │
-        │  - Mint Non-Transferable Soroban NFT (Sponsor covered) │
-        └──────────────────────────┬─────────────────────────────┘
-                                   │
-                                   ▼
-        ┌────────────────────────────────────────────────────────┐
-        │             Client-Side ZK-SNARK Prover                │
-        │  - User requests credential check (e.g. Age > 18)      │
-        │  - snarkjs computes Groth16 Proof using local WASM     │
-        │  - Raw credentials NEVER leave client's browser        │
-        └──────────────────────────┬─────────────────────────────┘
-                                   │
-                                   ▼
-        ┌────────────────────────────────────────────────────────┐
-        │          Decentralized Selective Disclosure            │
-        │  - Submit Proof to Soroban Disclosure Contract        │
-        │  - Verify on-chain cryptographic validity             │
-        └──────────────────────────┬─────────────────────────────┘
-                                   │
-                                   ▼
-        ┌────────────────────────────────────────────────────────┐
-        │              Share & Integrate Credentials             │
-        │  - Interactive verification status link               │
-        │  - Export signature-embedded PDF with QR Code          │
-        │  - B2B API / Discord Bot server gating verification    │
-        └────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="docs/flowchart.png" alt="StellarID System Flowchart" width="900" />
+</p>
 
 
 **5 steps. Zero personal data transmitted. Fully verifiable on-chain.**

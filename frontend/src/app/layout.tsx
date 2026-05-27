@@ -21,6 +21,16 @@ export const metadata: Metadata = {
   title: 'StellarID | Protocol-Grade Identity',
   description: 'Futuristic decentralized identity infrastructure powered by Stellar.',
   keywords: ['identity', 'stellar', 'blockchain', 'zero-knowledge', 'privacy'],
+  icons: {
+    icon: [
+      {
+        url: '/logo.png?v=3',
+        type: 'image/png',
+      },
+    ],
+    shortcut: '/logo.png?v=3',
+    apple: '/logo.png?v=3',
+  },
 };
 
 export const viewport = {
