@@ -204,7 +204,11 @@ if (process.env.NODE_ENV === 'test') {
     }
   );
 
+  let errorLogged = false;
   bulkWorker.on('error', (err: any) => {
-    console.warn('⚠️ BullMQ Worker: Redis connection error (using in-memory fallback):', err.message);
+    if (!errorLogged) {
+      console.warn('⚠️ BullMQ Worker: Redis connection error (using in-memory fallback):', err.message);
+      errorLogged = true;
+    }
   });
 }

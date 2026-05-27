@@ -8,6 +8,11 @@ export const connectionOptions = {
   host: new URL(redisUrl).hostname || 'localhost',
   port: parseInt(new URL(redisUrl).port || '6379'),
   password: new URL(redisUrl).password || undefined,
+  maxRetriesPerRequest: null,
+  retryStrategy: (times: number) => {
+    // Back off reconnects to 1 minute to avoid constant tight reconnect loops and console spam in dev
+    return 60000;
+  },
 };
 
 // Create bulk issuance queue
@@ -36,8 +41,13 @@ if (process.env.NODE_ENV === 'test') {
     },
   });
 
+  let errorLogged = false;
   bulkQueue.on('error', (err: any) => {
-    console.warn('⚠️ BullMQ Queue: Redis connection error (using in-memory fallback):', err.message);
+    if (!errorLogged) {
+      console.warn('⚠️ BullMQ Queue: Redis connection error (using in-memory fallback):', err.message);
+      console.warn('💡 Tip: Start Redis locally (e.g. `redis-server`) to enable persistent background queues, or ignore this warning to continue using the in-memory queue fallback.');
+      errorLogged = true;
+    }
   });
 
   console.log('📦 BullMQ: Bulk issuance queue initialized.');

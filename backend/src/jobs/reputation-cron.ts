@@ -24,7 +24,7 @@ async function runReputationUpdate(): Promise<void> {
     const usersRes = await query(
       `SELECT DISTINCT u.stellar_address 
        FROM users u
-       JOIN credentials c ON u.stellar_address = c.stellar_address`,
+       JOIN credentials c ON u.id = c.user_id`,
       []
     );
 
