@@ -368,6 +368,14 @@ export default function DocsPage() {
                 StellarID leverages a multi-layer trust architecture designed to decouple client-side zero-knowledge computations, asynchronous queue management, metadata distribution, and secure on-chain token settlement.
               </p>
 
+              <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-6 flex justify-center">
+                <img
+                  src="/flowchart_black.png"
+                  alt="StellarID System Architecture Flowchart"
+                  className="w-full max-w-[900px] h-auto object-contain"
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {architectureLayers.map((layer, idx) => (
                   <div key={layer.label} className="protocol-panel p-6">
@@ -387,136 +395,68 @@ export default function DocsPage() {
               <div className="protocol-panel p-6 space-y-4">
                 <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
-                  Claim Credential Architecture Flow (P0-A)
+                  Claim Credential Architecture Flow
                 </h3>
                 <p className="text-xs text-muted leading-relaxed font-sans">
                   This flow facilitates gasless credential onboarding for users without a pre-existing wallet. A unique encrypted token is routed to their email, serving as the bridge to connect their Freighter wallet and trigger Soroban smart contract minting.
                 </p>
-                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
-                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
-{`+------------------+     issue-with-email     +------------------+
-|  Organizer Auth  | -----------------------> | Express Backend  |
-+------------------+                          +------------------+
-                                                       |
-                                               (Store Pending DB)
-                                                       v
-+------------------+       Send Link          +------------------+
-| Recipient Email  | <----------------------- |  Unique Token    |
-+------------------+                          +------------------+
-         |
-    (Click Link)
-         v
-+------------------+       Retrieve Data      +------------------+
-|   Claim Page     | <----------------------- |  verifyToken     |
-+------------------+                          +------------------+
-         |
- (Connect Freighter)
-         v
-+------------------+       Trigger Mint       +------------------+
-|   Submit Claim   | -----------------------> | Soroban Contract |
-+------------------+                          +------------------+
-                                                       |
-                                               (Mint NFT & Settle)
-                                                       v
-+------------------+     Trigger Notification +------------------+
-| Confirmation Mail| <----------------------- | Senders Registry |
-+------------------+                          +------------------+`}
-                  </pre>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-6 flex justify-center">
+                  <img
+                    src="/docs/claim_credential_architecture_flow.svg"
+                    alt="Claim Credential Architecture Flow"
+                    className="w-full max-w-[800px] h-auto object-contain"
+                  />
                 </div>
               </div>
 
               <div className="protocol-panel p-6 space-y-4">
                 <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
-                  Bulk Credential Issuance Queue Flow (P0-C)
+                  Bulk Credential Issuance Queue Flow
                 </h3>
                 <p className="text-xs text-muted leading-relaxed font-sans">
                   To prevent hitting API bottlenecks and Resend SMTP limits, bulk issuances of up to 1000 items are queued using Redis and processed asynchronously by BullMQ background workers.
                 </p>
-                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
-                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
-{`[CSV File Uploaded] 
-        |
-        v
-[Express API Gateway]  ---> [Initial Validation] (Headers, Columns, Size)
-        |
-        +-----(Generate IPFS Audit Metadata)-----> [Pinata IPFS]
-        |
-        v
-[Push Job to Redis Queue] (BullMQ)
-        |
-        v
-[Asynchronous Background Workers] <--- (Processes 1 row at a time)
-        |
-        +-----(Check Resend rate limit: max 10/sec)-----> [Execute Dispatch]
-        |
-        v
-[Live SSE Status Endpoint] (Clients poll for real-time progress percentages)
-        |
-        v
-[Completion & Stepper Finish] (Download failed rows list if any exist)`}
-                  </pre>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-6 flex justify-center">
+                  <img
+                    src="/docs/bulk_credential_issuance_queue_flow_v2.svg"
+                    alt="Bulk Credential Issuance Queue Flow"
+                    className="w-full max-w-[800px] h-auto object-contain"
+                  />
                 </div>
               </div>
 
               <div className="protocol-panel p-6 space-y-4">
                 <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
-                  Non-Crypto Onboarding (Privy) Flow (P2-B)
+                  Non-Crypto Onboarding (Privy) Flow
                 </h3>
                 <p className="text-xs text-muted leading-relaxed font-sans">
                   For users without Freighter wallets, StellarID leverages Privy to enable email/social logins. On registration, Privy creates a secure, embedded wallet on behalf of the user, which is mapped directly to their user ID in the database, allowing seamless credential claiming.
                 </p>
-                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
-                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
-{`+------------------+         Login / OTP       +---------------------+
-| Non-Crypto User  | ------------------------> | Privy Auth Provider |
-+------------------+                           +---------------------+
-         |                                                |
-         |                                       (Generate Embedded)
-         |                                       (Stellar Keypair  )
-         v                                                v
-+------------------+     JWT / Session Token   +---------------------+
-|   StellarID App  | <------------------------ | Privy Client SDK    |
-+------------------+                           +---------------------+
-         |
-  (Register User)
-         v
-+------------------+     Link privy_user_id    +---------------------+
-| Express Backend  | ------------------------> | PostgreSQL Database |
-+------------------+                           +---------------------+`}
-                  </pre>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-6 flex justify-center">
+                  <img
+                    src="/docs/non_crypto_onboarding_privy_flow_v2.svg"
+                    alt="Non-Crypto Onboarding (Privy) Flow"
+                    className="w-full max-w-[800px] h-auto object-contain"
+                  />
                 </div>
               </div>
 
               <div className="protocol-panel p-6 space-y-4">
                 <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent-indigo"></span>
-                  Stripe Subscription Billing & Webhook Flow (P3-C)
+                  Stripe Subscription Billing & Webhook Flow
                 </h3>
                 <p className="text-xs text-muted leading-relaxed font-sans">
                   The API monetization layer supports tiered limits (Free, Pro, Enterprise). Tiers can be upgraded programmatically via Stripe Checkout. Webhook payloads notify the backend of lifecycle status updates, updating user limits immediately.
                 </p>
-                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-4">
-                  <pre className="text-[10px] sm:text-xs font-mono overflow-x-auto leading-relaxed text-muted/90 max-h-[300px] scrollbar-thin">
-{`+------------------+     Initiate Purchase    +----------------------+
-|   Developer UI   | -----------------------> | Stripe Checkout Session |
-+------------------+                          +----------------------+
-                                                         |
-                                                  (Successful Pay)
-                                                         v
-+------------------+     Stripe Event Hook    +----------------------+
-|  Express Backend | <----------------------- |    Stripe Webhook    |
-| /api/v1/webhooks |                          | (signature verified) |
-+------------------+                          +----------------------+
-         |
- (Parse Payload)
-         v
-+------------------+      Update Limits       +----------------------+
-|    PostgreSQL    | -----------------------> | Redis API-Key Cache  |
-|  (User Profile)  |                          |   (limits updated)   |
-+------------------+                          +----------------------+`}
-                  </pre>
+                <div className="relative border border-white/[0.06] rounded-xl overflow-hidden bg-black/40 p-6 flex justify-center">
+                  <img
+                    src="/docs/stripe_billing_webhook_flow_v3.svg"
+                    alt="Stripe Subscription Billing & Webhook Flow"
+                    className="w-full max-w-[800px] h-auto object-contain"
+                  />
                 </div>
               </div>
             </section>
@@ -546,7 +486,7 @@ export default function DocsPage() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-indigo-500/10 text-accent-indigo border border-indigo-500/20">
                           TS
                         </span>
-                        <span className="text-xs text-muted">1.0.0 • Public • Published 2 days ago</span>
+                        <span className="text-xs text-muted">1.0.0 • Public</span>
                       </div>
                       <p className="text-xs text-muted mt-2 max-w-xl font-sans">
                         The official JavaScript/TypeScript SDK for StellarID — the protocol-grade identity and reputation layer on Stellar.
@@ -871,8 +811,8 @@ export default defineConfig({
                         <span className="font-bold text-foreground font-mono">MIT</span>
                       </div>
                       <div className="flex justify-between border-b border-white/[0.04] pb-2">
-                        <span className="text-muted">Last publish</span>
-                        <span className="font-bold text-foreground font-mono">2 days ago</span>
+                        {/* <span className="text-muted">Last publish</span>
+                        <span className="font-bold text-foreground font-mono">2 days ago</span> */}
                       </div>
                       <div className="flex flex-col gap-1">
                         <span className="text-muted">Collaborators</span>
