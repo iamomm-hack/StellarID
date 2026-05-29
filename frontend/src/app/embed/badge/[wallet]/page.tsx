@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { profileApi } from '@/lib/api';
 import { ShieldCheck, Loader2, Award } from 'lucide-react';
@@ -12,7 +12,7 @@ interface EmbedBadgeProps {
   };
 }
 
-export default function EmbedBadgePage({ params }: EmbedBadgeProps) {
+function EmbedBadgeContent({ params }: EmbedBadgeProps) {
   const { wallet } = params;
   const searchParams = useSearchParams();
   const style = searchParams.get('style') || 'dark'; // 'light' | 'dark'
@@ -178,5 +178,17 @@ export default function EmbedBadgePage({ params }: EmbedBadgeProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function EmbedBadgePage({ params }: EmbedBadgeProps) {
+  return (
+    <Suspense fallback={
+      <div className="embed-badge-container w-full h-full flex items-center justify-center p-2 bg-transparent">
+        <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
+      </div>
+    }>
+      <EmbedBadgeContent params={params} />
+    </Suspense>
   );
 }
