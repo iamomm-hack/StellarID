@@ -45,7 +45,7 @@
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
 | 📊 **User Validation (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
-| 🖥️ **Backend API Health** | [https://stellarid-api.onrender.com/health](https://stellarid-api.onrender.com/health) |
+| 🖥️ **Backend API Health** | [https://stellarid.onrender.com/health](https://stellarid.onrender.com/health) |
 | 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
 
 ---
