@@ -12,7 +12,7 @@ import {
   Activity, ShieldCheck, Globe, Award, Upload, Plus,
 } from 'lucide-react';
 
-const API_BASE = 'https://stellarid-api.onrender.com/api/v1';
+const API_BASE = 'https://stellarid.onrender.com/api/v1';
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
