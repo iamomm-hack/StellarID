@@ -372,7 +372,21 @@ router.post('/:id/request-email-verification', authMiddleware, async (req: AuthR
     );
 
     // Send email
-    const sent = await sendDomainVerificationEmail(email, issuer.domain, token);
+    let sent = false;
+    try {
+      sent = await sendDomainVerificationEmail(email, issuer.domain, token);
+    } catch (err) {
+      console.warn('[SMTP] Failed to send verification email:', err);
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n======================================================`);
+      console.log(`[DEV MODE] EMAIL VERIFICATION TOKEN FOR ${email}:`);
+      console.log(`TOKEN: ${token}`);
+      console.log(`======================================================\n`);
+      sent = true; // Auto success in dev mode so testing is not blocked by SMTP setup
+    }
+
     if (!sent) {
       res.status(500).json({ error: 'Failed to send verification email' });
       return;

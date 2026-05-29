@@ -165,7 +165,8 @@ router.post('/issuers/:id/verify-official', adminMiddleware, async (req: AuthReq
 
     const result = await query(
       `UPDATE issuers
-       SET verification_status = 'official_verified', verified = true, verification_date = NOW(), verified_by = $1
+       SET verification_status = 'official_verified', verified = true, verification_date = NOW(), verified_by = $1,
+           domain_verified = true, domain_verified_at = NOW()
        WHERE id = $2
        RETURNING *`,
       [req.user!.id, id]
@@ -243,6 +244,63 @@ router.post('/issuers/:id/revoke-verification', adminMiddleware, async (req: Aut
   } catch (err: any) {
     console.error('Admin revoke verification error:', err.message);
     res.status(500).json({ error: 'Failed to revoke verification status' });
+  }
+});
+
+// GET /issuers — List all registered issuers with subscription tier details
+router.get('/issuers', adminMiddleware, async (_req: AuthRequest, res: Response) => {
+  try {
+    const result = await query(
+      `SELECT id, name, description, stellar_address, logo_url,
+              verified, verification_status, domain, domain_verified, endorsement_count,
+              subscription_tier, subscription_status, subscription_expires_at, created_at
+       FROM issuers
+       ORDER BY name ASC`
+    );
+    res.json(result.rows);
+  } catch (err: any) {
+    console.error('Admin fetch issuers error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch issuers' });
+  }
+});
+
+// POST /issuers/:id/mock-upgrade — Directly upgrade an issuer's subscription tier
+router.post('/issuers/:id/mock-upgrade', adminMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { tier } = req.body;
+
+    if (!tier || !['free', 'pro', 'enterprise'].includes(tier)) {
+      res.status(400).json({ error: 'Invalid tier specified' });
+      return;
+    }
+
+    const result = await query(
+      `UPDATE issuers 
+       SET subscription_tier = $1, 
+           subscription_status = 'active',
+           subscription_expires_at = NOW() + INTERVAL '30 days'
+       WHERE id = $2
+       RETURNING *`,
+      [tier, id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Issuer profile not found' });
+      return;
+    }
+
+    console.log(`[Admin Billing] Upgraded Issuer ID ${id} directly to tier: ${tier} by Admin ID ${req.user!.id}`);
+
+    res.json({
+      success: true,
+      message: `Successfully upgraded issuer to ${tier} tier`,
+      tier,
+      issuer: result.rows[0],
+    });
+  } catch (err: any) {
+    console.error('Admin mock upgrade error:', err.message);
+    res.status(500).json({ error: 'Failed to process mock upgrade' });
   }
 });
 

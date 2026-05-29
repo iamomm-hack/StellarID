@@ -82,6 +82,10 @@ export const adminApi = {
     api.post(`/admin/issuers/${id}/verify-official`),
   revokeVerification: (id: string, reason: string) =>
     api.post(`/admin/issuers/${id}/revoke-verification`, { reason }),
+  getIssuers: () =>
+    api.get('/admin/issuers'),
+  mockUpgrade: (id: string, tier: 'free' | 'pro' | 'enterprise') =>
+    api.post(`/admin/issuers/${id}/mock-upgrade`, { tier }),
 };
 
 export const verifyApi = {
