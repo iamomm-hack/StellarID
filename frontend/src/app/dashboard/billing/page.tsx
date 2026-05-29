@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -34,7 +34,7 @@ interface BillingStatus {
   };
 }
 
-export default function BillingPage() {
+function BillingPageContent() {
   const { isConnected, address } = useWalletStore();
   const searchParams = useSearchParams();
   
@@ -518,5 +518,20 @@ function FeatureItem({ label, active }: { label: string; active: boolean }) {
       <Check className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${active ? 'text-violet-400' : 'text-white/10'}`} />
       <span className={active ? 'text-white/80' : 'text-white/30 line-through'}>{label}</span>
     </div>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="protocol-panel p-20 text-center">
+          <RefreshCw className="w-8 h-8 text-violet-400 animate-spin mx-auto mb-4" />
+          <p className="text-muted text-sm font-mono">Resolving billing credentials...</p>
+        </div>
+      </div>
+    }>
+      <BillingPageContent />
+    </Suspense>
   );
 }
