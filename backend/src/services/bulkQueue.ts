@@ -3,8 +3,10 @@ import { createClient } from 'redis';
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
+const isRediss = redisUrl.startsWith('rediss://');
+
 // Setup connection options for BullMQ
-export const connectionOptions = {
+export const connectionOptions: any = {
   host: new URL(redisUrl).hostname || 'localhost',
   port: parseInt(new URL(redisUrl).port || '6379'),
   password: new URL(redisUrl).password || undefined,
@@ -13,6 +15,7 @@ export const connectionOptions = {
     // Back off reconnects to 1 minute to avoid constant tight reconnect loops and console spam in dev
     return 60000;
   },
+  ...(isRediss ? { tls: {} } : {}),
 };
 
 // Create bulk issuance queue
