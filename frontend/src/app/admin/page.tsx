@@ -15,7 +15,7 @@ import {
 import VerificationBadge from '@/components/credentials/VerificationBadge';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5555/api/v1';
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Stellar0281';
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
 interface Stats {
   totalCredentials: number;
@@ -66,12 +66,12 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    if (ADMIN_PASSWORD && password === ADMIN_PASSWORD) {
       setAuthenticated(true);
       setAuthError('');
       sessionStorage.setItem('stellarid_admin', 'true');
     } else {
-      setAuthError('Invalid password');
+      setAuthError('Invalid password or admin login disabled');
     }
   };
 
