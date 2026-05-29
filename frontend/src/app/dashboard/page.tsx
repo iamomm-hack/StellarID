@@ -117,42 +117,56 @@ function DashboardContent() {
           <div className="flex flex-wrap gap-3">
             <Link
               href={`/p/${address}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Globe className="w-3.5 h-3.5" /> Public Profile
             </Link>
             <Link
               href="/dashboard/reputation"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Award className="w-3.5 h-3.5 text-accent-indigo" /> Leaderboard
             </Link>
             <Link
               href="/dashboard/issuer-verification"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Shield className="w-3.5 h-3.5 text-accent-indigo" /> Issuer Portal
             </Link>
             <Link
               href="/dashboard/bulk-issue"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Upload className="w-3.5 h-3.5 text-accent-indigo" /> Bulk Issuance
             </Link>
             <Link
               href="/dashboard/developer"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Terminal className="w-3.5 h-3.5 text-accent-indigo" /> Developer API
             </Link>
             <Link
               href="/dashboard/billing"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Zap className="w-3.5 h-3.5 text-accent-indigo" /> Plans & Billing
             </Link>
             <Link
               href="/dashboard/analytics"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
               <Activity className="w-3.5 h-3.5 text-accent-indigo" /> Analytics
@@ -165,12 +179,17 @@ function DashboardContent() {
             </button>
           </div>
         </motion.div>
-
+ 
         {/* --- METRICS --- */}
         <motion.div variants={fadeUp} custom={1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
           <MetricCard label="Credentials" value={credentials?.length || 0} status="Secured" color="#6366f1" />
           <MetricCard label="Verified" value={validCredentials.length} status="Valid" color="#a855f7" />
-          <Link href="/dashboard/reputation" className="cursor-pointer block">
+          <Link 
+            href="/dashboard/reputation" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cursor-pointer block"
+          >
             <MetricCard 
               label="Reputation Score" 
               value={reputationScore !== null ? reputationScore : '...'} 

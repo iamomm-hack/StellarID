@@ -326,7 +326,7 @@ export default function Home() {
                   INITIALIZE →
                 </button>
               </a>
-              <a href="/docs">
+              <a href="/docs" target="_blank" rel="noopener noreferrer">
                 <button className="btn-heroSecondary px-[29px] py-[20px] text-xs uppercase tracking-wider font-bold">
                   READ DOCS
                 </button>
@@ -759,7 +759,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a href="/dashboard"><button className="btn-stellar !px-12 !py-5 !text-sm">Launch Protocol</button></a>
-              <a href="/docs"><button className="btn-stellar-ghost !px-12 !py-5 !text-sm">Read Docs</button></a>
+              <a href="/docs" target="_blank" rel="noopener noreferrer"><button className="btn-stellar-ghost !px-12 !py-5 !text-sm">Read Docs</button></a>
             </div>
           </motion.div>
         </div>

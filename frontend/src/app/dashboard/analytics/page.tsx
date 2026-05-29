@@ -78,6 +78,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [showDemoData, setShowDemoData] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -92,7 +93,17 @@ export default function AnalyticsPage() {
       setIssuer(profileRes.data);
       
       const statsRes = await issuersApi.getAnalytics();
-      setAnalytics(statsRes.data);
+      const statsData = statsRes.data;
+      setAnalytics(statsData);
+
+      // If they are on a paid plan, but have zero data, default to showing demo preview
+      const isEmpty = statsData && statsData.tier !== 'free' &&
+        (statsData.credentials?.total || 0) === 0 &&
+        (!statsData.apiUsage || statsData.apiUsage.length === 0) &&
+        (statsData.bulkJobs?.totalJobs || 0) === 0;
+      if (isEmpty) {
+        setShowDemoData(true);
+      }
     } catch (err: any) {
       if (err.response?.status === 404) {
         setIssuer(null);
@@ -182,41 +193,42 @@ export default function AnalyticsPage() {
 
   const isFree = analytics?.tier === 'free';
   const currentTier = analytics?.tier || 'free';
+  const useMock = isFree || showDemoData;
 
   // Use actual data or simulated mock preview
-  const dataCredentials = isFree ? mockPieData : [
+  const dataCredentials = useMock ? mockPieData : [
     { name: 'Active', value: analytics?.credentials?.active || 0, color: '#6366f1' },
     { name: 'Expired', value: analytics?.credentials?.expired || 0, color: '#a855f7' },
     { name: 'Revoked', value: analytics?.credentials?.revoked || 0, color: '#f43f5e' },
   ];
 
-  const dataDailyIssuance = isFree ? mockDailyIssuance : analytics?.dailyIssuance || [];
-  const dataApiUsage = isFree ? mockApiUsage : analytics?.apiUsage || [];
-  const dataClaiming = isFree ? mockClaimingData : [
+  const dataDailyIssuance = useMock ? mockDailyIssuance : analytics?.dailyIssuance || [];
+  const dataApiUsage = useMock ? mockApiUsage : analytics?.apiUsage || [];
+  const dataClaiming = useMock ? mockClaimingData : [
     { name: 'Claimed', value: analytics?.claiming?.claimed || 0, color: '#10b981' },
     { name: 'Pending', value: analytics?.claiming?.pending || 0, color: '#f59e0b' },
   ];
 
-  const totalCredentials = isFree ? 165 : (analytics?.credentials?.total || 0);
-  const totalClaims = isFree ? 350 : (analytics?.claiming?.total || 0);
+  const totalCredentials = useMock ? 165 : (analytics?.credentials?.total || 0);
+  const totalClaims = useMock ? 350 : (analytics?.claiming?.total || 0);
   const claimSuccessRate = totalClaims > 0 
-    ? Math.round(((isFree ? 280 : analytics?.claiming?.claimed || 0) / totalClaims) * 100) 
+    ? Math.round(((useMock ? 280 : analytics?.claiming?.claimed || 0) / totalClaims) * 100) 
     : 0;
 
-  const totalApiHits = isFree 
+  const totalApiHits = useMock 
     ? mockApiUsage.reduce((acc, curr) => acc + curr.count, 0)
     : analytics?.apiUsage?.reduce((acc: number, curr: any) => acc + curr.count, 0) || 0;
 
-  const avgApiLatency = isFree 
+  const avgApiLatency = useMock 
     ? 36
     : (analytics?.apiUsage?.length 
         ? Math.round(analytics.apiUsage.reduce((acc: number, curr: any) => acc + curr.avgResponseTimeMs, 0) / analytics.apiUsage.length) 
         : 0);
 
-  const bulkJobsTotal = isFree ? 14 : (analytics?.bulkJobs?.totalJobs || 0);
-  const bulkJobsSuccess = isFree ? 472 : (analytics?.bulkJobs?.totalSuccess || 0);
-  const bulkJobsFailed = isFree ? 8 : (analytics?.bulkJobs?.totalFailed || 0);
-  const bulkJobsRecipients = isFree ? 480 : (analytics?.bulkJobs?.totalRecipients || 0);
+  const bulkJobsTotal = useMock ? 14 : (analytics?.bulkJobs?.totalJobs || 0);
+  const bulkJobsSuccess = useMock ? 472 : (analytics?.bulkJobs?.totalSuccess || 0);
+  const bulkJobsFailed = useMock ? 8 : (analytics?.bulkJobs?.totalFailed || 0);
+  const bulkJobsRecipients = useMock ? 480 : (analytics?.bulkJobs?.totalRecipients || 0);
   const bulkSuccessRate = bulkJobsRecipients > 0 
     ? Math.round((bulkJobsSuccess / bulkJobsRecipients) * 100)
     : 0;
@@ -237,15 +249,32 @@ export default function AnalyticsPage() {
           >
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </Link>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-muted uppercase tracking-widest">Plan:</span>
-            <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-              currentTier === 'enterprise' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-              currentTier === 'pro' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
-              'bg-zinc-800 text-zinc-400'
-            }`}>
-              {currentTier}
-            </span>
+          <div className="flex items-center gap-4">
+            {!isFree && (
+              <div className="flex items-center gap-2 bg-white/[0.02] border border-white/[0.06] rounded-xl px-3 py-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)]">
+                <span className="text-[10px] font-mono text-muted uppercase">Demo Preview:</span>
+                <button
+                  onClick={() => setShowDemoData(!showDemoData)}
+                  className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded transition-all ${
+                    showDemoData
+                      ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-[0_0_8px_rgba(99,102,241,0.2)]'
+                      : 'bg-zinc-800 text-zinc-400 border border-transparent'
+                  }`}
+                >
+                  {showDemoData ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-muted uppercase tracking-widest">Plan:</span>
+              <span className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                currentTier === 'enterprise' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                currentTier === 'pro' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' :
+                'bg-zinc-800 text-zinc-400'
+              }`}>
+                {currentTier}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -257,8 +286,31 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Demo Alert Banner for Empty Premium Accounts */}
+        {!isFree && showDemoData && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="p-4 border border-indigo-500/20 bg-indigo-500/5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-indigo-400 shrink-0" />
+              <div>
+                <h4 className="text-xs font-semibold text-white">Showing Demo Preview</h4>
+                <p className="text-[11px] text-muted">You have no live issuance or API activity recorded on the network yet. Switch to Live mode anytime.</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowDemoData(false)}
+              className="btn-stellar !py-1.5 !px-3 text-[10px] shrink-0 self-start sm:self-auto"
+            >
+              Show Live (Empty)
+            </button>
+          </motion.div>
+        )}
+
         {/* Dashboard Grid Container */}
-        <div className="relative">
+        <div className={`relative ${isFree ? 'max-h-[550px] overflow-hidden rounded-3xl' : ''}`}>
           {/* Glassmorphic locked cover overlay */}
           {isFree && (
             <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-zinc-950/70 backdrop-blur-md rounded-3xl border border-white/5">
@@ -312,7 +364,7 @@ export default function AnalyticsPage() {
                   <span className="text-3xl font-bold tracking-tight font-mono">{totalCredentials}</span>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted font-mono">
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                    <span>Active: {isFree ? 150 : (analytics?.credentials?.active || 0)}</span>
+                    <span>Active: {useMock ? 150 : (analytics?.credentials?.active || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -327,7 +379,7 @@ export default function AnalyticsPage() {
                   <span className="text-3xl font-bold tracking-tight font-mono">{claimSuccessRate}%</span>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted font-mono">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>{isFree ? 280 : (analytics?.claiming?.claimed || 0)} claimed of {totalClaims}</span>
+                    <span>{useMock ? 280 : (analytics?.claiming?.claimed || 0)} claimed of {totalClaims}</span>
                   </div>
                 </div>
               </div>
@@ -342,7 +394,7 @@ export default function AnalyticsPage() {
                   <span className="text-3xl font-bold tracking-tight font-mono">{avgApiLatency}ms</span>
                   <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted font-mono">
                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                    <span>{totalApiHits.toLocaleString()} calls / {isFree ? 1 : (analytics?.apiKeys?.activeCount || 0)} active keys</span>
+                    <span>{totalApiHits.toLocaleString()} calls / {useMock ? 1 : (analytics?.apiKeys?.activeCount || 0)} active keys</span>
                   </div>
                 </div>
               </div>
@@ -508,7 +560,7 @@ export default function AnalyticsPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Claimed:</span>
-                        <span className="text-emerald-400 font-bold">{isFree ? 280 : (analytics?.claiming?.claimed || 0)}</span>
+                        <span className="text-emerald-400 font-bold">{useMock ? 280 : (analytics?.claiming?.claimed || 0)}</span>
                       </div>
                       <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-emerald-500 h-full" style={{ width: `${claimSuccessRate}%` }} />
@@ -518,7 +570,7 @@ export default function AnalyticsPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <span className="text-zinc-500">Pending:</span>
-                        <span className="text-amber-400 font-bold">{isFree ? 70 : (analytics?.claiming?.pending || 0)}</span>
+                        <span className="text-amber-400 font-bold">{useMock ? 70 : (analytics?.claiming?.pending || 0)}</span>
                       </div>
                       <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
                         <div className="bg-amber-500 h-full" style={{ width: `${100 - claimSuccessRate}%` }} />

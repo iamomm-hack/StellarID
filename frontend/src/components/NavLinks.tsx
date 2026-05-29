@@ -11,7 +11,7 @@ const navItems = [
   { label: 'Protocol', href: '/how-it-works' },
   { label: 'Use Cases', href: '/use-cases' },
   { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Docs', href: '/docs' },
+  { label: 'Docs', href: '/docs', target: '_blank', rel: 'noopener noreferrer' },
 ];
 
 export default function NavLinks() {
@@ -35,6 +35,8 @@ export default function NavLinks() {
             <Link
               key={item.label}
               href={item.href}
+              target={item.target}
+              rel={item.rel}
               onMouseEnter={() => setHoveredIdx(idx)}
               className={`relative px-5 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.15em] transition-colors duration-300 z-10 ${
                 active ? 'text-foreground' : 'text-muted hover:text-foreground/70'
@@ -109,6 +111,8 @@ export default function NavLinks() {
                     >
                       <Link
                         href={item.href}
+                        target={item.target}
+                        rel={item.rel}
                         onClick={() => setMobileOpen(false)}
                         className={`text-xl font-bold uppercase tracking-tight transition-colors duration-300 flex items-center gap-3 ${
                           active ? 'text-foreground' : 'text-muted hover:text-foreground/70'

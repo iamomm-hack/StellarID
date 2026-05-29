@@ -37,14 +37,9 @@ export default function IssuerVerificationPanel({ issuer, onRefresh }: IssuerVer
   const [emailMessage, setEmailMessage] = useState('');
   const [emailError, setEmailError] = useState('');
 
-  // Admin Simulator state
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminLoading, setAdminLoading] = useState(false);
-  const [revokeReason, setRevokeReason] = useState('');
 
-  // Check if simulated admin / dev mode
+
   useEffect(() => {
-    setIsAdmin(process.env.NODE_ENV !== 'production');
     fetchEndorsements();
     fetchAllIssuers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,37 +141,7 @@ export default function IssuerVerificationPanel({ issuer, onRefresh }: IssuerVer
     }
   };
 
-  // Admin simulation overrides
-  const handleAdminVerify = async () => {
-    setAdminLoading(true);
-    try {
-      await adminApi.verifyOfficial(issuer.id);
-      alert('Issuer officially verified by admin override!');
-      onRefresh();
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Admin override failed.');
-    } finally {
-      setAdminLoading(false);
-    }
-  };
 
-  const handleAdminRevoke = async () => {
-    if (!revokeReason) {
-      alert('Please specify a reason for revocation.');
-      return;
-    }
-    setAdminLoading(true);
-    try {
-      await adminApi.revokeVerification(issuer.id, revokeReason);
-      alert('Verification revoked.');
-      setRevokeReason('');
-      onRefresh();
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Revocation failed.');
-    } finally {
-      setAdminLoading(false);
-    }
-  };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(dnsToken);
@@ -211,7 +176,7 @@ export default function IssuerVerificationPanel({ issuer, onRefresh }: IssuerVer
               <div className="flex items-center gap-2 text-xs text-indigo-400 font-mono">
                 <Globe className="w-3.5 h-3.5" />
                 <span>{issuer.domain}</span>
-                {issuer.domain_verified ? (
+                {issuer.domain_verified || issuer.verified ? (
                   <span className="text-[10px] bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-bold">Verified Domain</span>
                 ) : (
                   <span className="text-[10px] bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-bold">Pending Verification</span>
@@ -526,44 +491,7 @@ export default function IssuerVerificationPanel({ issuer, onRefresh }: IssuerVer
             </div>
           </div>
 
-          {/* Admin Override controls (Simulator for testing & evaluation) */}
-          {isAdmin && (
-            <div className="p-6 border border-indigo-500/20 bg-indigo-500/5 rounded-2xl space-y-4">
-              <div className="flex items-center gap-2 text-indigo-400">
-                <Sparkles className="w-4 h-4" />
-                <h3 className="text-xs font-bold font-mono uppercase tracking-wider">Admin Simulator</h3>
-              </div>
-              
-              <p className="text-[10px] text-muted leading-relaxed">Directly verify or revoke this issuer&apos;s verification tier status using admin simulated controls.</p>
 
-              <div className="space-y-3 pt-2">
-                <button
-                  onClick={handleAdminVerify}
-                  disabled={adminLoading}
-                  className="w-full btn-stellar !py-2 !text-[10px] flex items-center justify-center gap-1.5"
-                >
-                  {adminLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Force Official Verify'}
-                </button>
-
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Reason for revocation"
-                    value={revokeReason}
-                    onChange={(e) => setRevokeReason(e.target.value)}
-                    className="w-full bg-white/[0.03] border border-white/[0.08] focus:border-red-500/40 rounded-xl px-3 py-2 text-[10px] outline-none transition-all"
-                  />
-                  <button
-                    onClick={handleAdminRevoke}
-                    disabled={adminLoading || !revokeReason}
-                    className="w-full py-2 rounded-xl border border-red-500/20 bg-red-500/5 text-[10px] font-bold text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    {adminLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Force Revoke Verification'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

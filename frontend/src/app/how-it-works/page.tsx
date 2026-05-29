@@ -66,7 +66,7 @@ export default function HowItWorksPage() {
             </motion.p>
           </motion.div>
 
-          {/* Steps */}
+          {/* Steps List (Rectangles) */}
           <div className="space-y-0">
             {steps.map((item, idx) => (
               <motion.div
@@ -75,17 +75,28 @@ export default function HowItWorksPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: idx * 0.12, ease: [.23, 1, .32, 1] }}
-                className="relative p-10 border-b group"
-                style={{ borderColor: 'var(--border)' }}
+                className="relative p-10 border-b group hover:bg-white/[0.01] transition-all duration-500 overflow-hidden"
+                style={{
+                  borderColor: 'var(--border)',
+                  '--step-color': item.color,
+                  '--step-color-bg': `${item.color}0d`, // ~5% opacity
+                } as React.CSSProperties}
               >
-                <div className="flex flex-col sm:flex-row gap-8 items-start">
+                {/* Background Glow */}
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-[var(--step-color-bg)] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
+                />
+
+                <div className="flex flex-col sm:flex-row gap-8 items-start relative z-10">
                   {/* Step number + icon */}
                   <div className="flex flex-col items-center gap-3 flex-shrink-0">
-                    <span className="text-[13px] font-mono font-bold" style={{ color: item.color }}>
+                    <span className="text-[13px] font-mono font-bold transition-all duration-500 group-hover:scale-110" style={{ color: item.color }}>
                       {item.step}
                     </span>
-                    <div className="liquid-glass w-14 h-14 rounded-xl flex items-center justify-center">
-                      <item.icon className="w-7 h-7" style={{ color: item.color }} />
+                    <div className="liquid-glass w-14 h-14 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-500"
+                      style={{ boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.05)' }}
+                    >
+                      <item.icon className="w-7 h-7 transition-transform duration-500 group-hover:rotate-6" style={{ color: item.color }} />
                     </div>
                   </div>
 
@@ -99,9 +110,10 @@ export default function HowItWorksPage() {
                   </div>
                 </div>
 
-                {/* Bottom accent on hover */}
-                <div className="absolute bottom-0 left-0 w-full h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ background: `linear-gradient(90deg, transparent, ${item.color}40, transparent)` }}
+                {/* Bottom border glow accent on hover */}
+                <div 
+                  className="absolute bottom-0 left-0 w-full h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: `linear-gradient(90deg, transparent, var(--step-color), transparent)` }}
                 />
               </motion.div>
             ))}

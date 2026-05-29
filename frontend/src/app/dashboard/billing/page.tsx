@@ -59,9 +59,6 @@ export default function BillingPage() {
       if (typeof window !== 'undefined') {
         window.history.replaceState({}, document.title, '/dashboard/billing');
       }
-    } else if (searchParams.get('mock_checkout_success') === 'true') {
-      const tier = searchParams.get('tier') || 'pro';
-      handleMockUpgradeDirectly(tier as any);
     } else if (searchParams.get('checkout_cancel') === 'true') {
       setError('Subscription checkout was cancelled.');
       if (typeof window !== 'undefined') {
@@ -80,19 +77,6 @@ export default function BillingPage() {
       setError(err.response?.data?.error || 'Failed to fetch subscription details');
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handleMockUpgradeDirectly(tier: 'free' | 'pro' | 'enterprise') {
-    try {
-      await billingApi.mockUpgrade(tier);
-      setSuccessMsg(`Simulated sandbox upgrade to ${tier.toUpperCase()} completed successfully!`);
-      if (typeof window !== 'undefined') {
-        window.history.replaceState({}, document.title, '/dashboard/billing');
-      }
-      loadBillingStatus();
-    } catch (err: any) {
-      setError('Mock upgrade simulation failed');
     }
   }
 
@@ -232,26 +216,6 @@ export default function BillingPage() {
             <Check className="w-5 h-5 flex-shrink-0 bg-green-500/10 rounded-full p-0.5" />
             <span>{successMsg}</span>
           </motion.div>
-        )}
-
-        {billing?.mockMode && (
-          <div className="mb-8 p-5 rounded-xl border border-violet-500/30 bg-violet-500/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <Zap className="w-5 h-5 text-violet-400 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-violet-300 font-semibold text-sm">Sandbox Mock Mode Enabled</p>
-                <p className="text-violet-200/60 text-xs mt-0.5">Stripe keys are not configured. You can simulate instant, free upgrades for testing.</p>
-              </div>
-            </div>
-            {billing.tier !== 'free' && (
-              <button 
-                onClick={() => handleMockUpgradeDirectly('free')}
-                className="text-xs bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-lg px-4 py-2 transition-all self-start sm:self-auto"
-              >
-                Reset to Free
-              </button>
-            )}
-          </div>
         )}
 
         {loading ? (
@@ -484,14 +448,6 @@ export default function BillingPage() {
                         ? 'Active Plan'
                         : `Pay ${paymentToken === 'xlm' ? '50 XLM' : '10 USDC'}`}
                     </button>
-                    {billing.mockMode && billing.tier !== 'pro' && (
-                      <button 
-                        onClick={() => handleMockUpgradeDirectly('pro')}
-                        className="w-full text-center text-xs py-1 hover:underline text-violet-400 font-mono"
-                      >
-                        Instant Mock Upgrade
-                      </button>
-                    )}
                   </div>
                 </div>
 
@@ -543,14 +499,6 @@ export default function BillingPage() {
                         ? 'Active Plan'
                         : `Pay ${paymentToken === 'xlm' ? '250 XLM' : '50 USDC'}`}
                     </button>
-                    {billing.mockMode && billing.tier !== 'enterprise' && (
-                      <button 
-                        onClick={() => handleMockUpgradeDirectly('enterprise')}
-                        className="w-full text-center text-xs py-1 hover:underline text-violet-400 font-mono"
-                      >
-                        Instant Mock Upgrade
-                      </button>
-                    )}
                   </div>
                 </div>
 

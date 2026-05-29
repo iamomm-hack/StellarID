@@ -141,6 +141,38 @@ export default function AdminPage() {
     }
   };
 
+  const handleUpdateSubscription = async (id: string, tier: string) => {
+    let token: string | null = null;
+    try {
+      const stored = localStorage.getItem('stellar-id-wallet');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        token = parsed?.state?.token || null;
+      }
+    } catch {}
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API}/admin/issuers/${id}/mock-upgrade`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ tier })
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(`Issuer subscription tier updated to ${tier.toUpperCase()} successfully!`);
+        window.location.reload();
+      }
+    } catch (err) {
+      alert('Failed to update subscription tier.');
+    }
+  };
+
   useEffect(() => {
     if (!authenticated) return;
     setLoading(true);
@@ -167,7 +199,7 @@ export default function AdminPage() {
       fetch(`${API}/admin/activity`, { headers }).then(r => r.json()),
       fetch(`${API}/admin/chart-data`, { headers }).then(r => r.json()),
       fetch(`${API}/admin/top-issuers`, { headers }).then(r => r.json()),
-      fetch(`${API}/issuers`, { headers }).then(r => r.json()),
+      fetch(`${API}/admin/issuers`, { headers }).then(r => r.json()),
     ])
       .then(([s, a, c, i, all_i]) => {
         if (s.error) { setError(s.error); return; }
@@ -478,6 +510,7 @@ export default function AdminPage() {
                     <th className="pb-3 font-semibold">Stellar Address</th>
                     <th className="pb-3 font-semibold">Current Status</th>
                     <th className="pb-3 font-semibold">Domain / Peer Rating</th>
+                    <th className="pb-3 font-semibold">Subscription Plan</th>
                     <th className="pb-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
@@ -506,14 +539,36 @@ export default function AdminPage() {
                         <div className="space-y-1">
                           <div className="text-[10px] font-mono">
                             Domain: {issuer.domain ? (
-                              <span className={issuer.domain_verified ? 'text-green-400' : 'text-yellow-400'}>
-                                {issuer.domain} ({issuer.domain_verified ? 'Verified' : 'Pending'})
+                              <span className={issuer.domain_verified || issuer.verified ? 'text-green-400' : 'text-yellow-400'}>
+                                {issuer.domain} ({issuer.domain_verified || issuer.verified ? 'Verified' : 'Pending'})
                               </span>
                             ) : 'None'}
                           </div>
                           <div className="text-[10px] font-mono text-muted">
                             Peer Endorsements: {issuer.endorsement_count || 0}
                           </div>
+                        </div>
+                      </td>
+                      <td className="py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium self-start uppercase tracking-wider ${
+                            issuer.subscription_tier === 'enterprise'
+                              ? 'bg-amber-950/40 text-amber-400 border border-amber-900/40'
+                              : issuer.subscription_tier === 'pro'
+                              ? 'bg-violet-950/40 text-violet-400 border border-violet-900/40'
+                              : 'bg-zinc-800 text-zinc-400 border border-white/[0.04]'
+                          }`}>
+                            {issuer.subscription_tier || 'free'}
+                          </span>
+                          <select
+                            value={issuer.subscription_tier || 'free'}
+                            onChange={(e) => handleUpdateSubscription(issuer.id, e.target.value)}
+                            className="bg-zinc-900 border border-white/10 rounded px-2 py-1 text-[11px] text-foreground focus:outline-none focus:border-indigo-500 w-24"
+                          >
+                            <option value="free">Free</option>
+                            <option value="pro">Pro</option>
+                            <option value="enterprise">Enterprise</option>
+                          </select>
                         </div>
                       </td>
                       <td className="py-4 text-right">
