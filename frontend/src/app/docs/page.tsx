@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   Shield, Fingerprint, Lock, Layers, Key, Eye,
@@ -8,7 +8,7 @@ import {
   Copy, Check, Zap, FileCode, Rocket, GitBranch,
   Server, ChevronRight, ExternalLink, CheckCircle2,
   Clock, Box, Linkedin, Github, Coins, Users,
-  Activity, ShieldCheck,
+  Activity, ShieldCheck, Globe, Award, Upload, Plus,
 } from 'lucide-react';
 
 const API_BASE = 'https://stellarid-api.onrender.com/api/v1';
@@ -203,6 +203,7 @@ export default function DocsPage() {
   const sidebarItems = [
     { id: 'quickstart', label: 'Quick Start', icon: Rocket },
     { id: 'concepts', label: 'Core Concepts', icon: Layers },
+    { id: 'controlcenter', label: 'Control Center', icon: Terminal },
     { id: 'architecture', label: 'Architecture', icon: GitBranch },
     { id: 'sdk', label: 'Developer SDK', icon: Code2 },
     { id: 'reputation', label: 'Reputation System', icon: Shield },
@@ -216,100 +217,81 @@ export default function DocsPage() {
     { id: 'security', label: 'Security', icon: ShieldCheck },
   ];
 
-  useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '-10% 0px -75% 0px',
-      threshold: 0,
-    };
 
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    const sections = document.querySelectorAll('main section[id]');
-    sections.forEach((section) => observer.observe(section));
-
-    return () => {
-      sections.forEach((section) => observer.unobserve(section));
-    };
-  }, []);
 
   const groups = [...new Set(apiEndpoints.map(e => e.group))];
 
   return (
-    <div className="min-h-screen relative overflow-x-clip" style={{ background: 'hsl(var(--background))' }}>
-      <div className="max-w-[1400px] mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="mb-12">
-          <span className="tag-orange mb-3 block w-fit">
-            Developer Documentation
-          </span>
-          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight font-display text-foreground uppercase">
-            StellarID <span className="text-accent-indigo">Docs</span>
-          </h1>
-          <p className="text-muted max-w-2xl mt-4 text-sm leading-relaxed">
-            Full API reference, OAuth integration guides, ZK circuit docs, Fee Sponsorship, and Multi-Signature — everything you need to build with StellarID.
-          </p>
-          <div className="flex flex-wrap gap-3 mt-6">
-            <a href={`${API_BASE.replace('/api/v1', '')}/health`} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-mono font-bold uppercase tracking-wider bg-indigo-500/10 text-accent-indigo border-indigo-500/20 hover:bg-indigo-500/20 transition-all duration-300">
-              <Activity className="w-3.5 h-3.5 animate-pulse" /> API Live
-            </a>
-            <a href="https://github.com/iamomm-hack/StellarID" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.06] text-xs font-mono font-bold uppercase tracking-wider text-muted hover:text-foreground hover:bg-white/[0.02] transition-all duration-300">
-              <Github className="w-3.5 h-3.5" /> Source
-            </a>
+    <div className="fixed top-[72px] bottom-0 left-0 right-0 z-30 flex bg-background overflow-hidden">
+      <div className="max-w-[1400px] w-full mx-auto px-6 py-8 flex h-full overflow-hidden">
+        {/* Sticky Sidebar */}
+        <aside className="hidden lg:block w-56 shrink-0 h-full overflow-y-auto pr-6 scrollbar-thin">
+          <nav className="space-y-1">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveSection(item.id);
+                  document.getElementById('docs-content-container')?.scrollTo({ top: 0, behavior: 'instant' });
+                }}
+                className={`w-full flex items-center gap-2.5 px-4 py-3 text-xs font-bold font-display tracking-wider rounded-xl transition-all duration-200 text-left uppercase border ${
+                  activeSection === item.id
+                    ? 'border-accent-indigo text-foreground bg-accent-indigo/10 shadow-[0_0_12px_rgba(99,102,241,0.15)] font-bold'
+                    : 'border-transparent text-muted hover:text-foreground hover:bg-white/[0.02]'
+                }`}
+              >
+                <item.icon className={`w-4 h-4 ${activeSection === item.id ? 'text-accent-indigo' : ''}`} />
+                {item.label}
+              </button>
+            ))}
+
+            <div className="pt-4 mt-4 border-t border-white/[0.06]">
+              <a href="https://github.com/iamomm-hack/StellarID" target="_blank" rel="noopener noreferrer"
+                 className="flex items-center gap-2 px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-muted hover:text-accent-indigo transition-colors">
+                <ExternalLink className="w-3.5 h-3.5" /> View on GitHub
+              </a>
+            </div>
+          </nav>
+        </aside>
+
+        {/* Vertical Divider */}
+        <div className="hidden lg:block w-[1px] bg-white/[0.08] h-full" />
+
+        {/* Scrollable Content Container */}
+        <div className="flex-1 min-w-0 h-full overflow-y-auto pl-8 pr-4 scrollbar-thin" id="docs-content-container">
+          {/* Header */}
+          <div className="mb-8">
+            <span className="tag-orange mb-3 block w-fit">
+              Developer Documentation
+            </span>
+            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight font-display text-foreground uppercase">
+              StellarID <span className="text-accent-indigo">Docs</span>
+            </h1>
+            <p className="text-muted max-w-2xl mt-4 text-sm leading-relaxed">
+              Full API reference, OAuth integration guides, ZK circuit docs, Fee Sponsorship, and Multi-Signature — everything you need to build with StellarID.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <a href={`${API_BASE.replace('/api/v1', '')}/health`} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-mono font-bold uppercase tracking-wider bg-indigo-500/10 text-accent-indigo border-indigo-500/20 hover:bg-indigo-500/20 transition-all duration-300">
+                <Activity className="w-3.5 h-3.5 animate-pulse" /> API Live
+              </a>
+              <a href="https://github.com/iamomm-hack/StellarID" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/[0.06] text-xs font-mono font-bold uppercase tracking-wider text-muted hover:text-foreground hover:bg-white/[0.02] transition-all duration-300">
+                <Github className="w-3.5 h-3.5" /> Source
+              </a>
+            </div>
           </div>
-        </div>
 
-        <div className="flex gap-8">
-          {/* Sticky Sidebar */}
-          <aside className="hidden lg:block w-56 shrink-0 self-start sticky top-[96px] max-h-[calc(100vh-120px)] overflow-y-auto pr-2 scrollbar-thin">
-            <nav className="space-y-1">
-              {sidebarItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveSection(item.id);
-                    document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-4 py-3 text-xs font-bold font-display tracking-wider rounded-xl transition-all duration-200 text-left uppercase border ${
-                    activeSection === item.id
-                      ? 'border-accent-indigo text-foreground bg-accent-indigo/10 shadow-[0_0_12px_rgba(99,102,241,0.15)] font-bold'
-                      : 'border-transparent text-muted hover:text-foreground hover:bg-white/[0.02]'
-                  }`}
-                >
-                  <item.icon className={`w-4 h-4 ${activeSection === item.id ? 'text-accent-indigo' : ''}`} />
-                  {item.label}
-                </button>
-              ))}
-
-              <div className="pt-4 mt-4 border-t border-white/[0.06]">
-                <a href="https://github.com/iamomm-hack/StellarID" target="_blank" rel="noopener noreferrer"
-                   className="flex items-center gap-2 px-4 py-2 text-[10px] font-mono uppercase tracking-wider text-muted hover:text-accent-indigo transition-colors">
-                  <ExternalLink className="w-3.5 h-3.5" /> View on GitHub
-                </a>
-              </div>
-            </nav>
-          </aside>
-
-           {/* Main Content */}
-          <main className="flex-1 min-w-0 space-y-16">
+          {/* Main Content */}
+          <main className="flex-grow">
             {/* Mobile Navigation Scroll */}
-            <div className="lg:hidden w-full overflow-x-auto flex gap-2 pb-3 mb-6 scrollbar-none sticky top-[72px] z-40 bg-[hsl(260,87%,3%)]/95 backdrop-blur-md py-3 border-b border-white/[0.06]">
+            <div className="lg:hidden w-full overflow-x-auto flex gap-2 pb-3 mb-6 scrollbar-none sticky top-0 z-40 bg-[hsl(260,87%,3%)]/95 backdrop-blur-md py-3 border-b border-white/[0.06]">
               {sidebarItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
                     setActiveSection(item.id);
-                    document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document.getElementById('docs-content-container')?.scrollTo({ top: 0, behavior: 'instant' });
                   }}
                   className={`shrink-0 flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold font-display tracking-wider rounded-full uppercase border transition-all duration-200 ${
                     activeSection === item.id
@@ -324,7 +306,7 @@ export default function DocsPage() {
             </div>
 
             {/* === QUICKSTART === */}
-            <section id="quickstart" className="space-y-6">
+            <section id="quickstart" className={`space-y-6 ${activeSection === 'quickstart' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Rocket className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -351,7 +333,7 @@ export default function DocsPage() {
             </section>
 
             {/* === CORE CONCEPTS === */}
-            <section id="concepts" className="space-y-6">
+            <section id="concepts" className={`space-y-6 ${activeSection === 'concepts' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Layers className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -375,8 +357,104 @@ export default function DocsPage() {
               </div>
             </section>
 
+            {/* === CONTROL CENTER === */}
+            <section id="controlcenter" className={`space-y-6 ${activeSection === 'controlcenter' ? '' : 'hidden'}`}>
+              <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
+                <Terminal className="w-5 h-5 text-accent-indigo" />
+                <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
+                  Control Center
+                </h2>
+              </div>
+
+              <p className="text-muted text-sm leading-relaxed">
+                The **Identity Control Center** serves as the unified dashboard for StellarID. It provides users and developers access to various portals, analytics, and credential options.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Globe className="w-4 h-4 text-accent-indigo" />
+                    Public Profile
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    A public shareable profile hosted at <code className="text-accent-indigo">/p/[address]</code>. Displays your verified credentials, ZK proof history, and peer-to-peer reputation score, perfect for resume or client verification. Opens in a new tab.
+                  </p>
+                </div>
+
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Award className="w-4 h-4 text-accent-indigo" />
+                    Leaderboard
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    A platform rankings board filtered by city or college. Displays active reputation scores and tiers to gamify on-chain trust and identity. Opens in a new tab.
+                  </p>
+                </div>
+
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Shield className="w-4 h-4 text-accent-indigo" />
+                    Issuer Portal
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    Allows institutions to request domain verification tokens, run DNS TXT record lookups, perform email verification, and endorse other trusted peer issuers to build network-wide reputation. Opens in a new tab.
+                  </p>
+                </div>
+
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Upload className="w-4 h-4 text-accent-indigo" />
+                    Bulk Issuance
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    Send up to 1000 credentials simultaneously via a CSV upload template. Uses background BullMQ workers and Redis queue management to bypass rate limits. Opens in a new tab.
+                  </p>
+                </div>
+
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Terminal className="w-4 h-4 text-accent-indigo" />
+                    Developer API
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    Create and revoke Developer API Keys, configure B2B webhooks, inspect rate limits, and access live logs of credentials issued programmatically. Opens in a new tab.
+                  </p>
+                </div>
+
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Zap className="w-4 h-4 text-accent-indigo" />
+                    Plans & Billing
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    Manage tier subscriptions (Free, Pro, Enterprise) via Stripe Checkout or direct Stellar XLM/USDC payments. Features a Sandbox Instant Mock Upgrade toggle in development mode. Opens in a new tab.
+                  </p>
+                </div>
+
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Activity className="w-4 h-4 text-accent-indigo" />
+                    Analytics
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    An advanced SaaS console visualizing credential trends, telemetry trend lines, daily issuance volume graphs, and recent verification event feeds. Opens in a new tab.
+                  </p>
+                </div>
+
+                <div className="protocol-panel p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground font-display font-bold text-sm uppercase tracking-wider">
+                    <Plus className="w-4 h-4 text-accent-indigo" />
+                    Request Credential
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    An on-screen wizard interface allowing users to submit credential requests directly to trusted university, employee, or community issuers.
+                  </p>
+                </div>
+              </div>
+            </section>
+
             {/* === ARCHITECTURE === */}
-            <section id="architecture" className="space-y-6">
+            <section id="architecture" className={`space-y-6 ${activeSection === 'architecture' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <GitBranch className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -482,7 +560,7 @@ export default function DocsPage() {
             </section>
 
             {/* === DEVELOPER SDK === */}
-            <section id="sdk" className="space-y-6">
+            <section id="sdk" className={`space-y-6 ${activeSection === 'sdk' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Code2 className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -848,7 +926,7 @@ export default defineConfig({
             </section>
 
             {/* === REPUTATION SYSTEM === */}
-            <section id="reputation" className="space-y-6">
+            <section id="reputation" className={`space-y-6 ${activeSection === 'reputation' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Shield className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -957,7 +1035,7 @@ export default defineConfig({
             </section>
 
             {/* === BULK ISSUANCE === */}
-            <section id="bulk" className="space-y-6">
+            <section id="bulk" className={`space-y-6 ${activeSection === 'bulk' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Layers className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -998,7 +1076,7 @@ export default defineConfig({
             </section>
 
             {/* === OAUTH ISSUERS === */}
-            <section id="oauth" className="space-y-6">
+            <section id="oauth" className={`space-y-6 ${activeSection === 'oauth' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Github className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -1104,7 +1182,7 @@ export default defineConfig({
             </section>
 
             {/* === DISCORD BOT === */}
-            <section id="discord" className="space-y-6">
+            <section id="discord" className={`space-y-6 ${activeSection === 'discord' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Users className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -1176,7 +1254,7 @@ CREATE TABLE IF NOT EXISTS verified_members (
             </section>
 
             {/* === ADVANCED FEATURES === */}
-            <section id="advanced" className="space-y-6">
+            <section id="advanced" className={`space-y-6 ${activeSection === 'advanced' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Zap className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -1276,7 +1354,7 @@ Authorization: Bearer YOUR_JWT
             </section>
 
             {/* === BILLING & SANDBOX === */}
-            <section id="billing" className="space-y-6">
+            <section id="billing" className={`space-y-6 ${activeSection === 'billing' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Coins className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -1356,7 +1434,7 @@ Authorization: Bearer YOUR_JWT
             </section>
 
             {/* === API REFERENCE === */}
-            <section id="api" className="space-y-6">
+            <section id="api" className={`space-y-6 ${activeSection === 'api' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <Code2 className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -1423,7 +1501,7 @@ Authorization: Bearer YOUR_JWT
             </section>
 
             {/* === ZK CIRCUITS === */}
-            <section id="circuits" className="space-y-6">
+            <section id="circuits" className={`space-y-6 ${activeSection === 'circuits' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <FileCode className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -1501,7 +1579,7 @@ snarkjs zkey export verificationkey age_check_0000.zkey verification_key.json`}
             </section>
 
             {/* === SECURITY === */}
-            <section id="security" className="space-y-6">
+            <section id="security" className={`space-y-6 ${activeSection === 'security' ? '' : 'hidden'}`}>
               <div className="flex items-center gap-3 border-b border-white/[0.06] pb-3">
                 <ShieldCheck className="w-5 h-5 text-accent-indigo" />
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-foreground">
@@ -1536,7 +1614,7 @@ snarkjs zkey export verificationkey age_check_0000.zkey verification_key.json`}
             </section>
 
             {/* Bottom CTA */}
-            <div className="protocol-panel p-8 text-center relative overflow-hidden">
+            <div className="protocol-panel p-8 text-center relative overflow-hidden mt-12">
               <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-accent-indigo via-accent-purple to-transparent" />
               <h3 className="text-2xl font-bold mb-3 font-display uppercase tracking-wider text-foreground">
                 Start Integrating
