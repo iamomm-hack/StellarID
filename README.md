@@ -22,6 +22,7 @@
   <a href="#-the-problem">The Problem</a> •
   <a href="#-the-solution">The Solution</a> •
   <a href="#-screenshots">Screenshots</a> •
+  <a href="#%EF%B8%8F-control-center-dashboard-features">Control Center</a> •
   <a href="#-how-it-works">How It Works</a> •
   <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
   <a href="#-key-features">Key Features</a> •
@@ -104,6 +105,24 @@ Every time you sign up for a service, you hand over your **name, address, date o
   <em>API Documentation — Interactive docs with code examples</em><br/>
   <img src="docs/screenshots/docs.png" alt="API Docs" width="800" />
 </p>
+
+---
+
+## 🎛️ Control Center (Dashboard Features)
+
+StellarID features a unified, protocol-grade developer and user dashboard known as the **Control Center**. Here is a breakdown of all interactive features and pages accessible directly from the dashboard:
+
+| Feature / Button | Route | Description |
+| :--- | :--- | :--- |
+| 🌐 **Public Profile** | `/p/[address]` | A shareable, glassmorphic public page presenting a user's verified credentials, ZK proof history, and peer-to-peer reputation score. Perfect for resumes, freelance portfolios, or trust verification. Opens in a new tab. |
+| 🏆 **Leaderboard** | `/dashboard/reputation` | A platform-wide rankings board filtered by city or college showing active reputation standings. Boosts community engagement and gamifies the identity trust layer. Opens in a new tab. |
+| 🛡️ **Issuer Portal** | `/dashboard/issuer-verification` | The hub for institutions to claim domains, perform DNS TXT record lookups, run fallback email checks, verify their identity, and endorse other trusted peer issuers. Opens in a new tab. |
+| 📥 **Bulk Issuance** | `/dashboard/bulk-issue` | Batch dispatch up to 1000 credentials using a CSV template upload. Relies on Redis & BullMQ worker queues to process asynchronously and safely handle heavy mail SMTP/blockchain transactions. Opens in a new tab. |
+| ⌨️ **Developer API** | `/dashboard/developer` | Dedicated portal for B2B developers to manage API integration. Generate/revoke developer API keys, configure Webhooks, and inspect live rate-limit telemetry logs. Opens in a new tab. |
+| ⚡ **Plans & Billing** | `/dashboard/billing` | Tier-based subscription portal (Free, Pro, Enterprise) powered by Stripe checkout. Includes a Sandbox "Instant Mock Upgrade" bypass for local evaluation/testing. Opens in a new tab. |
+| 📊 **Analytics** | `/dashboard/analytics` | A premium analytics console showing live daily issuance charts, recent verification event feeds, trust decay analytics, and platform-wide telemetric logs. Opens in a new tab. |
+| ➕ **Request Credential** | *Modal Dialog* | Direct on-screen portal for users to request official credentials (degrees, employment verification) from active verification nodes. |
+| 🧠 **Identity Prover (ZK Proving Unit)** | *Core Panel* | Client-side Zero-Knowledge generator using `snarkjs` and `circom` web assemblies. Prove assertions (e.g. `age_check`, `income_check`, `residency_check`) without exposing the underlying private document parameters. |
 
 ---
 
