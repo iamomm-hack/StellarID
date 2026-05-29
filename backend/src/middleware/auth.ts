@@ -8,6 +8,8 @@ export interface AuthRequest extends Request {
     stellar_address: string;
     email?: string;
   };
+  file?: any;
+  files?: any;
 }
 
 export async function authMiddleware(
