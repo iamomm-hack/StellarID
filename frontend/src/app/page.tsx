@@ -123,6 +123,51 @@ export default function Home() {
   const mainRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // --- INTEGRATIONS IDENTITY GRAPH STATE ---
+  const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
+  const integrationSectionRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const stellarIdNodeRef = useRef<HTMLDivElement>(null);
+  const [connections, setConnections] = useState<{ x1: number; y1: number; x2: number; y2: number }[]>([]);
+
+  const updateConnectionsLayout = useCallback(() => {
+    if (!integrationSectionRef.current || !stellarIdNodeRef.current) return;
+    const sectionRect = integrationSectionRef.current.getBoundingClientRect();
+    const nodeRect = stellarIdNodeRef.current.getBoundingClientRect();
+    
+    const nodeX = nodeRect.left - sectionRect.left + nodeRect.width / 2;
+    const nodeY = nodeRect.top - sectionRect.top;
+
+    const newConnections = cardRefs.current.map((card) => {
+      if (!card) return null;
+      const cardRect = card.getBoundingClientRect();
+      return {
+        x1: cardRect.left - sectionRect.left + cardRect.width / 2,
+        y1: cardRect.top - sectionRect.top + cardRect.height,
+        x2: nodeX,
+        y2: nodeY
+      };
+    }).filter(Boolean) as { x1: number; y1: number; x2: number; y2: number }[];
+
+    setConnections(newConnections);
+  }, []);
+
+  useEffect(() => {
+    updateConnectionsLayout();
+    window.addEventListener('resize', updateConnectionsLayout);
+    
+    let count = 0;
+    const check = () => {
+      updateConnectionsLayout();
+      if (count++ < 15) {
+        requestAnimationFrame(check);
+      }
+    };
+    check();
+
+    return () => window.removeEventListener('resize', updateConnectionsLayout);
+  }, [updateConnectionsLayout]);
+
   // --- VIDEO FADE LOOP LOGIC ---
   useEffect(() => {
     const video = videoRef.current;
@@ -343,8 +388,27 @@ export default function Home() {
       </section>
 
       {/* ===== 2. THE PROBLEM ===== */}
-      <section className="py-24 px-6 border-y relative overflow-hidden" style={{ borderColor: 'var(--border)' }}>
-        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full blur-[150px] opacity-10 bg-indigo-500 pointer-events-none" />
+      <section className="py-24 px-6 border-y relative overflow-hidden bg-black/40" style={{ borderColor: 'var(--border)' }}>
+        {/* Futuristic tech grid overlay - slightly more visible */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.025)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none" />
+
+        {/* Volumetric Blue Fade Background - Brighter and More Pronounced (Harder Glow) */}
+        {/* Large, intense central blue/indigo glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(29,78,216,0.35)_0%,rgba(37,99,235,0.12)_45%,transparent_70%)] blur-[90px] pointer-events-none mix-blend-screen" />
+        
+        {/* Left deep blue glow */}
+        <div className="absolute -left-1/4 top-1/4 w-[700px] h-[700px] rounded-full bg-blue-600/22 blur-[140px] pointer-events-none mix-blend-screen" />
+        
+        {/* Right bright cyan glow */}
+        <div className="absolute -right-1/4 bottom-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/18 blur-[130px] pointer-events-none mix-blend-screen" />
+
+        {/* Extra central core cyan glow behind the header to make text pop */}
+        <div className="absolute top-1/3 left-1/3 w-[350px] h-[350px] rounded-full bg-blue-500/15 blur-[80px] pointer-events-none mix-blend-screen" />
+
+        {/* Smooth top and bottom fades to prevent sharp cuts with adjacent sections */}
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+
         <div className="max-w-[1400px] mx-auto relative z-10">
           <motion.div
             initial="hidden"
@@ -354,7 +418,7 @@ export default function Home() {
           >
             <motion.span variants={fadeUp} custom={0} className="tag-orange mb-4 block w-fit">The Problem</motion.span>
             <motion.h2 variants={fadeUp} custom={1} className="text-h-display text-4xl lg:text-6xl max-w-3xl font-display">
-              Identity is now a <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #6366f1, #a855f7)' }}>liability.</span>
+              Identity is now a <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #3b82f6, #60a5fa, #06b6d4)' }}>liability.</span>
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} className="text-muted text-lg mt-6 max-w-xl leading-relaxed">
               Centralized KYC systems turn your most private data into a target.
@@ -393,9 +457,13 @@ export default function Home() {
       </section>
 
       {/* ===== 3. HOW IT WORKS ===== */}
-      <section className="py-24 px-6 relative overflow-hidden">
-        <div className="absolute top-[20%] left-[-10%] w-[30%] h-[30%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[30%] bg-amber-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <section className="py-24 px-6 relative overflow-hidden bg-black/20">
+        {/* Tech grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.015)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none" />
+        
+        {/* Volumetric Blue Fade Background */}
+        <div className="absolute top-1/2 left-[15%] -translate-y-1/2 w-[850px] h-[550px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(29,78,216,0.25)_0%,rgba(37,99,235,0.08)_40%,transparent_70%)] blur-[90px] pointer-events-none mix-blend-screen" />
+        <div className="absolute top-1/3 right-[-10%] w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[130px] pointer-events-none mix-blend-screen" />
 
         <div className="max-w-[1400px] mx-auto relative z-10">
           <motion.div
@@ -406,7 +474,7 @@ export default function Home() {
           >
             <motion.span variants={fadeUp} custom={0} className="tag-green mb-4 block mx-auto w-fit">Protocol Flow</motion.span>
             <motion.h2 variants={fadeUp} custom={1} className="text-h-display text-4xl lg:text-6xl font-display">
-              Three steps to <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #a855f7, #fcd34d)' }}>sovereignty.</span>
+              Three steps to <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #3b82f6, #00d2ff)' }}>sovereignty.</span>
             </motion.h2>
           </motion.div>
 
@@ -424,7 +492,7 @@ export default function Home() {
                 title: 'Mint',
                 desc: 'Issuers mint non-transferable NFT credentials directly to your wallet. Encrypted & immutable.',
                 icon: Database,
-                color: '#a855f7',
+                color: '#6366f1',
               },
               {
                 num: '03',
@@ -442,11 +510,6 @@ export default function Home() {
                 glowColor={step.color}
                 className="p-10 lg:p-12 group"
               >
-                {/* Dotted connector line between steps */}
-                {idx < 2 && (
-                  <div className="absolute top-[68px] left-[65%] right-[-50%] h-[1px] border-t border-dashed border-white/10 hidden lg:block z-0 pointer-events-none" />
-                )}
-
                 <div className="flex items-center justify-between mb-8 relative z-10">
                   <div className="w-14 h-14 rounded-full bg-white/[0.02] border border-white/10 flex items-center justify-center group-hover:bg-white/[0.06] transition-all duration-300" style={{ borderColor: `${step.color}30` }}>
                     <step.icon className="w-6 h-6 transition-transform duration-500 group-hover:scale-110" style={{ color: step.color }} />
@@ -473,8 +536,13 @@ export default function Home() {
       </section>
 
       {/* ===== 4. FEATURES ===== */}
-      <section className="py-24 px-6 border-y relative overflow-hidden" style={{ borderColor: 'var(--border)' }}>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.03),transparent_50%)] pointer-events-none" />
+      <section className="py-24 px-6 border-y relative overflow-hidden bg-black/30" style={{ borderColor: 'var(--border)' }}>
+        {/* Tech grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none" />
+        
+        {/* Volumetric Blue Fade Background */}
+        <div className="absolute top-1/2 -right-1/4 -translate-y-1/2 w-[900px] h-[550px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(29,78,216,0.3)_0%,rgba(37,99,235,0.1)_45%,transparent_70%)] blur-[95px] pointer-events-none mix-blend-screen" />
+        <div className="absolute bottom-[-10%] -left-1/4 w-[600px] h-[600px] rounded-full bg-cyan-500/15 blur-[120px] pointer-events-none mix-blend-screen" />
         
         <div className="max-w-[1400px] mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-20 items-start">
@@ -486,7 +554,7 @@ export default function Home() {
             >
               <motion.span variants={fadeUp} custom={0} className="tag-blue mb-4 block w-fit">Architecture</motion.span>
               <motion.h2 variants={fadeUp} custom={1} className="text-h-display text-4xl lg:text-5xl mb-6 font-display">
-                Your On-Chain <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #6366f1, #a855f7)' }}>Reputation</span>
+                Your On-Chain <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #3b82f6, #60a5fa, #06b6d4)' }}>Reputation</span>
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} className="text-muted text-lg leading-relaxed max-w-md">
                 Sovereign tokens on Stellar that define who you are.
@@ -525,8 +593,14 @@ export default function Home() {
       </section>
 
       {/* ===== 5. INTEGRATIONS ===== */}
-      <section className="py-24 px-6 relative overflow-hidden">
-        <div className="max-w-[1400px] mx-auto text-center relative z-10">
+      <section className="py-24 px-6 relative overflow-hidden bg-black/10">
+        {/* Tech grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.015)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none" />
+        
+        {/* Volumetric Blue Fade Background */}
+        <div className="absolute bottom-[-20%] left-1/2 -translate-x-1/2 w-[950px] h-[500px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(29,78,216,0.28)_0%,rgba(37,99,235,0.1)_40%,transparent_70%)] blur-[80px] pointer-events-none mix-blend-screen" />
+        
+        <div ref={integrationSectionRef} className="max-w-[1400px] mx-auto text-center relative z-10">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -534,40 +608,127 @@ export default function Home() {
           >
             <motion.span variants={fadeUp} custom={0} className="tag-pink mb-4 block mx-auto w-fit">Integrations</motion.span>
             <motion.h2 variants={fadeUp} custom={1} className="text-h-display text-4xl lg:text-5xl mb-6 font-display">
-              Connect your <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #a855f7, #fcd34d)' }}>identity graph.</span>
+              Connect your <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #3b82f6, #00d2ff)' }}>identity graph.</span>
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} className="text-muted text-lg max-w-xl mx-auto leading-relaxed mb-16">
               Link trusted platforms to build your verifiable reputation layer.
             </motion.p>
           </motion.div>
 
-          <div className="flex flex-wrap justify-center gap-6">
+          {/* Dynamic Identity Graph Connection Lines */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
+            <defs>
+              <linearGradient id="glow-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.15" />
+                <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.4" />
+              </linearGradient>
+            </defs>
+            {connections.map((conn, idx) => {
+              const isHovered = hoveredCardIdx === idx;
+              const isAnyHovered = hoveredCardIdx !== null;
+              
+              const dy = conn.y2 - conn.y1;
+              const pathData = `M ${conn.x1} ${conn.y1} C ${conn.x1} ${conn.y1 + dy * 0.45} ${conn.x2} ${conn.y2 - dy * 0.45} ${conn.x2} ${conn.y2}`;
+              
+              const lineOpacity = isHovered ? 0.5 : (isAnyHovered ? 0.05 : 0.12);
+              
+              return (
+                <g key={idx}>
+                  {/* Glowing blur underlay for hovered connection line */}
+                  <path
+                    d={pathData}
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth={isHovered ? 2 : 0}
+                    style={{
+                      opacity: isHovered ? 0.25 : 0,
+                      filter: 'blur(2px)',
+                      transition: 'all 0.4s ease'
+                    }}
+                  />
+                  {/* Ultra-thin 1px connection line */}
+                  <path
+                    d={pathData}
+                    fill="none"
+                    stroke="url(#glow-grad)"
+                    strokeWidth={1}
+                    style={{
+                      opacity: lineOpacity,
+                      transition: 'all 0.4s ease'
+                    }}
+                  />
+                  {/* Traveling Particles */}
+                  <circle r="1" fill="#60a5fa" style={{ opacity: isHovered ? 0.8 : 0.45 }}>
+                    <animateMotion
+                      path={pathData}
+                      dur={isHovered ? "4s" : "9s"}
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                  <circle r="1" fill="#06b6d4" style={{ opacity: isHovered ? 0.7 : 0.35 }}>
+                    <animateMotion
+                      path={pathData}
+                      dur={isHovered ? "4s" : "9s"}
+                      begin={isHovered ? "2s" : "4.5s"}
+                      repeatCount="indefinite"
+                    />
+                  </circle>
+                </g>
+              );
+            })}
+          </svg>
+
+          <div className="flex flex-wrap justify-center gap-6 relative z-10">
             {[
               { name: 'GitHub', icon: Github, desc: 'Developer identity & repos', color: '#ffffff' },
               { name: 'LinkedIn', icon: Linkedin, desc: 'Professional credentials', color: '#0077b5' },
               { name: 'Stellar', icon: Shield, desc: 'On-chain anchoring', color: '#6366f1' },
             ].map((int, idx) => (
-              <InteractiveCard
+              <div
                 key={idx}
-                delay={idx * 0.1}
-                duration={0.5}
-                glowColor={int.color}
-                className="px-10 py-8 flex flex-col items-center gap-4 w-64 text-center group"
+                ref={(el) => { cardRefs.current[idx] = el; }}
+                onMouseEnter={() => setHoveredCardIdx(idx)}
+                onMouseLeave={() => setHoveredCardIdx(null)}
+                className="relative"
               >
-                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-mono text-emerald-400 uppercase tracking-wider pointer-events-none">
-                  <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-                  Active
-                </div>
-                
-                <div className="absolute -bottom-10 w-24 h-24 rounded-full blur-[50px] opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none" style={{ background: int.color }} />
-                
-                <int.icon className="w-8 h-8 text-muted group-hover:scale-110 group-hover:text-white transition-all duration-300" style={{ color: int.color }} />
-                <div>
-                  <h4 className="text-sm font-bold text-foreground mb-1">{int.name}</h4>
-                  <p className="text-[11px] text-muted">{int.desc}</p>
-                </div>
-              </InteractiveCard>
+                <InteractiveCard
+                  delay={idx * 0.1}
+                  duration={0.5}
+                  glowColor={int.color}
+                  className="w-64 h-48 group text-center"
+                >
+                  <div className="w-full h-full flex flex-col items-center justify-center p-6 relative">
+                    <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-mono text-emerald-400 uppercase tracking-wider pointer-events-none">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                      Active
+                    </div>
+                    
+                    <div className="absolute -bottom-10 w-24 h-24 rounded-full blur-[50px] opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none" style={{ background: int.color }} />
+                    
+                    <int.icon className="w-8 h-8 text-muted group-hover:scale-110 group-hover:text-white transition-all duration-300 mb-4" style={{ color: int.color }} />
+                    <div>
+                      <h4 className="text-sm font-bold text-foreground mb-1">{int.name}</h4>
+                      <p className="text-[11px] text-muted">{int.desc}</p>
+                    </div>
+                  </div>
+                </InteractiveCard>
+              </div>
             ))}
+          </div>
+
+          {/* Central Node: StellarID */}
+          <div className="mt-16 flex flex-col items-center relative z-10 pointer-events-none">
+            {/* Soft, low-opacity radial glow behind StellarID node */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-blue-500/5 blur-2xl pointer-events-none" />
+
+            <div
+              ref={stellarIdNodeRef}
+              className="px-5 py-2.5 rounded-full border border-blue-500/20 bg-blue-950/20 backdrop-blur-md flex items-center gap-2 shadow-[0_0_15px_rgba(59,130,246,0.06)]"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_rgba(96,165,250,0.6)]" />
+              <span className="text-[10px] font-mono font-bold tracking-wider text-blue-300 uppercase">StellarID</span>
+            </div>
           </div>
         </div>
       </section>
@@ -575,11 +736,11 @@ export default function Home() {
       {/* ===== 6. FINAL CTA ===== */}
       <section className="py-28 px-6 text-center relative overflow-hidden border-t" style={{ borderColor: 'var(--border)' }}>
         {/* Volumetric spot lights */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.06)_0%,transparent_65%)] pointer-events-none" />
-        <div className="absolute bottom-0 left-[50%] -translate-x-[50%] w-[50%] h-[300px] bg-gradient-to-t from-purple-500/5 to-transparent blur-[120px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.12)_0%,transparent_65%)] pointer-events-none" />
+        <div className="absolute bottom-0 left-[50%] -translate-x-[50%] w-[60%] h-[350px] bg-gradient-to-t from-blue-600/15 to-transparent blur-[110px] pointer-events-none" />
         
         {/* Sci-fi tech grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.005)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.005)_1px,transparent_1px)] bg-[size:40px_40px] opacity-40 pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.025)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none" />
         
         <div className="max-w-3xl mx-auto relative z-10">
           <motion.div
@@ -590,7 +751,7 @@ export default function Home() {
           >
             <h2 className="text-display text-5xl lg:text-7xl mb-8 font-display">
               Own your<br/>
-              <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #6366f1, #a855f7, #fcd34d)' }}>identity.</span>
+              <span className="gradient-text" style={{ backgroundImage: 'linear-gradient(to right, #3b82f6, #60a5fa, #06b6d4)' }}>identity.</span>
             </h2>
             <p className="text-xl text-muted font-light mb-10 max-w-lg mx-auto leading-relaxed">
               The identity revolution is not being televised.
