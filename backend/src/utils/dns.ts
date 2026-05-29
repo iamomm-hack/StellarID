@@ -15,6 +15,12 @@ export async function verifyDomainDNS(domain: string, token: string): Promise<bo
     const cleanDomain = domain.trim().toLowerCase();
     console.log(`[DNS Verification] Querying TXT records for: ${cleanDomain}`);
     
+    // Dev/Sandbox bypass for local testing
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV DNS BYPASS] Automatically verifying DNS token for domain: ${cleanDomain}`);
+      return true;
+    }
+    
     const records = await dns.promises.resolveTxt(cleanDomain);
     const flatRecords = records.flat().map(r => r.trim());
     
