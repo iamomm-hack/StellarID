@@ -124,7 +124,7 @@ export default function DeveloperDashboard() {
   const codeSnippet = `import axios from 'axios';
 
 const client = axios.create({
-  baseURL: '${process.env.NEXT_PUBLIC_API_URL || 'https://api.stellarid.io'}/api/v1/public',
+  baseURL: '${(process.env.NEXT_PUBLIC_API_URL || 'https://stellarid.onrender.com/api/v1')}/public',
   headers: { 'X-StellarID-Key': 'YOUR_API_KEY' }
 });
 

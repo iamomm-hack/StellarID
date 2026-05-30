@@ -46,6 +46,7 @@
 | 📊 **User Validation (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
 | 🖥️ **Backend API Health** | [https://stellarid.onrender.com/health](https://stellarid.onrender.com/health) |
+| 🔌 **Backend Live API Base** | `https://stellarid.onrender.com/api/v1` |
 | 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
 
 ---
@@ -377,6 +378,8 @@ Provides Stripe billing tiers for issuers based on their monthly volume and feat
 ---
 
 ## 📡 API Reference
+
+Live Base URL: `https://stellarid.onrender.com/api/v1`
 
 Full developer endpoint mapping:
 

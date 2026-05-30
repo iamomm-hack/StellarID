@@ -19,7 +19,7 @@ export class StellarID {
     }
     this.apiKey = config.apiKey;
     // Strip trailing slash if present
-    const base = config.baseURL || 'https://stellarid.io/api/v1';
+    const base = config.baseURL || 'https://stellarid.onrender.com/api/v1';
     this.baseURL = base.endsWith('/') ? base.slice(0, -1) : base;
   }
 
