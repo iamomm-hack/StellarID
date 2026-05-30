@@ -81,30 +81,79 @@ Every time you sign up for a service, you hand over your **name, address, date o
 
 ## 📸 Screenshots
 
+<details>
+<summary><b>📐 Landing & Onboarding</b></summary>
+<br/>
 <p align="center">
   <em>Landing Page — Verify once. Prove everywhere.</em><br/>
   <img src="docs/screenshots/landing.png" alt="StellarID Landing Page" width="800" />
 </p>
-
 <p align="center">
-  <em>Dashboard — Credential management & ZK proof generation</em><br/>
+  <em>Wallet Connection & Privy SDK Auth Modal</em><br/>
+  <img src="docs/screenshots/wallet.png" alt="Wallet Connection" width="800" />
+</p>
+</details>
+
+<details>
+<summary><b>🎛️ Control Center & Dashboards</b></summary>
+<br/>
+<p align="center">
+  <em>Main Dashboard — Credential Vault & Client-Side ZK Prover</em><br/>
   <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="800" />
 </p>
-
 <p align="center">
-  <em>Admin Analytics — Real-time platform metrics & activity feed</em><br/>
-  <img src="docs/screenshots/admin.png" alt="Admin Dashboard" width="800" />
+  <em>Analytics Center — Operational graphs & trust decay telemetry</em><br/>
+  <img src="docs/screenshots/Analytics.png" alt="Analytics Page" width="800" />
 </p>
+</details>
 
+<details>
+<summary><b>🛡️ Issuer Registry & Verification</b></summary>
+<br/>
 <p align="center">
-  <em>Verification Page — Public proof verification with badge</em><br/>
+  <em>Issuer Portal — DNS TXT records verification & domain claims</em><br/>
+  <img src="docs/screenshots/issuer-verification.png" alt="Issuer Portal" width="800" />
+</p>
+<p align="center">
+  <em>Verification Prover — Verification status validation with badge</em><br/>
   <img src="docs/screenshots/verify.png" alt="Verification Page" width="800" />
 </p>
+</details>
 
+<details>
+<summary><b>🔌 Developer Portal & API Keys</b></summary>
+<br/>
 <p align="center">
-  <em>API Documentation — Interactive docs with code examples</em><br/>
+  <em>Developer API Portal — Manage active access tokens & key credentials</em><br/>
+  <img src="docs/screenshots/api-key.png" alt="Developer Keys" width="800" />
+</p>
+<p align="center">
+  <em>Interactive API Documentation — Endpoint guides & code examples</em><br/>
   <img src="docs/screenshots/docs.png" alt="API Docs" width="800" />
 </p>
+</details>
+
+<details>
+<summary><b>🏆 Reputation & Profiles</b></summary>
+<br/>
+<p align="center">
+  <em>P2P Developer Profile — Verified public credential vault</em><br/>
+  <img src="docs/screenshots/dev-profile.png" alt="Public Profile" width="800" />
+</p>
+</details>
+
+<details>
+<summary><b>⚙️ Admin & Server Monitoring</b></summary>
+<br/>
+<p align="center">
+  <em>Admin Dashboard — Platform-wide metrics, stats, & users overview</em><br/>
+  <img src="docs/screenshots/admin.png" alt="Admin Dashboard" width="800" />
+</p>
+<p align="center">
+  <em>Telemetry Monitor — Server health logs & system activity feed</em><br/>
+  <img src="docs/screenshots/monitoring.png" alt="Server Telemetry Monitor" width="800" />
+</p>
+</details>
 
 ---
 
