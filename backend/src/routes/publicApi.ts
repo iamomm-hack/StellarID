@@ -136,7 +136,7 @@ router.post('/credentials/issue', async (req: ApiKeyRequest, res: Response): Pro
       return;
     }
 
-    const issuerId = req.apiKey.issuer_id;
+    const issuerId = req.apiKey!.issuer_id;
 
     // Check subscription limits
     const subStatus = await getIssuerSubscriptionStatus(issuerId);
