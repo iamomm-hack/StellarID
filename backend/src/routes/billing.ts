@@ -365,4 +365,51 @@ router.post('/submit-stellar-payment', authMiddleware, async (req: AuthRequest, 
   }
 });
 
+/**
+ * POST /cancel
+ * Deactivate/cancel active subscription and downgrade back to Free tier
+ */
+router.post('/cancel', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const issuerRes = await query(
+      'SELECT id, subscription_tier FROM issuers WHERE stellar_address = $1',
+      [req.user!.stellar_address]
+    );
+
+    if (issuerRes.rows.length === 0) {
+      res.status(404).json({ error: 'Issuer profile not found' });
+      return;
+    }
+
+    const { id, subscription_tier } = issuerRes.rows[0];
+
+    if (!subscription_tier || subscription_tier === 'free') {
+      res.status(400).json({ error: 'No active paid subscription to deactivate' });
+      return;
+    }
+
+    // Update DB record: reset tier to 'free', set status to inactive, clear expiry and subscription IDs
+    await query(
+      `UPDATE issuers 
+       SET subscription_tier = 'free', 
+           subscription_status = 'inactive',
+           subscription_expires_at = NULL,
+           stripe_subscription_id = NULL
+       WHERE id = $1`,
+      [id]
+    );
+
+    console.log(`[Billing] Deactivated subscription for Issuer ${id}. Downgraded to Free tier.`);
+
+    res.json({
+      success: true,
+      message: 'Subscription has been successfully deactivated. Downgraded to Free tier.',
+      tier: 'free'
+    });
+  } catch (err: any) {
+    console.error('Error deactivating subscription:', err.message);
+    res.status(500).json({ error: 'Failed to deactivate subscription' });
+  }
+});
+
 export default router;

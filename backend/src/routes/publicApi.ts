@@ -4,6 +4,7 @@ import { apiKeyAuth, ApiKeyRequest, logApiUsage } from '../middleware/apiKeyAuth
 import { apiKeyRateLimiter } from '../middleware/rateLimiter';
 import { getCache, setCache } from '../services/redis';
 import { calculateAndSaveUserReputation } from '../utils/reputation';
+import { getIssuerSubscriptionStatus } from '../middleware/subscription';
 
 const router = Router();
 
@@ -136,6 +137,17 @@ router.post('/credentials/issue', async (req: ApiKeyRequest, res: Response): Pro
     }
 
     const issuerId = req.apiKey.issuer_id;
+
+    // Check subscription limits
+    const subStatus = await getIssuerSubscriptionStatus(issuerId);
+    if (subStatus.totalUsed + 1 > subStatus.limits.maxCredentialsPerMonth) {
+      res.status(402).json({
+        error: 'Subscription limit exceeded',
+        message: `Your current subscription plan (${subStatus.limits.name}) allows up to ${subStatus.limits.maxCredentialsPerMonth} credentials per month. You have already used ${subStatus.totalUsed}. Please upgrade your plan via StellarID dashboard.`,
+      });
+      logApiUsage(req.apiKey!.id, '/credentials/issue', 'POST', 402, Date.now() - start);
+      return;
+    }
 
     // Calculate expiry (default 30 days)
     const expiresAt = credential.expires_at

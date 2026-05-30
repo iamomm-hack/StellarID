@@ -9,7 +9,8 @@ import { billingApi } from '../../../lib/api';
 import ConnectWallet from '../../../components/wallet/ConnectWallet';
 import {
   ArrowLeft, Shield, Zap, Check, CreditCard,
-  AlertCircle, BarChart3, HelpCircle, RefreshCw, Key, FileSpreadsheet
+  AlertCircle, BarChart3, HelpCircle, RefreshCw, Key, FileSpreadsheet,
+  Rocket, Coins
 } from 'lucide-react';
 
 interface BillingStatus {
@@ -159,6 +160,35 @@ function BillingPageContent() {
     }
   }
 
+  async function handleDeactivatePlan() {
+    if (!window.confirm('Are you sure you want to deactivate your active subscription? This will downgrade your account back to the Free plan in the database.')) {
+      return;
+    }
+    
+    setActionLoading('cancel');
+    setError('');
+    setSuccessMsg('');
+    try {
+      const res = await billingApi.cancelSubscription();
+      if (res.data.success) {
+        setSuccessMsg('Your subscription has been successfully deactivated and downgraded to the Free plan.');
+        loadBillingStatus();
+      } else {
+        throw new Error('Deactivation succeeded but check failed.');
+      }
+    } catch (err: any) {
+      console.error('Deactivation error:', err);
+      setError(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        'Failed to deactivate subscription.'
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   if (!isConnected) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
@@ -243,7 +273,7 @@ function BillingPageContent() {
                       </span>
                     </div>
                     {billing.tier !== 'free' && (
-                      <div className="text-right border-l border-white/10 pl-4 font-mono text-xs">
+                      <div className="text-right border-l border-white/10 pl-4 font-mono text-xs flex flex-col items-end gap-1.5">
                         {billing.stripeSubscriptionId?.startsWith('stellar_tx_') ? (
                           <>
                             <span className="text-muted block">Payment Network</span>
@@ -269,6 +299,21 @@ function BillingPageContent() {
                             {actionLoading === 'portal' ? 'Opening...' : 'Manage Billing'}
                           </button>
                         )}
+                        <button
+                          onClick={handleDeactivatePlan}
+                          disabled={actionLoading === 'cancel'}
+                          className="mt-2.5 px-4 py-2 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 hover:text-red-300 font-mono text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all duration-200 disabled:opacity-50 shadow-lg shadow-red-500/5"
+                        >
+                          {actionLoading === 'cancel' ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Deactivating...
+                            </>
+                          ) : (
+                            <>
+                              <AlertCircle className="w-3.5 h-3.5 text-red-400" /> Deactivate Plan
+                            </>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>
@@ -284,19 +329,19 @@ function BillingPageContent() {
                     <div className="flex justify-between text-xs font-mono">
                       <span className="text-muted">Issued Credentials</span>
                       <span className="font-bold">
-                        {billing.totalUsed} / {billing.limits.maxCredentialsPerMonth === Infinity ? '∞' : billing.limits.maxCredentialsPerMonth}
+                        {billing.totalUsed} / {(!billing.limits.maxCredentialsPerMonth || billing.limits.maxCredentialsPerMonth === Infinity) ? '∞' : billing.limits.maxCredentialsPerMonth}
                       </span>
                     </div>
                     <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-white/[0.04]">
                       <div 
                         className="bg-gradient-to-r from-violet-500 to-fuchsia-500 h-full transition-all duration-500"
                         style={{ 
-                          width: `${billing.limits.maxCredentialsPerMonth === Infinity ? 0 : Math.min(100, (billing.totalUsed / billing.limits.maxCredentialsPerMonth) * 100)}%` 
+                          width: `${(!billing.limits.maxCredentialsPerMonth || billing.limits.maxCredentialsPerMonth === Infinity) ? 0 : Math.min(100, (billing.totalUsed / billing.limits.maxCredentialsPerMonth) * 100)}%` 
                         }}
                       />
                     </div>
                     <p className="text-[10px] text-muted-more font-mono">
-                      {billing.limits.maxCredentialsPerMonth === Infinity 
+                      {(!billing.limits.maxCredentialsPerMonth || billing.limits.maxCredentialsPerMonth === Infinity)
                         ? 'Unlimited credentials available.' 
                         : `${billing.remaining} available before limit lock.`}
                     </p>
@@ -307,7 +352,7 @@ function BillingPageContent() {
                     <div className="flex justify-between text-xs font-mono">
                       <span className="text-muted">Active API Keys</span>
                       <span className="font-bold">
-                        {billing.limits.maxApiKeys === Infinity ? 'Unlimited' : billing.limits.maxApiKeys} max
+                        {(!billing.limits.maxApiKeys || billing.limits.maxApiKeys === Infinity) ? 'Unlimited' : billing.limits.maxApiKeys} max
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-violet-300 font-mono py-1">
@@ -339,24 +384,26 @@ function BillingPageContent() {
                   <button
                     type="button"
                     onClick={() => setPaymentToken('xlm')}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-xs font-semibold transition-all ${
+                    className={`flex items-center gap-2.5 px-5 py-2.5 rounded-lg font-mono text-xs font-semibold transition-all ${
                       paymentToken === 'xlm'
                         ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20'
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    🚀 XLM (Stellar Native)
+                    <Rocket className={`w-4 h-4 ${paymentToken === 'xlm' ? 'text-white' : 'text-violet-400'}`} />
+                    <span>XLM (Stellar Native)</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setPaymentToken('usdc')}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-xs font-semibold transition-all ${
+                    className={`flex items-center gap-2.5 px-5 py-2.5 rounded-lg font-mono text-xs font-semibold transition-all ${
                       paymentToken === 'usdc'
                         ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >
-                    💵 USDC (Circle Stable)
+                    <Coins className={`w-4 h-4 ${paymentToken === 'usdc' ? 'text-white' : 'text-emerald-400'}`} />
+                    <span>USDC (Circle Stable)</span>
                   </button>
                 </div>
               </div>

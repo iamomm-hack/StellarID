@@ -127,5 +127,6 @@ export const billingApi = {
     api.post('/billing/prepare-stellar-payment', { tier, senderAddress, paymentToken }),
   submitStellarPayment: (signedXdr: string, tier: 'pro' | 'enterprise') =>
     api.post('/billing/submit-stellar-payment', { signedXdr, tier }),
+  cancelSubscription: () => api.post('/billing/cancel'),
 };
 
