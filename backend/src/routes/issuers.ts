@@ -363,6 +363,20 @@ router.post('/:id/request-email-verification', authMiddleware, async (req: AuthR
       return;
     }
 
+    const cleanEmailDomain = emailDomain.trim().toLowerCase();
+    if (cleanEmailDomain === 'stellarid-demo.com') {
+      const token = '123456';
+      await query(
+        'UPDATE issuers SET domain_verification_token = $1 WHERE id = $2',
+        [token, id]
+      );
+      res.json({ 
+        success: true, 
+        message: `[DEMO MODE] Verification email sent! Use verification code: 123456` 
+      });
+      return;
+    }
+
     const token = crypto.randomUUID();
 
     // Store token in verification token column
