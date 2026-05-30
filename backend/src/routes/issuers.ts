@@ -41,7 +41,7 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response) => {
       `SELECT id, name, description, stellar_address, credential_types,
               verified, logo_url, issuer_type, created_at,
               verification_status, domain, domain_verified, endorsement_count,
-              domain_verification_token
+              domain_verification_token, subscription_tier
        FROM issuers
        WHERE stellar_address = $1`,
       [req.user!.stellar_address]

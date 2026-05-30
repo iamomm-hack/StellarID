@@ -83,14 +83,14 @@ export default function LiveDemo() {
       <div className="px-6 py-4 flex items-center justify-between border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
           <Zap className="w-4 h-4 text-[#FF6A00]" />
-          <span className="text-[11px] font-mono text-[#666660] uppercase tracking-wider">Live Protocol Demo</span>
+          <span className="text-[11px] font-mono text-[#666660] uppercase tracking-wider">Live Protocol</span>
         </div>
         <button
           onClick={runDemo}
           disabled={isRunning}
           className="btn-stellar !py-2 !px-5 !text-[10px] disabled:opacity-40"
         >
-          {isRunning ? 'Running...' : activeStage === 3 ? 'Run Again' : 'Start Demo'}
+          {isRunning ? 'Running...' : activeStage === 3 ? 'Run Again' : 'Start'}
         </button>
       </div>
 
@@ -173,7 +173,7 @@ export default function LiveDemo() {
             {logs.length === 0 ? (
               <div className="flex items-center gap-2 text-[#666660]">
                 <span className="text-[#FF6A00]">$</span> 
-                <span>Press &quot;Start Demo&quot; to begin...</span>
+                <span>Press &quot;Start&quot; to begin...</span>
               </div>
             ) : (
               logs.map((log, i) => (

@@ -4,11 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useWalletStore } from '../../../store/walletStore';
-import api, { issuersApi } from '../../../lib/api';
+import api, { issuersApi, billingApi } from '../../../lib/api';
 import {
   Upload, FileText, CheckCircle2, XCircle, ArrowRight,
   RefreshCw, Download, Plus, Trash2, HelpCircle, ChevronDown,
-  ChevronUp, Loader2, Play, AlertTriangle, ArrowLeft, History
+  ChevronUp, Loader2, Play, AlertTriangle, ArrowLeft, History,
+  Sparkles, Lock
 } from 'lucide-react';
 
 type Step = 'upload' | 'progress' | 'summary';
@@ -61,17 +62,30 @@ export default function BulkIssuePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
+  const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
+  const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
+
   // Check if current user is an issuer
   useEffect(() => {
     async function checkIssuerStatus() {
       if (!address || !isConnected) return;
       try {
         setIsCheckingIssuer(true);
-        const res = await issuersApi.getMe();
-        if (res.data) {
-          setIssuerId(res.data.id);
-          setIssuerName(res.data.name);
-          setIssuerStatus(res.data.verification_status);
+        const [issuerRes, billingRes] = await Promise.all([
+          issuersApi.getMe(),
+          billingApi.getStatus().catch(() => null)
+        ]);
+
+        if (issuerRes.data) {
+          setIssuerId(issuerRes.data.id);
+          setIssuerName(issuerRes.data.name);
+          setIssuerStatus(issuerRes.data.verification_status);
+          
+          if (billingRes && billingRes.data) {
+            setSubscriptionTier(billingRes.data.tier || 'free');
+          } else {
+            setSubscriptionTier(issuerRes.data.subscription_tier || 'free');
+          }
           setIsNotIssuer(false);
         } else {
           setIsNotIssuer(true);
@@ -195,6 +209,13 @@ export default function BulkIssuePage() {
 
         if (parsedRows.length > 1000) {
           setCsvError('Maximum of 1000 rows exceeded.');
+          setCsvRows([]);
+          setCsvFile(null);
+          return;
+        }
+
+        if (subscriptionTier === 'free' && parsedRows.length > 1) {
+          setShowUpgradeModal(true);
           setCsvRows([]);
           setCsvFile(null);
           return;
@@ -417,6 +438,21 @@ export default function BulkIssuePage() {
               onSubmit={handleIssueSubmit}
               className="space-y-6"
             >
+              {subscriptionTier === 'free' && (
+                <div className="p-5 rounded-xl border border-violet-500/20 bg-violet-500/5 text-xs text-violet-400 flex items-start gap-3">
+                  <Sparkles className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold text-sm text-violet-300">Free Subscription Plan Active</p>
+                    <p className="text-zinc-400 leading-relaxed mt-0.5">
+                      Your current plan is <strong>Free</strong>. You can only perform <strong>single recipient uploads</strong> (exactly 1 row/recipient in your CSV, limit of 5 total credentials). Automated bulk uploads of up to 1000 items require a Pro subscription.
+                    </p>
+                    <Link href="/dashboard/billing" className="text-violet-300 hover:text-violet-200 font-bold inline-block mt-2">
+                      👑 View Plans & Pricing &rarr;
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               {issuerStatus === 'unverified' && (
                 <div className="p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 text-xs text-yellow-400 flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -840,6 +876,58 @@ export default function BulkIssuePage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* --- UPGRADE TO PRO MODAL --- */}
+      <AnimatePresence>
+        {showUpgradeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowUpgradeModal(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-gray-900 p-8 text-center shadow-2xl z-10 animate-glow"
+            >
+              <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/10 border border-violet-500/20">
+                <Lock className="h-6 w-6 text-violet-400" />
+              </div>
+
+              <h2 className="text-xl font-bold tracking-tight mb-2 text-white">👑 Unlock Bulk Issuance</h2>
+              
+              <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+                Bulk CSV uploads with multiple recipients are exclusive to <strong>Pro & Enterprise</strong> subscribers.
+                <br /><br />
+                Your current <strong>Free plan</strong> only allows single recipient CSV uploads (exactly 1 row/recipient, up to 5 total credentials).
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/dashboard/billing"
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="w-full py-3 px-6 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-semibold text-sm transition-colors text-center block"
+                >
+                  View Plans & Pricing
+                </Link>
+                <button
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="w-full py-3 px-6 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white rounded-xl text-sm font-semibold border border-white/10 transition-colors"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

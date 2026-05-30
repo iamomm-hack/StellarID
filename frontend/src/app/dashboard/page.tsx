@@ -115,6 +115,12 @@ function DashboardContent() {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowRequestModal(true)}
+              className="btn-stellar !py-2.5 !px-5 !text-[10px]"
+            >
+              + Request Credential
+            </button>
             <Link
               href={`/p/${address}`}
               target="_blank"
@@ -156,14 +162,6 @@ function DashboardContent() {
               <Terminal className="w-3.5 h-3.5 text-accent-indigo" /> Developer API
             </Link>
             <Link
-              href="/dashboard/billing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
-            >
-              <Zap className="w-3.5 h-3.5 text-accent-indigo" /> Plans & Billing
-            </Link>
-            <Link
               href="/dashboard/analytics"
               target="_blank"
               rel="noopener noreferrer"
@@ -171,12 +169,14 @@ function DashboardContent() {
             >
               <Activity className="w-3.5 h-3.5 text-accent-indigo" /> Analytics
             </Link>
-            <button
-              onClick={() => setShowRequestModal(true)}
-              className="btn-stellar !py-2.5 !px-5 !text-[10px]"
+            <Link
+              href="/dashboard/billing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center"
             >
-              + Request Credential
-            </button>
+              <Zap className="w-3.5 h-3.5 text-accent-indigo" /> Plans & Billing
+            </Link>
           </div>
         </motion.div>
  

@@ -32,7 +32,6 @@ function parseCSV(buffer: Buffer): Promise<any[]> {
 router.post(
   '/upload',
   authMiddleware,
-  checkBulkUploadAccess,
   upload.single('csv'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -88,10 +87,20 @@ router.post(
 
       // Check remaining monthly credential quota
       const subStatus = await getIssuerSubscriptionStatus(issuer.id);
+
+      // If uploading more than 1 row (bulk), check if bulk upload is allowed
+      if (rows.length > 1 && !subStatus.limits.allowBulkUpload) {
+        res.status(403).json({
+          error: 'Bulk upload not allowed',
+          message: `Your current plan (${subStatus.limits.name}) does not support bulk CSV credential uploads. Please upgrade to Pro or Enterprise.`,
+        });
+        return;
+      }
+
       if (subStatus.totalUsed + rows.length > subStatus.limits.maxCredentialsPerMonth) {
         res.status(402).json({
           error: 'Subscription limit exceeded',
-          message: `Your current tier (${subStatus.limits.name}) allows up to ${subStatus.limits.maxCredentialsPerMonth} credentials per month. This bulk upload requires ${rows.length} credentials, but you have only ${subStatus.remaining} remaining. Please upgrade your subscription.`,
+          message: `Your current tier (${subStatus.limits.name}) allows up to ${subStatus.limits.maxCredentialsPerMonth} credentials per month. This upload requires ${rows.length} credentials, but you have only ${subStatus.remaining} remaining. Please upgrade your subscription.`,
           limits: subStatus.limits,
           usage: {
             issued: subStatus.totalUsed,

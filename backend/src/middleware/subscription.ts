@@ -7,7 +7,7 @@ export type SubscriptionTier = 'free' | 'pro' | 'enterprise';
 export const TIER_LIMITS = {
   free: {
     name: 'Free',
-    maxCredentialsPerMonth: 50,
+    maxCredentialsPerMonth: 5,
     allowBulkUpload: false,
     maxApiKeys: 1,
   },
