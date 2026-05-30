@@ -13,10 +13,10 @@ jobs:
           node-version: '20'
 
       - name: Check backend types
-        run: cd backend && npm ci && npx tsc --noEmit
+        run: cd backend && npm install && npx tsc --noEmit
 
       - name: Check frontend types + lint
-        run: cd frontend && npm ci && npx tsc --noEmit && npm run lint
+        run: cd frontend && npm install && npx tsc --noEmit && npm run lint
 
       - name: Check Rust compilation
         run: |
