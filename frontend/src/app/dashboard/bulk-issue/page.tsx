@@ -150,17 +150,38 @@ export default function BulkIssuePage() {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.name.endsWith('.csv')) {
+      if (file.name.toLowerCase().endsWith('.zip')) {
+        setCsvError('Security Error: ZIP files and archives are strictly prohibited.');
+        setCsvRows([]);
+        setCsvFile(null);
+        return;
+      }
+      if (file.name.toLowerCase().endsWith('.csv')) {
         await processCsvFile(file);
       } else {
         setCsvError('Only CSV files are supported.');
+        setCsvRows([]);
+        setCsvFile(null);
       }
     }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      await processCsvFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.name.toLowerCase().endsWith('.zip')) {
+        setCsvError('Security Error: ZIP files and archives are strictly prohibited.');
+        setCsvRows([]);
+        setCsvFile(null);
+        return;
+      }
+      if (file.name.toLowerCase().endsWith('.csv')) {
+        await processCsvFile(file);
+      } else {
+        setCsvError('Only CSV files are supported.');
+        setCsvRows([]);
+        setCsvFile(null);
+      }
     }
   };
 
@@ -169,64 +190,114 @@ export default function BulkIssuePage() {
     setCsvError(null);
     setShowCsvPreview(false);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const text = event.target?.result as string;
-        const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
-        if (lines.length < 2) {
-          setCsvError('CSV file must contain a header row and at least one recipient row.');
+    // 1. Perform client-side magic header validation
+    const headerCheckReader = new FileReader();
+    headerCheckReader.onloadend = (e) => {
+      if (e.target?.readyState === FileReader.DONE) {
+        const arr = new Uint8Array(e.target.result as ArrayBuffer).subarray(0, 4);
+        let header = '';
+        for (let i = 0; i < arr.length; i++) {
+          header += arr[i].toString(16).padStart(2, '0');
+        }
+        // Check for ZIP magic bytes (PK\x03\x04 etc.) -> starts with 504b
+        if (header.startsWith('504b')) {
+          setCsvError('Security Alert: Zip file or binary archive masquerading as a CSV was blocked!');
           setCsvRows([]);
+          setCsvFile(null);
           return;
         }
 
-        const headers = lines[0].split(',').map((h) => h.trim().replace(/^["']|["']$/g, ''));
-        const emailIndex = headers.findIndex((h) => h.toLowerCase() === 'email');
+        // 2. If it passed magic bytes check, parse the file as text
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const text = event.target?.result as string;
 
-        if (emailIndex === -1) {
-          setCsvError('CSV file must contain an "email" column.');
-          setCsvRows([]);
-          return;
-        }
-
-        const parsedRows: PreviewRow[] = [];
-        for (let i = 1; i < lines.length; i++) {
-          const columns = lines[i].split(',').map((c) => c.trim().replace(/^["']|["']$/g, ''));
-          if (columns.length < headers.length) continue; // Skip incomplete lines
-
-          const rowData: PreviewRow = {
-            email: columns[emailIndex],
-          };
-
-          headers.forEach((header, idx) => {
-            if (idx !== emailIndex) {
-              rowData[header] = columns[idx];
+            // Check for binary/null characters
+            if (text.includes('\u0000')) {
+              setCsvError('Security Alert: Binary content detected. Only text CSV files are permitted.');
+              setCsvRows([]);
+              setCsvFile(null);
+              return;
             }
-          });
 
-          parsedRows.push(rowData);
-        }
+            // Check for potential SQL injection patterns in the text
+            const sqlPatterns = [
+              /UNION\s+(ALL\s+)?SELECT/i,
+              /OR\s+\d+\s*=\s*\d+/i,
+              /AND\s+\d+\s*=\s*\d+/i,
+              /DROP\s+TABLE/i,
+              /DELETE\s+FROM/i,
+              /INSERT\s+INTO/i,
+              /UPDATE\s+.*SET/i,
+              /--/,
+              /\/\*/
+            ];
+            const hasSqlInjection = sqlPatterns.some(pattern => pattern.test(text));
+            if (hasSqlInjection) {
+              setCsvError('Security Alert: Potential SQL Injection query patterns detected in CSV data.');
+              setCsvRows([]);
+              setCsvFile(null);
+              return;
+            }
 
-        if (parsedRows.length > 1000) {
-          setCsvError('Maximum of 1000 rows exceeded.');
-          setCsvRows([]);
-          setCsvFile(null);
-          return;
-        }
+            const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
+            if (lines.length < 2) {
+              setCsvError('CSV file must contain a header row and at least one recipient row.');
+              setCsvRows([]);
+              return;
+            }
 
-        if (subscriptionTier === 'free' && parsedRows.length > 1) {
-          setShowUpgradeModal(true);
-          setCsvRows([]);
-          setCsvFile(null);
-          return;
-        }
+            const headers = lines[0].split(',').map((h) => h.trim().replace(/^["']|["']$/g, ''));
+            const emailIndex = headers.findIndex((h) => h.toLowerCase() === 'email');
 
-        setCsvRows(parsedRows);
-      } catch (err) {
-        setCsvError('Failed to parse CSV file. Please verify the format.');
+            if (emailIndex === -1) {
+              setCsvError('CSV file must contain an "email" column.');
+              setCsvRows([]);
+              return;
+            }
+
+            const parsedRows: PreviewRow[] = [];
+            for (let i = 1; i < lines.length; i++) {
+              const columns = lines[i].split(',').map((c) => c.trim().replace(/^["']|["']$/g, ''));
+              if (columns.length < headers.length) continue; // Skip incomplete lines
+
+              const rowData: PreviewRow = {
+                email: columns[emailIndex],
+              };
+
+              headers.forEach((header, idx) => {
+                if (idx !== emailIndex) {
+                  rowData[header] = columns[idx];
+                }
+              });
+
+              parsedRows.push(rowData);
+            }
+
+            if (parsedRows.length > 1000) {
+              setCsvError('Maximum of 1000 rows exceeded.');
+              setCsvRows([]);
+              setCsvFile(null);
+              return;
+            }
+
+            if (subscriptionTier === 'free' && parsedRows.length > 1) {
+              setShowUpgradeModal(true);
+              setCsvRows([]);
+              setCsvFile(null);
+              return;
+            }
+
+            setCsvRows(parsedRows);
+          } catch (err) {
+            setCsvError('Failed to parse CSV file. Please verify the format.');
+          }
+        };
+        reader.readAsText(file);
       }
     };
-    reader.readAsText(file);
+    headerCheckReader.readAsArrayBuffer(file.slice(0, 4));
   };
 
   // Add & Remove Custom Form Fields

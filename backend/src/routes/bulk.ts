@@ -71,6 +71,47 @@ router.post(
 
       const issuer = issuerResult.rows[0];
 
+      // Validate file extension
+      const originalName = file.originalname || '';
+      if (!originalName.toLowerCase().endsWith('.csv')) {
+        res.status(400).json({ error: 'Security Alert: Only CSV files are allowed.' });
+        return;
+      }
+
+      // Check Magic Header for ZIP archive (Starts with '504b')
+      if (file.buffer.length >= 4) {
+        const magicHex = file.buffer.slice(0, 4).toString('hex');
+        if (magicHex.startsWith('504b')) {
+          res.status(400).json({ error: 'Security Alert: ZIP files or binary archives are strictly prohibited.' });
+          return;
+        }
+      }
+
+      // Check for binary characters (null bytes)
+      if (file.buffer.includes(0x00)) {
+        res.status(400).json({ error: 'Security Alert: Binary content detected. Only plain text CSV is permitted.' });
+        return;
+      }
+
+      // Check for potential SQL Injection patterns in CSV content
+      const csvString = file.buffer.toString('utf8');
+      const sqlInjectionPatterns = [
+        /UNION\s+(ALL\s+)?SELECT/i,
+        /OR\s+\d+\s*=\s*\d+/i,
+        /AND\s+\d+\s*=\s*\d+/i,
+        /DROP\s+TABLE/i,
+        /DELETE\s+FROM/i,
+        /INSERT\s+INTO/i,
+        /UPDATE\s+.*SET/i,
+        /--/,
+        /\/\*/
+      ];
+      const hasSqlInjection = sqlInjectionPatterns.some(pattern => pattern.test(csvString));
+      if (hasSqlInjection) {
+        res.status(400).json({ error: 'Security Alert: Potential SQL Injection query patterns detected in CSV data.' });
+        return;
+      }
+
       // Parse CSV rows
       let rows: any[];
       try {
