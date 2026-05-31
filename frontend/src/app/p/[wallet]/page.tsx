@@ -8,7 +8,7 @@ interface ProfilePageProps {
 
 export async function generateMetadata({ params }: ProfilePageProps) {
   const { wallet } = params;
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:5555';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'https://stellarid.onrender.com';
   const ogImageUrl = `${backendUrl}/api/v1/profile/${wallet}/og-image`;
   const truncatedWallet = wallet.length > 12 ? `${wallet.slice(0, 6)}...${wallet.slice(-6)}` : wallet;
 

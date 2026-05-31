@@ -327,7 +327,7 @@ router.get('/:wallet_address/share-url', async (req: Request, res: Response): Pr
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const backendUrl = process.env.OG_IMAGE_BASE_URL || `http://localhost:${process.env.PORT || 5555}`;
+    const backendUrl = process.env.OG_IMAGE_BASE_URL || `${req.protocol}://${req.get('host')}`;
 
     // Get score and tier for prefilled tweet text
     const rep = await calculateAndSaveUserReputation(wallet_address);
