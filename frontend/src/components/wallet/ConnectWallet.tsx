@@ -38,6 +38,7 @@ export default function ConnectWallet() {
   const [isGeneratingBio, setIsGeneratingBio] = useState<boolean>(false);
   const [bioError, setBioError] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [networkName, setNetworkName] = useState<string>('Stellar Testnet');
   const typewriterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const truncateAddress = (addr: string) =>
@@ -73,6 +74,28 @@ export default function ConnectWallet() {
       fetchProfileData();
     }
   }, [isConnected, address, fetchProfileData]);
+
+  // Dynamically query network from Freighter on connection
+  useEffect(() => {
+    async function checkNetwork() {
+      if (isConnected && address) {
+        try {
+          const freighter = await import('@stellar/freighter-api');
+          const net = await freighter.getNetwork();
+          if (net === 'PUBLIC') {
+            setNetworkName('Stellar Mainnet');
+          } else if (net === 'TESTNET') {
+            setNetworkName('Stellar Testnet');
+          } else if (net) {
+            setNetworkName(`Stellar ${net.charAt(0).toUpperCase() + net.slice(1).toLowerCase()}`);
+          }
+        } catch (e) {
+          console.debug('Failed to get network from Freighter:', e);
+        }
+      }
+    }
+    checkNetwork();
+  }, [isConnected, address]);
 
   // Re-fetch when dropdown opens to guarantee up-to-date info
   useEffect(() => {
@@ -308,7 +331,7 @@ export default function ConnectWallet() {
                     <Wifi className="w-3 h-3 text-muted" />
                     <span className="text-[10px] font-mono text-muted">Network</span>
                   </div>
-                  <span className="text-[10px] font-mono text-foreground">Stellar Mainnet</span>
+                  <span className="text-[10px] font-mono text-foreground">{networkName}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">

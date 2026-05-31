@@ -31,7 +31,7 @@ export const TIER_LIMITS = {
 export async function getIssuerSubscriptionStatus(issuerId: string) {
   // Fetch issuer details
   const issuerRes = await query(
-    'SELECT subscription_tier, subscription_status, name FROM issuers WHERE id = $1',
+    'SELECT subscription_tier, subscription_status, name, stellar_address FROM issuers WHERE id = $1',
     [issuerId]
   );
 
@@ -39,7 +39,15 @@ export async function getIssuerSubscriptionStatus(issuerId: string) {
     throw new Error('Issuer profile not found');
   }
 
-  const { subscription_tier, subscription_status, name } = issuerRes.rows[0];
+  let { subscription_tier, subscription_status, name, stellar_address } = issuerRes.rows[0];
+
+  // Admin / Owner bypass: If the wallet address matches process.env.ADMIN_STELLAR_ADDRESS, grant free Enterprise access
+  const adminAddress = process.env.ADMIN_STELLAR_ADDRESS;
+  if (adminAddress && stellar_address && stellar_address.trim().toLowerCase() === adminAddress.trim().toLowerCase()) {
+    subscription_tier = 'enterprise';
+    subscription_status = 'active';
+  }
+
   const tier: SubscriptionTier = (subscription_tier || 'free') as SubscriptionTier;
 
   // Active status check: if expired or canceled, treat as free
