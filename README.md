@@ -23,6 +23,7 @@
   <a href="#-the-solution">The Solution</a> •
   <a href="#-screenshots">Screenshots</a> •
   <a href="#%EF%B8%8F-control-center-dashboard-features">Control Center</a> •
+  <a href="#-discord-gating-bot">Discord Bot</a> •
   <a href="#-how-it-works">How It Works</a> •
   <a href="#%EF%B8%8F-tech-stack">Tech Stack</a> •
   <a href="#-key-features">Key Features</a> •
@@ -46,6 +47,7 @@
 | 📊 **User Validation (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Mainnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/public) |
 | 💬 **Discord Community** | [Join StellarID Discord Server](https://discord.gg/8Xdyj7ZD) |
+| 🤖 **Discord Bot Invite** | [Add Bot to your Server](https://discord.com/oauth2/authorize?client_id=1508481188610969700&permissions=268462096&scope=bot%20applications.commands) |
 | 🖥️ **Backend API Health** | [https://stellarid.onrender.com/health](https://stellarid.onrender.com/health) |
 | 🔌 **Backend Live API Base** | `https://stellarid.onrender.com/api/v1` |
 | 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
@@ -83,78 +85,68 @@ Every time you sign up for a service, you hand over your **name, address, date o
 
 ## 📸 Screenshots
 
-<details>
-<summary><b>📐 Landing & Onboarding</b></summary>
-<br/>
+### 📐 Landing Page
 <p align="center">
-  <em>Landing Page — Verify once. Prove everywhere.</em><br/>
+  <em>Verify once. Prove everywhere.</em><br/>
   <img src="docs/screenshots/landing.png" alt="StellarID Landing Page" width="800" />
 </p>
-<p align="center">
-  <em>Wallet Connection & Privy SDK Auth Modal</em><br/>
-  <img src="docs/screenshots/wallet.png" alt="Wallet Connection" width="800" />
-</p>
-</details>
 
-<details>
-<summary><b>🎛️ Control Center & Dashboards</b></summary>
-<br/>
+### 🎛️ Control Center & ZK Prover
 <p align="center">
   <em>Main Dashboard — Credential Vault & Client-Side ZK Prover</em><br/>
   <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="800" />
 </p>
+
+### 🏆 Public P2P Profile
+<p align="center">
+  <em>Public Profile — Verified public credential vault</em><br/>
+  <img src="docs/screenshots/dev-profile.png" alt="Public Profile" width="800" />
+</p>
+
+<details>
+<summary><b>🔍 Other Portal Screens & Telemetry</b></summary>
+<br/>
+
+<p align="center">
+  <em>Wallet Connection & Privy SDK Auth Modal</em><br/>
+  <img src="docs/screenshots/wallet.png" alt="Wallet Connection" width="800" />
+</p>
+
 <p align="center">
   <em>Analytics Center — Operational graphs & trust decay telemetry</em><br/>
   <img src="docs/screenshots/Analytics.png" alt="Analytics Page" width="800" />
 </p>
-</details>
 
-<details>
-<summary><b>🛡️ Issuer Registry & Verification</b></summary>
-<br/>
 <p align="center">
   <em>Issuer Portal — DNS TXT records verification & domain claims</em><br/>
   <img src="docs/screenshots/issuer-verification.png" alt="Issuer Portal" width="800" />
 </p>
+
 <p align="center">
   <em>Verification Prover — Verification status validation with badge</em><br/>
   <img src="docs/screenshots/verify.png" alt="Verification Page" width="800" />
 </p>
-</details>
 
-<details>
-<summary><b>🔌 Developer Portal & API Keys</b></summary>
-<br/>
 <p align="center">
   <em>Developer API Portal — Manage active access tokens & key credentials</em><br/>
   <img src="docs/screenshots/api-key.png" alt="Developer Keys" width="800" />
 </p>
+
 <p align="center">
   <em>Interactive API Documentation — Endpoint guides & code examples</em><br/>
   <img src="docs/screenshots/docs.png" alt="API Docs" width="800" />
 </p>
-</details>
 
-<details>
-<summary><b>🏆 Reputation & Profiles</b></summary>
-<br/>
-<p align="center">
-  <em>P2P Developer Profile — Verified public credential vault</em><br/>
-  <img src="docs/screenshots/dev-profile.png" alt="Public Profile" width="800" />
-</p>
-</details>
-
-<details>
-<summary><b>⚙️ Admin & Server Monitoring</b></summary>
-<br/>
 <p align="center">
   <em>Admin Dashboard — Platform-wide metrics, stats, & users overview</em><br/>
   <img src="docs/screenshots/admin.png" alt="Admin Dashboard" width="800" />
 </p>
+
 <p align="center">
   <em>Telemetry Monitor — Server health logs & system activity feed</em><br/>
   <img src="docs/screenshots/monitoring.png" alt="Server Telemetry Monitor" width="800" />
 </p>
+
 </details>
 
 ---
@@ -174,6 +166,49 @@ StellarID features a unified, protocol-grade developer and user dashboard known 
 | 📊 **Analytics** | `/dashboard/analytics` | A premium analytics console showing live daily issuance charts, recent verification event feeds, trust decay analytics, and platform-wide telemetric logs. Opens in a new tab. |
 | ➕ **Request Credential** | *Modal Dialog* | Direct on-screen portal for users to request official credentials (degrees, employment verification) from active verification nodes. |
 | 🧠 **Identity Prover (ZK Proving Unit)** | *Core Panel* | Client-side Zero-Knowledge generator using `snarkjs` and `circom` web assemblies. Prove assertions (e.g. `age_check`, `income_check`, `residency_check`) without exposing the underlying private document parameters. |
+
+---
+
+## 🤖 Discord Gating Bot
+
+Supercharge your community server with decentralized identity role-gating. StellarID allows server owners and community managers to link Discord accounts, calculate user reputation scores, and lock specific text/voice channels behind verified credentials.
+
+<p align="center">
+  <img src="docs/screenshots/discord-1.png" alt="Discord Bot Verify Command" width="420" /> &nbsp; &nbsp; &nbsp; &nbsp;
+  <img src="docs/screenshots/discord-2.png" alt="Discord Bot Profile Command" width="420" />
+</p>
+
+### 🔌 Live Bot Links
+*   **Official Invite Link**: [Add Discord Bot to your Server](https://discord.com/oauth2/authorize?client_id=1508481188610969700&permissions=268462096&scope=bot%20applications.commands)
+*   **Official Test Server**: [Join StellarID Discord Community](https://discord.gg/8Xdyj7ZD)
+
+### 🛠️ Slash Commands Guide
+| Command | Parameter | Description |
+|---|---|---|
+| `/verify` | None | Connects your Discord handle to your Stellar wallet address. Generates a secure, 10-minute validity sign gateway link and updates server roles based on verified credentials. |
+| `/profile` | `user` *(optional)* | Fetches and displays the public reputation card, active badges, daily streak, and current tier status for the specified server member. |
+| `/leaderboard` | None | Fetches the top 10 verified builders on the server, ranked by their accumulated reputation score. |
+| `/gate` | `tier` | Gates the active channel to require a minimum tier (e.g. `Stellar Bronze`, `Stellar Silver`, `Stellar Gold`, `Stellar Platinum`). |
+
+### 🗄️ Database Architecture
+The Discord bot leverages a local, high-speed SQLite database instance to cache server setup configuration states and active verification mappings independently of the primary PostgreSQL storage layer:
+```sql
+-- Guild setup configurations
+CREATE TABLE guilds (
+  guild_id TEXT PRIMARY KEY,
+  required_tier TEXT DEFAULT 'Proven Builder',
+  role_id TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Active member verification status
+CREATE TABLE verified_members (
+  discord_id TEXT PRIMARY KEY,
+  stellar_address TEXT UNIQUE NOT NULL,
+  reputation_score INTEGER NOT NULL,
+  last_sync_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
 ---
 
@@ -229,6 +264,12 @@ StellarID features a unified, protocol-grade developer and user dashboard known 
 *   **Expiry Control**: Auto-expiry management enforced via cron tasks.
 *   **Admin Analytics**: Real-time SaaS dashboard monitoring credentials, proofs, and active issuers.
 *   **Sliding-Window Rate Limiting**: Redis-backed API protection against DDoS/abuse.
+
+### 🤖 Discord Integration & Gating
+*   **Decentralized Gating Bot**: Restrict server access dynamically based on verifiable reputation scores.
+*   **Automatic Role Mapping**: Syncs linked wallets and assigns server roles (`Stellar Bronze`, `Stellar Silver`, `Stellar Gold`, `Stellar Platinum`) instantly.
+*   **On-Chain Profile Viewer**: Slash commands (`/profile` & `/leaderboard`) let members check standings dynamically.
+*   **SQLite Storage Caching**: Standalone lightweight guild caching to support ultra-fast verification synchronization.
 
 ---
 
@@ -349,23 +390,6 @@ $$S_i = \text{clamp}\left(100 + \sum w_c \cdot m_{\text{issuer}} + 15 \cdot \tex
     *   *Tier 1 (Community)*: $0.20$ base weight (based on 5+ endorsements from other verified issuers)
     *   *Tier 2 (Official)*: $0.80$ weight (requires DNS TXT record matching `stellarid-verify=TOKEN_UUID`)
     *   *Tier 3 (Endorsed)*: $1.00$ weight (manually vetted and endorsed by platform administrators)
-
----
-
-### 🤖 Discord Gating Bot
-Community managers can gate specific Discord guild channels based on a user's verified StellarID reputation tier.
-
-*   **Official Community Server**: [Join StellarID Discord](https://discord.gg/8Xdyj7ZD)
-*   **Slash Commands**:
-    *   `/verify` - Connects discord handle to Stellar address, returns embed profile, and assigns the corresponding tier role (`Stellar Bronze`, `Stellar Silver`, `Stellar Gold`, `Stellar Platinum`).
-    *   `/profile` - View your or another member's on-chain reputation profile, score, and badges.
-    *   `/leaderboard` - Lists top 10 community members by reputation score.
-    *   `/gate tier:Gold` - Gates the channel requiring a minimum reputation tier.
-*   **Local DB**: SQLite database tracks guild settings and member roles:
-    ```sql
-    CREATE TABLE guilds (guild_id TEXT PRIMARY KEY, setup_done INTEGER, log_channel TEXT);
-    CREATE TABLE verified_members (discord_id TEXT PRIMARY KEY, wallet_address TEXT, current_tier TEXT);
-    ```
 
 ---
 
