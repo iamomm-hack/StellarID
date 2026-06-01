@@ -28,7 +28,7 @@
   <a href="#-key-features">Key Features</a> •
   <a href="#-advanced-features-deep-dive">Advanced Features</a> •
   <a href="#-api-reference">API Reference</a> •
-  <a href="#-smart-contracts-stellar-testnet">Smart Contracts</a> •
+  <a href="#-smart-contracts-stellar-mainnet">Smart Contracts</a> •
   <a href="#-architecture">Architecture</a> •
   <a href="#%EF%B8%8F-environment-setup">Environment Setup</a> •
   <a href="#-getting-started">Getting Started</a> •
@@ -44,7 +44,7 @@
 |---|---|
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
 | 📊 **User Validation (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
-| 🔍 **Testnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/testnet) |
+| 🔍 **Mainnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/public) |
 | 🖥️ **Backend API Health** | [https://stellarid.onrender.com/health](https://stellarid.onrender.com/health) |
 | 🔌 **Backend Live API Base** | `https://stellarid.onrender.com/api/v1` |
 | 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
@@ -437,26 +437,26 @@ Proves membership in a group root.
 | **ZK Proof Generation** | ~0.87s | Client-side, no server round-trip |
 | **API Response (cached)** | <100ms | Redis-backed analytics queries |
 | **API Response (uncached)** | <300ms | PostgreSQL with indexed queries |
-| **Contract Deployment** | ~5s | Soroban testnet via Stellar CLI |
+| **Contract Deployment** | ~5s | Soroban Mainnet via Stellar CLI |
 | **WASM Contract Size** | 12–17 KB | Optimized with `opt-level = "z"` |
 | **PDF Generation** | <500ms | Server-side with pdfkit + QR code |
 
 ---
 
-## 🔗 Smart Contracts (Stellar Testnet)
+## 🔗 Smart Contracts (Stellar Mainnet)
 
-Soroban smart contracts deployed on Stellar Testnet:
+Soroban smart contracts deployed on Stellar Mainnet:
 
 | Contract | Purpose | Contract ID |
 |---|---|---|
-| **Credential NFT** | Mint, transfer, validate credential NFTs | `CBIO5S7UB6JVO337KTMHZPTRSXQLNPQPDAMCH57MBI6N2NDC4WWO3RYX` |
-| **Revocation Registry** | On-chain credential revocation by issuers | `CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3` |
-| **Disclosure Contract** | Selective disclosure verification records | `CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2` |
+| **Credential NFT** | Mint, transfer, validate credential NFTs | `CAEHME2CL3JYFVOFVULAWR5UMQMCUAQ4Z7PUTBRMSLFEOMVGZZFJHDTR` |
+| **Revocation Registry** | On-chain credential revocation by issuers | `CBG6LPI62SM6S5IXJENAK4TY6CKXZHW5G2AXEM34VCDRA2ZSBCRTPOEP` |
+| **Disclosure Contract** | Selective disclosure verification records | `CBUFXMUAUAT3N4KOX2AJ4FYNXDRA7OILXQHYOHZBUM3CPTSMUAKXFCMU` |
 
 **Verification Links:**
-*   [View Credential NFT Contract](https://stellar.expert/explorer/testnet/contract/CBIO5S7UB6JVO337KTMHZPTRSXQLNPQPDAMCH57MBI6N2NDC4WWO3RYX)
-*   [View Revocation Registry Contract](https://stellar.expert/explorer/testnet/contract/CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3)
-*   [View Disclosure Contract](https://stellar.expert/explorer/testnet/contract/CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2)
+*   [View Credential NFT Contract](https://stellar.expert/explorer/public/contract/CAEHME2CL3JYFVOFVULAWR5UMQMCUAQ4Z7PUTBRMSLFEOMVGZZFJHDTR)
+*   [View Revocation Registry Contract](https://stellar.expert/explorer/public/contract/CBG6LPI62SM6S5IXJENAK4TY6CKXZHW5G2AXEM34VCDRA2ZSBCRTPOEP)
+*   [View Disclosure Contract](https://stellar.expert/explorer/public/contract/CBUFXMUAUAT3N4KOX2AJ4FYNXDRA7OILXQHYOHZBUM3CPTSMUAKXFCMU)
 
 ---
 
@@ -579,7 +579,7 @@ StellarID is built upon a highly modular, multi-tier system architecture:
 1. **Client-Side ZK Prover (Next.js 14)**: Executes Groth16 ZK-SNARK computations inside the client's browser utilizing `snarkjs` and custom compiled WASM circuit models. This guarantees that raw personal details (such as actual age, exact income, or full residential addresses) never cross the network boundaries.
 2. **REST API Interface & Middleware (Node.js + Express)**: Provides structured API routes protected by sliding-window rate-limiting and robust security layers (JWT authentication, inputs verification, and SQL-injection prevention).
 3. **Queue & Background Execution Engine (BullMQ + Redis)**: Handles intensive, asynchronous operations (such as compiling bulk CSV recipient imports, queuing credential claims, and sending transactional SMTP emails) to keep HTTP response times sub-100ms.
-4. **On-Chain Soroban Engine**: A collection of Rust-based smart contracts deployed to the Stellar Testnet. They maintain decentralized state control over credential NFT ownership, direct revocation registries, and selective-disclosure logs.
+4. **On-Chain Soroban Engine**: A collection of Rust-based smart contracts deployed to the Stellar Mainnet. They maintain decentralized state control over credential NFT ownership, direct revocation registries, and selective-disclosure logs.
 5. **Fee Sponsorship Gateway**: Leverages Stellar's native Fee Bump transaction mechanism to sponsor gas/execution costs, creating a gasless and zero-friction onboarding flow for Web2 users.
 6. **B2B Integration Layer**: Exposes an advanced, tree-shakeable npm package (`stellarid-sdk`) and a custom Discord Bot allowing community managers to gate channels or look up profiles with zero overhead.
 
@@ -664,15 +664,15 @@ JWT_SECRET=stellarid_local_dev_secret
 JWT_EXPIRES_IN=7d
 
 # Stellar Config
-STELLAR_NETWORK=testnet
-STELLAR_RPC_URL=https://soroban-testnet.stellar.org:443
-STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
-STELLAR_PASSPHRASE=Test SDF Network ; September 2015
+STELLAR_NETWORK=mainnet
+STELLAR_RPC_URL=https://soroban-rpc.mainnet.stellar.gateway.fm
+STELLAR_HORIZON_URL=https://horizon.stellar.org
+STELLAR_PASSPHRASE=Public Global Stellar Network ; September 2015
 
 # Smart Contract IDs
-CREDENTIAL_NFT_CONTRACT_ID=CBIO5S7UB6JVO337KTMHZPTRSXQLNPQPDAMCH57MBI6N2NDC4WWO3RYX
-REVOCATION_CONTRACT_ID=CDRPLFWJLBFX7O552DK4P5QUYXP2ZCUVLNEICLHWVTPVSL7WWXU5PRL3
-DISCLOSURE_CONTRACT_ID=CDRUH5UI7HSKRXWB3BOOT5CL5V7GWRYQ25AAOA3OLTYZYWRNA7JLZ4U2
+CREDENTIAL_NFT_CONTRACT_ID=CAEHME2CL3JYFVOFVULAWR5UMQMCUAQ4Z7PUTBRMSLFEOMVGZZFJHDTR
+REVOCATION_CONTRACT_ID=CBG6LPI62SM6S5IXJENAK4TY6CKXZHW5G2AXEM34VCDRA2ZSBCRTPOEP
+DISCLOSURE_CONTRACT_ID=CBUFXMUAUAT3N4KOX2AJ4FYNXDRA7OILXQHYOHZBUM3CPTSMUAKXFCMU
 
 # IPFS Pinata
 PINATA_API_KEY=your_pinata_key
@@ -725,7 +725,7 @@ npm run dev
 
 ## 👥 User Validation & Onboarding
 
-To validate our MVP verification cycles, we conducted onboarding checks with **5 real testnet users**.
+To validate our MVP verification cycles, we conducted onboarding checks with **5 real users**.
 
 ### User Feedback Summary
 

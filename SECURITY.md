@@ -50,7 +50,7 @@
 
 | Security Measure | Status | Implementation |
 |-----------------|--------|----------------|
-| Stellar Testnet (Dev) | ✅ Implemented | Safe development environment |
+| Stellar Mainnet (Production) | ✅ Implemented | Production-grade deployment |
 | Fee Sponsorship | ✅ Implemented | Prevents user from needing XLM |
 | Multi-Signature Approval | ✅ Implemented | N-of-M threshold for high-value credentials |
 | Transaction Timeout | ✅ Implemented | 300 second timeout on all transactions |
