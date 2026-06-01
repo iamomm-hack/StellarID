@@ -4,6 +4,7 @@ import { query } from '../db';
 import { mintCredentialNFT } from '../services/stellar';
 import { uploadToIPFS } from '../services/ipfs';
 import { generateToken } from '../utils/jwt';
+import { invalidateProfileCache } from '../services/redis';
 
 const router = Router();
 
@@ -270,6 +271,15 @@ router.get('/callback', async (req: Request, res: Response) => {
             userId,
           ]
         );
+      }
+    }
+
+    // Invalidate profile cache
+    if (stellarAddress) {
+      try {
+        await invalidateProfileCache(stellarAddress);
+      } catch (cacheErr: any) {
+        console.warn('Failed to invalidate profile cache:', cacheErr.message);
       }
     }
 

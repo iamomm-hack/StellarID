@@ -63,6 +63,11 @@ export default function ConnectWallet() {
           c.credential_type?.toLowerCase().includes('linkedin')
         );
         setLinkedinConnected(hasLinkedin);
+
+        const hasGithub = credsRes.data.some((c: any) =>
+          c.credential_type?.toLowerCase().includes('github')
+        );
+        setGithubConnected(hasGithub || (cardRes.data && cardRes.data.display_name !== 'Builder'));
       }
     } catch (err) {
       console.error('Failed to fetch wallet dropdown profile data:', err);

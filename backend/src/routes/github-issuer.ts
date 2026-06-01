@@ -4,6 +4,7 @@ import { query } from '../db';
 import { mintCredentialNFT } from '../services/stellar';
 import { uploadToIPFS } from '../services/ipfs';
 import { generateToken } from '../utils/jwt';
+import { invalidateProfileCache } from '../services/redis';
 
 const router = Router();
 
@@ -201,6 +202,15 @@ router.get('/callback', async (req: Request, res: Response) => {
          VALUES ($1, $2, 'github_developer', $3, $4, $5, $6, NOW() + INTERVAL '1 year')`,
         [userId, issuerId, JSON.stringify(claimData), tokenId.toString(), txHash, ipfsHash]
       );
+    }
+
+    // Invalidate profile cache
+    if (stellarAddress) {
+      try {
+        await invalidateProfileCache(stellarAddress);
+      } catch (cacheErr: any) {
+        console.warn('Failed to invalidate profile cache:', cacheErr.message);
+      }
     }
 
     // Redirect to frontend dashboard with new token
