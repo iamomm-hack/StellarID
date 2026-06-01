@@ -394,17 +394,19 @@ client.on('interactionCreate', async (interaction) => {
       await interaction.editReply({ embeds: [embed] });
       
       // Post announcement in channel
-      await channel.send({
-        embeds: [
-          new EmbedBuilder()
-            .setColor('#f59e0b')
-            .setTitle('🔒 Rep-Gated Channel Activated')
-            .setDescription(
-              `This channel is now restricted to **${tier}** tier and above.\n` +
-              `Run \`/verify\` to connect your wallet and claim your reputation role.`
-            ),
-        ],
-      });
+      if (channel && 'send' in channel) {
+        await (channel as any).send({
+          embeds: [
+            new EmbedBuilder()
+              .setColor('#f59e0b')
+              .setTitle('🔒 Rep-Gated Channel Activated')
+              .setDescription(
+                `This channel is now restricted to **${tier}** tier and above.\n` +
+                `Run \`/verify\` to connect your wallet and claim your reputation role.`
+              ),
+          ],
+        });
+      }
     } catch (err: any) {
       console.error('Error in /gate command:', err.message);
       await interaction.editReply({

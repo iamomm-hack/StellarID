@@ -45,6 +45,7 @@
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
 | 📊 **User Validation (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Mainnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/public) |
+| 💬 **Discord Community** | [Join StellarID Discord Server](https://discord.gg/8Xdyj7ZD) |
 | 🖥️ **Backend API Health** | [https://stellarid.onrender.com/health](https://stellarid.onrender.com/health) |
 | 🔌 **Backend Live API Base** | `https://stellarid.onrender.com/api/v1` |
 | 🔐 **Security Checklist** | [SECURITY.md](./SECURITY.md) |
@@ -354,9 +355,12 @@ $$S_i = \text{clamp}\left(100 + \sum w_c \cdot m_{\text{issuer}} + 15 \cdot \tex
 ### 🤖 Discord Gating Bot
 Community managers can gate specific Discord guild channels based on a user's verified StellarID reputation tier.
 
+*   **Official Community Server**: [Join StellarID Discord](https://discord.gg/8Xdyj7ZD)
 *   **Slash Commands**:
-    *   `/verify wallet:G...` - Connects discord handle to Stellar address, returns embed profile, and assigns the corresponding tier role (`StellarID Verified`, `Proven Builder`, `Elite Builder`).
-    *   `/gate channel:#chan min-tier:Proven` - Gates a specific channel requiring Proven or Elite Builder tiers.
+    *   `/verify` - Connects discord handle to Stellar address, returns embed profile, and assigns the corresponding tier role (`Stellar Bronze`, `Stellar Silver`, `Stellar Gold`, `Stellar Platinum`).
+    *   `/profile` - View your or another member's on-chain reputation profile, score, and badges.
+    *   `/leaderboard` - Lists top 10 community members by reputation score.
+    *   `/gate tier:Gold` - Gates the channel requiring a minimum reputation tier.
 *   **Local DB**: SQLite database tracks guild settings and member roles:
     ```sql
     CREATE TABLE guilds (guild_id TEXT PRIMARY KEY, setup_done INTEGER, log_channel TEXT);

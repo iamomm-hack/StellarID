@@ -1195,6 +1195,21 @@ export default defineConfig({
                 Automate developer community gating using our custom Discord bot. Link your wallet, prove your credentials, and automatically unlock server channels based on your reputation score and tier.
               </p>
 
+              <div className="flex items-center justify-between gap-4 bg-accent-indigo/10 border border-white/[0.04] rounded-xl p-4">
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold font-display uppercase tracking-wider text-foreground">Join Our Community</h4>
+                  <p className="text-[11px] text-muted leading-relaxed">Experience live reputation-gating in action. Join the official StellarID Discord server today.</p>
+                </div>
+                <a 
+                  href="https://discord.gg/8Xdyj7ZD" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="bg-accent-indigo hover:bg-accent-indigo/80 text-white text-xs font-bold px-4 py-2 rounded-lg font-display uppercase tracking-wider whitespace-nowrap transition-colors"
+                >
+                  Join Server
+                </a>
+              </div>
+
               <div className="protocol-panel p-6 space-y-4">
                 <h3 className="font-bold text-sm font-display uppercase tracking-wider text-foreground">Supported Discord Slash Commands</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
