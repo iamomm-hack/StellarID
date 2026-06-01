@@ -85,7 +85,7 @@ The proof is generated entirely in the user's browser using WebAssembly (snarkjs
 - **Fast finality**: ~5 second transactions
 - **Low cost**: Fractions of a cent per transaction
 - **Soroban**: Smart contract platform with Rust SDK
-- **Testnet**: Free testing with Friendbot
+- **Mainnet**: Production deployment with minimal fees
 
 ### NFT Credentials as Soroban Tokens
 Each verified credential is minted as an NFT via the `credential_nft` Soroban contract:
