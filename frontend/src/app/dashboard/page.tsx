@@ -21,7 +21,8 @@ import ConnectWallet from '../../components/wallet/ConnectWallet';
 import {
   Shield, Plus, Award, CheckCircle2,
   AlertCircle, Zap, Activity, Fingerprint,
-  Lock, Terminal, Globe, HardDrive, Upload
+  Lock, Terminal, Globe, HardDrive, Upload,
+  MessageSquare, X
 } from 'lucide-react';
 
 
@@ -41,6 +42,7 @@ function DashboardContent() {
   const { data: credentials, isLoading, error } = useCredentials();
   const [selectedCredential, setSelectedCredential] = useState<any>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showDiscordModal, setShowDiscordModal] = useState(false);
   const [reputationScore, setReputationScore] = useState<number | null>(null);
   const [reputationTier, setReputationTier] = useState<string>('Verified');
 
@@ -177,6 +179,12 @@ function DashboardContent() {
             >
               <Zap className="w-3.5 h-3.5 text-accent-indigo" /> Plans & Billing
             </Link>
+            <button
+              onClick={() => setShowDiscordModal(true)}
+              className="btn-stellar-ghost !py-2.5 !px-5 !text-[10px] gap-2 flex items-center border border-indigo-500/30 bg-indigo-500/[0.04] hover:bg-indigo-500/10 text-indigo-300 transition-all duration-300"
+            >
+              <img src="/discord-bot.png" alt="Discord" className="w-3.5 h-3.5 object-contain" /> Discord Bot
+            </button>
           </div>
         </motion.div>
  
@@ -292,6 +300,12 @@ function DashboardContent() {
           <RequestCredentialModal onClose={() => setShowRequestModal(false)} />
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {showDiscordModal && (
+          <DiscordBotModal onClose={() => setShowDiscordModal(false)} />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -326,5 +340,91 @@ export default function DashboardPage() {
     <Suspense fallback={<div className="min-h-screen" style={{ background: 'hsl(var(--background))' }} />}>
       <DashboardContent />
     </Suspense>
+  );
+}
+
+function DiscordBotModal({ onClose }: { onClose: () => void }) {
+  const inviteLink = "https://discord.com/oauth2/authorize?client_id=1508481188610969700&permissions=268462096&scope=bot%20applications.commands";
+  const supportLink = "https://discord.gg/8Xdyj7ZD";
+
+  return (
+    <div className="edge-modal-overlay" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.4, ease: [.23, 1, .32, 1] }}
+        className="protocol-panel max-w-lg w-full overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-6 py-4 flex items-center justify-between border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <img src="/discord-bot.png" alt="Discord Bot" className="w-5 h-5 object-contain rounded" />
+            <span className="text-sm font-bold text-[#f5f5f0]">Discord Bot Gating</span>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/[0.05] rounded-full transition-colors">
+            <X className="w-4 h-4 text-[#666660]" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          <p className="text-xs text-muted leading-relaxed">
+            Supercharge your server with StellarID. Authenticate members, verify on-chain credentials, and lock channels behind reputation tiers automatically.
+          </p>
+
+          {/* Action Cards */}
+          <div className="grid grid-cols-2 gap-4">
+            <a
+              href={inviteLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-5 rounded-xl border border-white/[0.06] hover:border-indigo-500/30 bg-white/[0.01] hover:bg-indigo-500/[0.02] text-left transition-all duration-300"
+            >
+              <h4 className="text-xs font-bold text-foreground group-hover:text-indigo-400 transition-colors uppercase tracking-wider mb-2">Invite Bot</h4>
+              <p className="text-[10px] text-muted leading-relaxed">Add the bot to your own Discord server.</p>
+            </a>
+            
+            <a
+              href={supportLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-5 rounded-xl border border-white/[0.06] hover:border-indigo-500/30 bg-white/[0.01] hover:bg-indigo-500/[0.02] text-left transition-all duration-300"
+            >
+              <h4 className="text-xs font-bold text-foreground group-hover:text-indigo-400 transition-colors uppercase tracking-wider mb-2">Join Test Server</h4>
+              <p className="text-[10px] text-muted leading-relaxed">Try out slash commands in our official server.</p>
+            </a>
+          </div>
+
+          {/* Commands */}
+          <div className="space-y-3">
+            <span className="text-[10px] font-mono text-muted uppercase tracking-wider block">Commands Guide</span>
+            <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+              {[
+                { cmd: '/verify', desc: 'Connects Discord user to their Stellar wallet & updates roles.' },
+                { cmd: '/profile', desc: 'Shows reputation score, badges, and active tiers.' },
+                { cmd: '/leaderboard', desc: 'Lists top verified builders ranked by reputation.' },
+                { cmd: '/gate tier:[Bronze/Silver/Gold/Platinum]', desc: 'Locks active channel for specified tier and above.' },
+              ].map((item) => (
+                <div key={item.cmd} className="flex justify-between items-start p-3 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                  <div className="space-y-1">
+                    <code className="text-[10px] font-mono font-bold text-indigo-400">{item.cmd}</code>
+                    <p className="text-[10px] text-muted leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end">
+          <button onClick={onClose} className="btn-stellar-ghost !py-2.5 !px-5 !text-[11px]">
+            Close Window
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
