@@ -174,6 +174,16 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     // Update user's email if we have a user row
     if (userId) {
+      // Check if email is already linked to another user
+      const emailCheck = await query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [linkedinUser.email, userId]
+      );
+      if (emailCheck.rows.length > 0) {
+        res.redirect(`${FRONTEND_URL}/dashboard?error=email_already_linked`);
+        return;
+      }
+
       await query(
         'UPDATE users SET email = $1 WHERE id = $2',
         [linkedinUser.email, userId]

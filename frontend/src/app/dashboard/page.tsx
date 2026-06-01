@@ -208,7 +208,15 @@ function DashboardContent() {
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-10">
               <div className="p-5 border border-red-500/20 bg-red-500/5 rounded-2xl flex items-center gap-4">
                 <AlertCircle className="w-5 h-5 text-red-400" />
-                <span className="text-sm text-red-400">{oauthError}</span>
+                <span className="text-sm text-red-400">
+                  {oauthError === 'email_already_linked'
+                    ? 'This email address is already linked to another StellarID wallet. Each social account can only be linked to a single wallet.'
+                    : oauthError === 'github_auth_failed'
+                    ? 'GitHub authentication failed. Please ensure your OAuth configuration is correct.'
+                    : oauthError === 'linkedin_auth_failed'
+                    ? 'LinkedIn authentication failed. Please check your credentials and try again.'
+                    : oauthError.replace(/_/g, ' ')}
+                </span>
               </div>
             </motion.div>
           )}

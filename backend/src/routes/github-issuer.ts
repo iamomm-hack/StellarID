@@ -139,6 +139,16 @@ router.get('/callback', async (req: Request, res: Response) => {
 
     // Update user's GitHub username
     if (userId) {
+      // Check if email is already linked to another user
+      const emailCheck = await query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [verifiedEmail.email, userId]
+      );
+      if (emailCheck.rows.length > 0) {
+        res.redirect(`${FRONTEND_URL}/dashboard?error=email_already_linked`);
+        return;
+      }
+
       await query(
         'UPDATE users SET github_username = $1, email = $2, updated_at = NOW() WHERE id = $3',
         [githubUser.login, verifiedEmail.email, userId]
