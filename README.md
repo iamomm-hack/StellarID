@@ -14,6 +14,11 @@
 <h3 align="center">Verify once. Prove everywhere.</h3>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Stellar-Mainnet-success?style=for-the-badge&logo=stellar&logoColor=white" />
+  <img src="https://img.shields.io/badge/Soroban-Live-blue?style=for-the-badge" />
+</p>
+
+<p align="center">
   <strong>A protocol-grade identity and reputation layer on Stellar. Users verify their attributes once and generate zero-knowledge proofs to authenticate anywhere without disclosing private personal metadata.</strong>
 </p>
 
