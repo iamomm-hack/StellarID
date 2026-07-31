@@ -1,6 +1,6 @@
 {
   "name": "stellar-id-discord-bot",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Discord Bot for StellarID reputation role-gating",
   "main": "dist/index.js",
   "scripts": {

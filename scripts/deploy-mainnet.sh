@@ -1,4 +1,5 @@
 #!/bin/bash
+# StellarID v2.0.0 — Mainnet Smart Contract Deployment Script
 echo "Building and Deploying StellarID contracts to Stellar Mainnet..."
 
 if [ -z "$STELLAR_SECRET_KEY" ]; then

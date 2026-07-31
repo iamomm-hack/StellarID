@@ -1,3 +1,7 @@
+/**
+ * StellarID v2.0.0 — Interactive End-to-End Workflow Demo Script
+ */
+
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:4000/api/v1';

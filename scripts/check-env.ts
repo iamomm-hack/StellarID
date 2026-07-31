@@ -1,3 +1,7 @@
+/**
+ * StellarID v2.0.0 — Environment Verification Utility
+ */
+
 import * as dotenv from 'dotenv';
 import { Pool } from 'pg';
 import axios from 'axios';

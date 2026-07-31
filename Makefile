@@ -1,3 +1,4 @@
+# StellarID v2.0.0 Makefile — Build, Test & Deployment Automation
 .PHONY: setup migrate compile deploy seed test demo dev check
 
 setup:

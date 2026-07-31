@@ -1,6 +1,6 @@
 {
   "name": "stellarid-sdk",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Official JavaScript SDK for StellarID, the protocol-grade identity layer on Stellar.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

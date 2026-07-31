@@ -1,3 +1,10 @@
+/**
+ * StellarID v2.0.0 — SDK Type Definitions
+ *
+ * @version 2.0.0
+ * @module stellarid-sdk/types
+ */
+
 export interface StellarIDConfig {
   apiKey: string;
   baseURL?: string;

@@ -1,4 +1,5 @@
 #!/bin/bash
+# StellarID v2.0.0 — Powers of Tau Setup Script
 echo "Setting up Powers of Tau..."
 cd zk-circuits
 

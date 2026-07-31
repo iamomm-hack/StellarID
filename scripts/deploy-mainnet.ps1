@@ -1,3 +1,4 @@
+# StellarID v2.0.0 — Mainnet Smart Contract Deployment (PowerShell)
 Write-Host "Building and Deploying StellarID contracts to Stellar Mainnet..."
 
 if ($null -eq $env:STELLAR_SECRET_KEY -or $env:STELLAR_SECRET_KEY -eq "") {

@@ -1,6 +1,6 @@
-# 🔐 StellarID Security Checklist
+# 🔐 StellarID v2.0.0 Security Checklist
 
-> **Black Belt Level 6 Requirement** — Complete security audit and checklist for production readiness.
+> **Stellar Builder Challenge Level 5/6 Submission** — Complete security audit and checklist for production readiness.
 
 ---
 

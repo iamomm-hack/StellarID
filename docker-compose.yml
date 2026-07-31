@@ -1,3 +1,4 @@
+# StellarID v2.0.0 — Development Infrastructure (PostgreSQL & Redis)
 services:
   postgres:
     image: postgres:15

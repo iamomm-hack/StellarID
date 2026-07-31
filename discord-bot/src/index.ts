@@ -1,3 +1,13 @@
+/**
+ * StellarID v2.0.0 — Discord Reputation Gating Bot
+ * ====================================================
+ * Synchronizes StellarID builder tiers with Discord server roles,
+ * handles /verify, /profile, /leaderboard, and /gate commands.
+ *
+ * @version 2.0.0
+ * @module discord-bot/index
+ */
+
 import { Client, GatewayIntentBits, EmbedBuilder, PermissionFlagsBits, ActivityType } from 'discord.js';
 import express from 'express';
 import { Pool } from 'pg';

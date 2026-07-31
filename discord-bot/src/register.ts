@@ -1,3 +1,11 @@
+/**
+ * StellarID v2.0.0 — Discord Slash Command Registration
+ * Register global application commands (/verify, /profile, /leaderboard, /gate).
+ *
+ * @version 2.0.0
+ * @module discord-bot/register
+ */
+
 import { REST, Routes, SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
 import dotenv from 'dotenv';
 import path from 'path';

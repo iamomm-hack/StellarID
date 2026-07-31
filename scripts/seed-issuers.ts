@@ -1,3 +1,7 @@
+/**
+ * StellarID v2.0.0 — Issuer Seed Script
+ */
+
 import * as dotenv from 'dotenv';
 import { Pool } from 'pg';
 

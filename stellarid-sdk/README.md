@@ -1,4 +1,4 @@
-# StellarID JavaScript SDK
+# StellarID JavaScript SDK (v2.0.0)
 
 The official JavaScript/TypeScript SDK for **StellarID** — the protocol-grade identity and reputation layer on Stellar.
 

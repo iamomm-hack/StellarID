@@ -1,3 +1,8 @@
+/**
+ * StellarID v2.0.0 — Artifact Copy Script
+ * Synchronizes ZK circuit build artifacts to backend and frontend.
+ */
+
 const fs = require('fs');
 const path = require('path');
 

@@ -1,3 +1,11 @@
+/**
+ * StellarID v2.0.0 — SDK Client
+ * Official TypeScript SDK for interacting with StellarID APIs.
+ *
+ * @version 2.0.0
+ * @module stellarid-sdk/client
+ */
+
 import {
   StellarIDConfig,
   VerifyWalletResponse,

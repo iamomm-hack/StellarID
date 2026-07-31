@@ -1,3 +1,4 @@
+# StellarID v2.0.0 — Direct Mainnet Deployment (PowerShell)
 Write-Host "Deploying StellarID contracts to Stellar Mainnet (skipping compilation)..."
 
 if ($null -eq $env:STELLAR_SECRET_KEY -or $env:STELLAR_SECRET_KEY -eq "") {

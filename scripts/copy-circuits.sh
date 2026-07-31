@@ -1,4 +1,5 @@
 #!/bin/bash
+# StellarID v2.0.0 — Circuit Artifact Copier Script
 echo "Copying ZK circuit artifacts to frontend..."
 mkdir -p frontend/public/circuits
 
