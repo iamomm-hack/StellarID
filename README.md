@@ -44,7 +44,7 @@
 | Resource | Link |
 |---|---|
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
-| 📊 **User Validation (30+ Users)** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
+| 📊 **User Validation Responses** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Mainnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/public) |
 | 💬 **Discord Community** | [Join StellarID Discord Server](https://discord.gg/8Xdyj7ZD) |
 | 🤖 **Discord Bot Invite** | [Add Bot to your Server](https://discord.com/oauth2/authorize?client_id=1508481188610969700&permissions=268462096&scope=bot%20applications.commands) |
@@ -753,19 +753,53 @@ npm run dev
 
 ## 👥 User Validation & Onboarding
 
-To validate our MVP verification cycles, we conducted onboarding checks with **5 real users**.
+**Resubmission review date:** 31 July 2026<br>
+**Current phase:** Level 5 growth validation and Level 6 mainnet adoption
 
-### User Feedback Summary
+StellarID now includes a guided, wallet-specific onboarding checklist and an in-app feedback prompt. The prompt sends users to the published Google Form, where the review dataset collects name, email, Stellar wallet address, a 1–5 product rating, favorite feature, issues encountered, and requested improvements.
 
-📊 **[Live Feedback Google Sheet](https://docs.google.com/spreadsheets/d/1cemhWHZrEQb0H7FeFCJnAmfDF86QveHgiuNLDHHm22o/edit?usp=sharing)**
+### Validation resources
 
-| Date | Name | Wallet Address | Email | UX Rating | Favorite Feature | Bugs/Errors | Future Improvement |
-|---|---|---|---|---|---|---|---|
-| Mar 22, 2026 | Satish jalan | `GDZWLHG6WBRYIGWE2JXJRI4LTXLWQSTBCSXK3XB6HLB2QOTS4DNXDSKP` | satishjalan9163@gmail.com | 5/5 | ZK Proof PDF | None | On-chain ZK-proof verification via Soroban smart contracts |
-| Mar 22, 2026 | Mufti Armaan | `GA5RKOAUAVEA5POB4HKI2HCIZ3K67SZYLUW5SOACOAKCNDSM4XLC5BPR` | flamecyborg5@gmail.com | 5/5 | PDF with QR Code | None | A small guide or tooltip for Freighter wallet connection |
-| Mar 23, 2026 | Amit Shah | `GCUOCLOPD3I7ECINEXFOJVGFQFNJILYW26BERBCCQBQ7WHJMICHR2WPM` | as3131257@gmail.com | 5/5 | Speed of proof generation | None | None |
-| Mar 23, 2026 | Rajdeep Dutta | `GB2CC6D3E3SXRJUPNJ43WGMFFYEN5CNP6NRY5L2S7NUDLEAZW5IMRVLK` | rajdeepdutta393@gmail.com | 5/5 | PDF report with QR code — practical and satisfying | Dashboard loading lag — thought page stopped working | Smoother dashboard loading with animation |
-| Mar 24, 2026 | Manjeet s. | `GDLQU6LOKWYX2EUNU7PNOK3IT27MEQD7FDR7EDWTWYVZ66HXSNKGAMO6` | manjeetsharma0796@gmail.com | 4/5 | ZK Concept | None | More credentials to store |
+| Evidence | Link / location |
+|---|---|
+| Google Form | Configure the published form URL with `NEXT_PUBLIC_FEEDBACK_FORM_URL` in the frontend deployment environment |
+| Live response sheet | [Google Sheets response workbook](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
+| Excel export | Export the linked response workbook as `.xlsx` after the onboarding window closes and attach its public Drive link here |
+| Mainnet activity | [Stellar Expert public explorer](https://stellar.expert/explorer/public) and the contract-specific links above |
+| Product analytics | Issuer Analytics and Admin Activity screens in the live application |
+
+> Privacy note: individual names and email addresses are kept in the restricted response workbook instead of being duplicated in this public README. Public evidence should redact email addresses while retaining wallet and transaction proof.
+
+### Feedback-driven improvements
+
+| Feedback signal | Improvement shipped | Evidence |
+|---|---|---|
+| New users needed a clearer first-run path | Added a four-step identity launch checklist with wallet-scoped progress, direct actions, and credential-aware completion | [commit `25f8e34`](https://github.com/iamomm-hack/StellarID/commit/25f8e345aecff4a3af38ce795913a8d7fe876ad4) |
+| Feedback collection was disconnected from the product | Added an accessible 1–5 rating widget, wallet copy helper, and Google Form handoff on every product page | [commit `26fdd07`](https://github.com/iamomm-hack/StellarID/commit/26fdd073dd4fff92dba6e4bfff221e17ad2b67e0) |
+| Users reported uncertainty during loading | Retained the dashboard skeleton/loading states and surfaced guided next actions instead of dead ends | [dashboard source](./frontend/src/app/dashboard/page.tsx) |
+
+### Next-phase improvement plan
+
+1. Review exported responses weekly, group issues by onboarding, proof generation, wallet UX, and requested credential type, then link each shipped fix to its commit above.
+2. Reduce first-proof time by measuring checklist completion and the wallet-to-first-credential funnel.
+3. Publish redacted screenshots of user totals and real transaction activity after the Level 5 cohort reaches 50 testnet users.
+4. Complete the security review, then onboard and verify at least 20 mainnet users before marking Level 6 evidence complete.
+
+### Submission evidence tracker
+
+This table intentionally distinguishes implemented work from evidence that must come from real users or external review.
+
+| Requirement | Status as of 31 July 2026 | Submission action |
+|---|---|---|
+| Public repository and live app | ✅ Ready | Recheck both links in an incognito window |
+| 20+ meaningful Level 5 commits | ✅ Repository history available | Link the GitHub commits page in the form |
+| 50+ testnet users with activity | ⏳ Verify from live cohort | Add redacted user-count and transaction screenshots |
+| Pitch deck and full demo video | ⏳ External links required | Add public view-only links to the Live Demo table |
+| Mainnet contracts and production app | ✅ Deployed | Recheck the three contract explorer links |
+| 30+ meaningful Level 6 commits | ✅ Repository history available | Link the GitHub commits page in the form |
+| 20+ verified mainnet users | ⏳ Verify on-chain | Add wallet/transaction evidence without exposing email addresses |
+| Security review or audit | ⏳ Approval artifact required | Link the signed mentor review or audit report |
+| X launch post and community contribution | ⏳ Public links required | Add the post plus blog, tutorial, workshop, or contribution link |
 
 
 ---
@@ -794,4 +828,3 @@ This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for d
   <strong>Built with ❤️ on Stellar</strong><br/>
   <sub>StellarID — Verify once. Prove everywhere.</sub>
 </p>
-
