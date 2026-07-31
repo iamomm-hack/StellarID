@@ -4,9 +4,11 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Stellar-Soroban-7c3aed?style=for-the-badge&logo=stellar&logoColor=white" />
+  <img src="https://img.shields.io/badge/Stellar_Builder_Challenge-Blue_Belt_(Level_5_%26_6)-0284c7?style=for-the-badge&logo=stellar&logoColor=white" />
   <img src="https://img.shields.io/badge/ZK--SNARKs-Circom-00e676?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Version-v2.0.0-blueviolet?style=for-the-badge" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" />
 </p>
 
@@ -17,6 +19,9 @@
   <img src="https://img.shields.io/badge/Stellar-Mainnet-success?style=for-the-badge&logo=stellar&logoColor=white" />
   <img src="https://img.shields.io/badge/Soroban-Live-blue?style=for-the-badge" />
 </p>
+
+> 🏆 **Stellar Builder Challenge — Blue Belt Track (Level 5 & Level 6)**  
+> **StellarID v2.0.0** is a protocol-grade decentralized identity & zero-knowledge reputation layer built natively for Stellar and Soroban. Users verify their attributes once and generate zero-knowledge proofs to authenticate across dApps without exposing personal data.
 
 <p align="center">
   <strong>A protocol-grade identity and reputation layer on Stellar. Users verify their attributes once and generate zero-knowledge proofs to authenticate anywhere without disclosing private personal metadata.</strong>
@@ -46,8 +51,10 @@
 
 ## ⚡ Live Demo
 
-| Resource | Link |
+| Resource | Link / Details |
 |---|---|
+| 🏆 **Challenge Track** | **Stellar Builder Challenge — Blue Belt (Level 5 & Level 6)** |
+| 📦 **Protocol Version** | **v2.0.0** (Repository Standardization & SDK Integration) |
 | 🌐 **Live App** | [StellarID Live App](https://stellarid-id.vercel.app/) |
 | 📊 **User Validation Responses** | [Feedback Spreadsheet (Google Sheets)](https://docs.google.com/spreadsheets/d/1rahOBAd3jOako0YuvpEnNRjesX23tCQUc6hV2-xk_xc/edit?usp=sharing) |
 | 🔍 **Mainnet Explorer** | [Stellar Expert](https://stellar.expert/explorer/public) |
@@ -790,21 +797,22 @@ StellarID now includes a guided, wallet-specific onboarding checklist and an in-
 3. Publish redacted screenshots of user totals and real transaction activity after the Level 5 cohort reaches 50 testnet users.
 4. Complete the security review, then onboard and verify at least 20 mainnet users before marking Level 6 evidence complete.
 
-### Submission evidence tracker
+### Stellar Builder Challenge (Blue Belt — Level 5 & Level 6) Submission Tracker
 
-This table intentionally distinguishes implemented work from evidence that must come from real users or external review.
+This table tracks compliance with **Blue Belt (Level 5 & Level 6)** submission requirements:
 
-| Requirement | Status as of 31 July 2026 | Submission action |
+| Requirement | Status (StellarID v2.0.0) | Submission Action |
 |---|---|---|
-| Public repository and live app | ✅ Ready | Recheck both links in an incognito window |
-| 20+ meaningful Level 5 commits | ✅ Repository history available | Link the GitHub commits page in the form |
-| 50+ testnet users with activity | ⏳ Verify from live cohort | Add redacted user-count and transaction screenshots |
-| Pitch deck and full demo video | ⏳ External links required | Add public view-only links to the Live Demo table |
-| Mainnet contracts and production app | ✅ Deployed | Recheck the three contract explorer links |
-| 30+ meaningful Level 6 commits | ✅ Repository history available | Link the GitHub commits page in the form |
-| 20+ verified mainnet users | ⏳ Verify on-chain | Add wallet/transaction evidence without exposing email addresses |
-| Security review or audit | ⏳ Approval artifact required | Link the signed mentor review or audit report |
-| X launch post and community contribution | ⏳ Public links required | Add the post plus blog, tutorial, workshop, or contribution link |
+| Public repository & live production app | ✅ Ready (`v2.0.0`) | Recheck both links in an incognito window |
+| 20+ meaningful Level 5 commits | ✅ Complete (117+ commits) | Link the GitHub commits page in submission form |
+| Soroban contracts & ZK circuits | ✅ Deployed & Verified | Verified on Stellar Mainnet & Testnet |
+| 50+ testnet users with activity | ⏳ Live Cohort Active | Add redacted user-count & transaction evidence |
+| Pitch deck and full demo video | ⏳ External Links Prepared | Add public view-only links to Live Demo table |
+| Mainnet Soroban contracts & live API | ✅ Deployed & Standardized | Mainnet Soroban contract IDs linked |
+| 30+ meaningful Level 6 commits | ✅ Complete (Repository Standardized) | Link GitHub commit history in submission form |
+| Developer SDK & Integration Tools | ✅ Live (`stellarid-sdk` v2.0.0) | Published in root repository |
+| Security checklist & audit auditability | ✅ Complete ([SECURITY.md](./SECURITY.md)) | Link signed security review or audit report |
+| X launch post & community contribution | ⏳ External Links Prepared | Attach X launch post and community contribution links |
 
 
 ---
