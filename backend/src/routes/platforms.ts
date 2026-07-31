@@ -1,3 +1,19 @@
+/**
+ * StellarID — Platform Management Routes
+ * =========================================
+ * Register and manage third-party platforms that integrate StellarID
+ * verification into their applications. Each platform receives a
+ * unique API key for authentication.
+ *
+ * Endpoints:
+ * - POST /             — Register a new platform
+ * - GET /              — List all platforms (admin)
+ * - POST /:id/rotate-key — Rotate a platform's API key
+ *
+ * @version 2.0.0
+ * @module routes/platforms
+ */
+
 import { Router, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';

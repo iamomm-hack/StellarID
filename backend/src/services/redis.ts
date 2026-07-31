@@ -1,3 +1,22 @@
+/**
+ * StellarID — Redis Cache Service
+ * ==================================
+ * Provides a resilient caching layer backed by Redis with automatic
+ * in-memory fallback for development environments or when Redis is unavailable.
+ *
+ * Features:
+ * - Connection pooling with automatic reconnection (1-minute cooldown)
+ * - In-memory fallback cache with TTL expiration
+ * - Sorted Set operations for the global reputation leaderboard
+ * - Profile cache invalidation helpers
+ * - Graceful degradation (never crashes the server on Redis failure)
+ *
+ * Cache key namespace: `stellarid:` prefix for all keys.
+ *
+ * @version 2.0.0
+ * @module services/redis
+ */
+
 import { createClient, RedisClientType } from 'redis';
 
 let client: RedisClientType | null = null;

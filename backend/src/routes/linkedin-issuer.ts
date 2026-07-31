@@ -1,3 +1,13 @@
+/**
+ * StellarID — LinkedIn OAuth Issuer Routes
+ * ============================================
+ * Handles LinkedIn OpenID Connect flow for professional identity verification.
+ * Verifies LinkedIn profiles and issues LinkedIn Professional credentials.
+ *
+ * @version 2.0.0
+ * @module routes/linkedin-issuer
+ */
+
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { query } from '../db';

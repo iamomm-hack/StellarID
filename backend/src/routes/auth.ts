@@ -1,3 +1,17 @@
+/**
+ * StellarID — Authentication Routes
+ * ====================================
+ * Handles wallet-based authentication using Stellar (Freighter).
+ * Implements connect-wallet flow with JWT token generation.
+ *
+ * Endpoints:
+ * - POST /connect-wallet — Connect a Stellar wallet and get JWT
+ * - GET /me — Get authenticated user profile
+ *
+ * @version 2.0.0
+ * @module routes/auth
+ */
+
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { generateToken } from '../utils/jwt';

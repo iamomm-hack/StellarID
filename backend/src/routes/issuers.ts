@@ -1,3 +1,29 @@
+/**
+ * StellarID — Issuer Management Routes
+ * =======================================
+ * Full issuer lifecycle: registration, domain verification (DNS + email),
+ * peer endorsements, credential minting, and revocation.
+ * Supports multi-tier verification: unverified → community → official.
+ *
+ * Endpoints:
+ * - GET /                              — List all issuers (public)
+ * - GET /me                            — Get own issuer profile
+ * - GET /me/analytics                  — Issuer dashboard analytics
+ * - POST /register                     — Register issuer profile
+ * - POST /:id/request-domain-verification  — Start DNS verification
+ * - POST /:id/confirm-domain-verification  — Confirm DNS TXT record
+ * - POST /:id/request-email-verification   — Start email verification
+ * - POST /:id/confirm-email-verification   — Confirm email token
+ * - POST /:id/endorse                      — Endorse another issuer
+ * - GET /:id/endorsements                  — List endorsers (public)
+ * - GET /:id/public                        — Public issuer metadata
+ * - POST /:id/mint                         — Mint credential NFT
+ * - POST /:id/revoke/:credentialId         — Revoke credential
+ *
+ * @version 2.0.0
+ * @module routes/issuers
+ */
+
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';

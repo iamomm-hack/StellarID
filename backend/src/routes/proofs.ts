@@ -1,3 +1,13 @@
+/**
+ * StellarID — Proof Record Routes
+ * ==================================
+ * Manages ZK proof records, shareable verification links, and PDF export.
+ * Each proof gets a unique public token for third-party verification.
+ *
+ * @version 2.0.0
+ * @module routes/proofs
+ */
+
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { query } from '../db';

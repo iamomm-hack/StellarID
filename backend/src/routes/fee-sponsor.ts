@@ -1,3 +1,13 @@
+/**
+ * StellarID — Fee Sponsorship Routes
+ * =====================================
+ * Gasless onboarding via Stellar fee bump transactions.
+ * Sponsor account covers network fees so users never pay gas.
+ *
+ * @version 2.0.0
+ * @module routes/fee-sponsor
+ */
+
 import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { getSponsorStatus } from '../services/stellar';

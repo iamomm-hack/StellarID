@@ -1,3 +1,13 @@
+/**
+ * StellarID — Admin Dashboard Routes
+ * =====================================
+ * Platform-wide admin endpoints for monitoring metrics, managing issuers,
+ * overriding verification status, and viewing activity charts.
+ *
+ * @version 2.0.0
+ * @module routes/admin
+ */
+
 import { Router, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';

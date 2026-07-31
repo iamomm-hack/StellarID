@@ -1,3 +1,14 @@
+/**
+ * StellarID — GitHub OAuth Issuer Routes
+ * =========================================
+ * Handles GitHub OAuth2 flow for issuing GitHub Developer credentials.
+ * Users link their GitHub account, and the system verifies their
+ * profile data (repos, contributions) to issue a credential NFT.
+ *
+ * @version 2.0.0
+ * @module routes/github-issuer
+ */
+
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { query } from '../db';

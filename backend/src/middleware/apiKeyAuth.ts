@@ -1,3 +1,21 @@
+/**
+ * StellarID — Developer API Key Authentication
+ * ===============================================
+ * Authenticates requests from third-party developers using StellarID API keys.
+ * Supports two key formats: `sid_live_*` (production) and `sid_test_*` (sandbox).
+ *
+ * Authentication flow:
+ * 1. Extract key from X-StellarID-Key header or Authorization: Bearer sid_*
+ * 2. Look up key prefix in database
+ * 3. Compare bcrypt hash of full key against stored hash
+ * 4. Verify required permissions
+ * 5. Update last_used_at timestamp (fire-and-forget)
+ * 6. Attach key info and issuer context to request
+ *
+ * @version 2.0.0
+ * @module middleware/apiKeyAuth
+ */
+
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { query } from '../db';

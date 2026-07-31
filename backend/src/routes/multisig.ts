@@ -1,3 +1,13 @@
+/**
+ * StellarID — Multi-Signature Credential Routes
+ * ================================================
+ * M-of-N signature approval for high-value credential issuance.
+ * Supports configurable thresholds (2-of-3, 3-of-5, etc.).
+ *
+ * @version 2.0.0
+ * @module routes/multisig
+ */
+
 import { Router, Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { query } from '../db';

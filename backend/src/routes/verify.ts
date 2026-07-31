@@ -1,3 +1,18 @@
+/**
+ * StellarID — ZK Proof Verification Routes
+ * ============================================
+ * Third-party platforms use these endpoints to verify ZK-SNARK proofs.
+ * Proofs are verified server-side using snarkjs, and the result is
+ * logged for audit purposes. NO personal data is ever returned.
+ *
+ * Endpoints:
+ * - POST /                    — Verify a Groth16 ZK proof
+ * - GET /credential/:id/status — Check credential validity
+ *
+ * @version 2.0.0
+ * @module routes/verify
+ */
+
 import { Router, Response } from 'express';
 import { query } from '../db';
 import { apiKeyMiddleware, ApiKeyRequest } from '../middleware/apiKey';

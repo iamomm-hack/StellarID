@@ -1,3 +1,17 @@
+/**
+ * StellarID — Subscription Tier Middleware
+ * ==========================================
+ * Enforces credential issuance limits based on the issuer's subscription plan.
+ * Supports three tiers: Free, Pro, and Enterprise, each with different monthly
+ * credential quotas, bulk upload access, and API key limits.
+ *
+ * Admin accounts (matching ADMIN_STELLAR_ADDRESS env var) receive automatic
+ * Enterprise-tier access regardless of their stored subscription status.
+ *
+ * @version 2.0.0
+ * @module middleware/subscription
+ */
+
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from './auth';
 import { query } from '../db';

@@ -1,3 +1,21 @@
+/**
+ * StellarID — Profile & Reputation Routes
+ * ==========================================
+ * User profile cards, reputation scores, OG image generation,
+ * social sharing URLs, and AI-powered developer bio generation.
+ *
+ * Endpoints:
+ * - GET /:wallet/card-data    — Profile card data (JSON)
+ * - GET /:wallet/credentials  — Public credential list
+ * - GET /:wallet/og-image     — Dynamic OG image (PNG via sharp)
+ * - GET /:wallet/share-url    — Social share URLs (Twitter, LinkedIn)
+ * - PUT /update               — Update profile details
+ * - POST /generate-bio        — AI developer bio generation
+ *
+ * @version 2.0.0
+ * @module routes/profile
+ */
+
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { getCache, setCache, invalidateProfileCache } from '../services/redis';

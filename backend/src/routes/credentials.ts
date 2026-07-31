@@ -1,3 +1,23 @@
+/**
+ * StellarID — Credential Management Routes
+ * ============================================
+ * Full credential lifecycle management: request, issue, claim, delete.
+ * Handles on-chain NFT minting, IPFS metadata pinning, and
+ * email-based credential claiming with gasless fee sponsorship.
+ *
+ * Endpoints:
+ * - GET /              — List user's credentials
+ * - POST /request      — Request a new credential
+ * - POST /:id/generate-proof — Prepare ZK proof generation
+ * - DELETE /:id        — Unlink/delete a credential
+ * - POST /issue-with-email — Issue via email invitation
+ * - GET /claim/:token  — Fetch pending claim details
+ * - POST /claim/:token — Claim credential on-chain
+ *
+ * @version 2.0.0
+ * @module routes/credentials
+ */
+
 import { Router, Request, Response } from 'express';
 import { query } from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
