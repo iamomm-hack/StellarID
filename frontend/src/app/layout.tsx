@@ -11,6 +11,7 @@ import Providers from '../components/Providers';
 import ConnectWallet from '../components/wallet/ConnectWallet';
 import NavLinks from '../components/NavLinks';
 import ToastProvider from '../components/ToastProvider';
+import FeedbackWidget from '../components/feedback/FeedbackWidget';
 
 // Motion Components (Client-side wrappers)
 import PageTransition from '../components/motion/PageTransition';
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <Providers>
           <ToastProvider />
+          <FeedbackWidget />
           
           <div className="relative flex flex-col min-h-screen">
             
