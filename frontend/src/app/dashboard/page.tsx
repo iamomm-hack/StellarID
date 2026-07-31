@@ -16,6 +16,7 @@ import RequestCredentialModal from '../../components/credentials/RequestCredenti
 import GitHubGreeting from '../../components/GitHubGreeting';
 import LinkedInGreeting from '../../components/LinkedInGreeting';
 import ConnectWallet from '../../components/wallet/ConnectWallet';
+import OnboardingChecklist from '../../components/onboarding/OnboardingChecklist';
 
 // Icons
 import {
@@ -208,6 +209,12 @@ function DashboardContent() {
           </Link>
           <MetricCard label="Latency" value="24ms" status="Stable" color="#6366f1" />
         </motion.div>
+
+        <OnboardingChecklist
+          walletAddress={address || ''}
+          credentialCount={credentials?.length || 0}
+          onRequestCredential={() => setShowRequestModal(true)}
+        />
  
 
         {/* --- ALERTS --- */}
